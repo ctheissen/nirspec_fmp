@@ -12,7 +12,7 @@ Dependencies:
 * pandas
 * matplotlib
 
-# Code Setup:
+## Code Setup:
 Before using the NSDRP, one needs to modify the data headers with modifyHeader.py, setting up the parameters in the code. One can also subtract darks from flats with subtractDark.py. The setup is similar to modifyHeader.py.
 
 The recipe is described below:
