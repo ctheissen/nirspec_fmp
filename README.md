@@ -1,5 +1,5 @@
 # nirspec_pip
-The nirspec_pip is to make the required changes before processing [NSDRP] (https://github.com/Keck-DataReductionPipelines/NIRSPEC-Data-Reduction-Pipeline). More features are developing and will be updated in the future.
+The nirspec_pip is to make the required changes before processing [NSDRP](https://github.com/Keck-DataReductionPipelines/NIRSPEC-Data-Reduction-Pipeline). More features are developing and will be updated in the future.
 
 Authors:
 * Dino Chih-Chun Hsu (UCSD)
