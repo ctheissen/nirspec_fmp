@@ -13,12 +13,6 @@ from astropy.io import fits
 #     to set up is 'nov16s'
 path = '' 
 
-
-# Note that the NSDRP does not have the arclamp correction
-add_header(1, 11, imagetypes='dark')
-add_header(12, 22, imagetypes='flatlamp')
-add_header(24, 39, imagetypes='object')
-
 ######
 
 def add_header(begin, end, imagetypes='object'):
@@ -50,7 +44,10 @@ def add_header(begin, end, imagetypes='object'):
 		if ('IMAGETYP' in header) is True and ('DISPERS' in header) is True:
 			print('The imagetype {0} and the dispers are added to the {1}'.format(imagetypes, files))
 
-
+# Note that the NSDRP does not have the arclamp correction
+add_header(1, 11, imagetypes='dark')
+add_header(12, 22, imagetypes='flatlamp')
+add_header(24, 39, imagetypes='object')
 
 
 
