@@ -16,6 +16,6 @@ Dependencies:
 Before using the NSDRP, one needs to modify the data headers with modifyHeader.py, setting up the parameters in the code. One can also subtract darks from flats with subtractDark.py. The setup is similar to modifyHeader.py.
 
 The recipe is described below:
-* Use modifyHeader.py to add the keywords required by the NSDRP.
+* If you are reducing your own data (not available on the Keck Observatory Archive (KOA)), use modifyHeader.py to add the keywords required by the NSDRP.
 * Use subtractDark.py to subtract darks from flats and return a combined flat.
-* Run the NSDRP in the terminal.
+* Run the [NSDRP](https://github.com/chihchunhsu/NIRSPEC-Data-Reduction-Pipeline) in the terminal.
