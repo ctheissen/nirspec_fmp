@@ -13,19 +13,30 @@ warnings.filterwarnings("ignore")
 
 def add_header(begin, end, date, imagetypes='object', debug=False):
 	"""
-	Purpose: to add the keywords in the header such as dispers and imagetypes.
+	Add the keywords in the header such as dispers and imagetypes.
 	@Dino Hsu
 
-	Inputs:
-	begin (int): the begining number of the files, defined by different imagetypes of the data
-	end (int): the ending number of the files, defined by different imagetypes of the data
-	date (str): the date information in the filename
-	imagetypes (str): can only be 'dark, flatlamp', or 'object'
+	Parameters
+	----------
+	begin: int number
+	        the begin number of the data filename with the same imagetype
+	end  : int number 
+	       the end number of the data filename with the same imagetype
+	date : str the date of the data filename
+	       the date information in the filename
+	imagetypes: str keyword 'IMAGETYP'
+	       this can only be 'dark, flatlamp', or 'object'
 
+	Returns
+	-------
+	Keywords 'IMAGETYP' and 'DISPERS' : keywords in fits header
+	         the keywords required to put in the header 
+	         efore proccessing by NSDRP
 
-	note:
-		1. DISPERS is always 'high', adding to the header all the time
-		2. IMAGETYPES: No 'arclamp', NSDRP doesn't deal with the arc lamp data.
+	Notes
+	-----
+	1. DISPERS is always 'high', adding to the header all the time
+	2. IMAGETYPES: No 'arclamp', NSDRP doesn't deal with the arc lamp data.
 
 	"""
 	end = end + 1 #converge to the correct index of files
@@ -49,20 +60,27 @@ def add_header(begin, end, date, imagetypes='object', debug=False):
 
 def addKeyword(file=input, debug=False):
 	"""
-	Purpose: to read the input file for data reduction
+	Add the required keywords for NSDRP reduction.
 	@Dino Hsu
 
-	Input: 
-	Txt format file. This need to specify the data folder
-		and the darks, flats, sources
+	Parameters
+	----------
+	file : txt format file 
+	       This need to specify the data folder, date
+	       darks, flats, and sources
+	debug: True or Flase
+	       Provide more details when adding the keywords
 
-	Output:
-	Keywords 'IMAGETYP' and 'DISPERS' required to put in 
-		before proccessing by NSDRP
+	Returns
+	-------
+	Keywords 'IMAGETYP' and 'DISPERS' : keywords in fits header
+	         the keywords required to put in the header 
+	         efore proccessing by NSDRP
 
-	example:
-	from addKeyword import addKeyword
-	addKeyword(file='input_reduction.txt')
+	Examples
+	--------
+	>>> from addKeyword import addKeyword
+	>>> addKeyword(file='input_reduction.txt')
 
 	"""
 	with open(file="input_reduction.txt", mode="r") as f:
