@@ -11,7 +11,7 @@ import os
 import warnings
 warnings.filterwarnings("ignore")
 
-def add_header(begin, end, date, imagetypes='object', debug=False):
+def _addHeader(begin, end, date, imagetypes='object', debug=False):
 	"""
 	Add the keywords in the header such as dispers and imagetypes.
 	@Dino Hsu
@@ -31,7 +31,7 @@ def add_header(begin, end, date, imagetypes='object', debug=False):
 	-------
 	Keywords 'IMAGETYP' and 'DISPERS' : keywords in fits header
 	         the keywords required to put in the header 
-	         efore proccessing by NSDRP
+	         before proccessing by NSDRP
 
 	Notes
 	-----
@@ -66,7 +66,7 @@ def addKeyword(file=input, debug=False):
 	Parameters
 	----------
 	file : txt format file 
-	       This need to specify the data folder, date
+	       Need to specify the data folder, date
 	       darks, flats, and sources
 	debug: True or Flase
 	       Provide more details when adding the keywords
@@ -75,7 +75,7 @@ def addKeyword(file=input, debug=False):
 	-------
 	Keywords 'IMAGETYP' and 'DISPERS' : keywords in fits header
 	         the keywords required to put in the header 
-	         efore proccessing by NSDRP
+	         before proccessing by NSDRP
 
 	Examples
 	--------
@@ -101,11 +101,11 @@ def addKeyword(file=input, debug=False):
 		end = int(keyword.split()[1].split("-")[1])
 		imagetype = str(keyword.split()[0])
 		if imagetype == 'DARKS':
-			add_header(begin=begin, end=end, date=date, imagetypes='dark', debug=debug)
+			_addHeader(begin=begin, end=end, date=date, imagetypes='dark', debug=debug)
 		elif imagetype == 'FLATS':
-			add_header(begin=begin, end=end, date=date, imagetypes='flatlamp', debug=debug)
+			_addHeader(begin=begin, end=end, date=date, imagetypes='flatlamp', debug=debug)
 		elif imagetype == 'SOURCE':
-			add_header(begin=begin, end=end, date=date, imagetypes='object', debug=debug)
+			_addHeader(begin=begin, end=end, date=date, imagetypes='object', debug=debug)
 	os.chdir(originalpath)
 	print('Keywords have been added, ready to be reduced by NSDRP.')
 
