@@ -36,7 +36,7 @@ def _addHeader(begin, end, date, imagetypes='object', debug=False):
 	Notes
 	-----
 	1. DISPERS is always 'high', adding to the header all the time
-	2. IMAGETYPES: No 'arclamp', NSDRP doesn't deal with the arc lamp data.
+	2. IMAGETYPES: NSDRP doesn't deal with the arclamp data.
 
 	"""
 	end = end + 1 #converge to the correct index of files
@@ -67,7 +67,7 @@ def addKeyword(file=input, debug=False):
 	----------
 	file : txt format file 
 	       Need to specify the data folder, date
-	       darks, flats, and sources
+	       darks, flats, arcs, and sources
 	debug: True or Flase
 	       Provide more details when adding the keywords
 
@@ -104,6 +104,8 @@ def addKeyword(file=input, debug=False):
 			_addHeader(begin=begin, end=end, date=date, imagetypes='dark', debug=debug)
 		elif imagetype == 'FLATS':
 			_addHeader(begin=begin, end=end, date=date, imagetypes='flatlamp', debug=debug)
+		elif imagetype == 'ARC':
+			_addHeader(begin=begin, end=end, date=date, imagetypes='arclamp', debug=debug)
 		elif imagetype == 'SOURCE':
 			_addHeader(begin=begin, end=end, date=date, imagetypes='object', debug=debug)
 	os.chdir(originalpath)
