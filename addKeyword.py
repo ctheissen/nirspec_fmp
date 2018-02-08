@@ -47,7 +47,7 @@ def add_header(begin, end, date, imagetypes='object', debug=False):
 			if ('IMAGETYP' in header) is True and ('DISPERS' in header) is True:
 				print('The imagetype {0} and the high dispersion are added to the {1}'.format(imagetypes, files))
 
-def read_input(file=input, debug=False):
+def addKeyword(file=input, debug=False):
 	"""
 	Purpose: to read the input file for data reduction
 	@Dino Hsu
@@ -59,6 +59,10 @@ def read_input(file=input, debug=False):
 	Output:
 	Keywords 'IMAGETYP' and 'DISPERS' required to put in 
 		before proccessing by NSDRP
+
+	example:
+	from addKeyword import addKeyword
+	addKeyword(file='input_reduction.txt')
 
 	"""
 	with open(file="input_reduction.txt", mode="r") as f:
