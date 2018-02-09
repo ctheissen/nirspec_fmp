@@ -26,8 +26,8 @@ export PYTHONPATH="/path/to/nirspec_pip:${PYTHONPATH}"
 ## Reducing the data using NSDRP:
 To add required keywords to the headers before reducing private data using [NSDRP](https://github.com/Keck-DataReductionPipelines/NIRSPEC-Data-Reduction-Pipeline), use the addKeyword function and the [input](https://github.com/chihchunhsu/nirspec_pip/blob/master/input_reduction.txt) text file:
 ```
-import nirspec_pip
-nirspec_pip.addKeyword(file='input_reduction.txt')
+>>> import nirspec_pip
+>>> nirspec_pip.addKeyword(file='input_reduction.txt')
 ```
 The example txt file is for setting up the data information such as file numbers of darks, flats, arcs, and sources. 
 
