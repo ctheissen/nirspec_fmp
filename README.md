@@ -9,9 +9,9 @@ Authors:
 Dependencies:
 * astropy
 * numpy
+* matplotlib
 <!---* scipy---> 
 <!---* pandas---> 
-* matplotlib
 
 Download the nispec_pip and the forked and modified NSDRP to your computer.
 
