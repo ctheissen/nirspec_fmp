@@ -33,7 +33,7 @@ The example txt file is for setting up the data information such as file numbers
 
 Note that you don't need to perform this task if you download the data directly from the KOA.
 
-To reduce the data, use the forked [NIRSPEC-Data-Reduction-Pipeline](https://github.com/chihchunhsu/NIRSPEC-Data-Reduction-Pipeline) on the command line:
+To reduce the data, use the forked [NSDRP](https://github.com/chihchunhsu/NIRSPEC-Data-Reduction-Pipeline) on the command line:
 
 ```
 $ python ~/path/to/NIRSPEC-Data-Reduction-Pipeline/nsdrp.py rawData/ reducedData/ -oh_filename ~/path/to/NIRSPEC-Data-Reduction-Pipeline/ir_ohlines.dat -spatial_jump_override -verbose -debug
