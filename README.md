@@ -18,7 +18,7 @@ Download the nispec_pip and the forked and modified NSDRP to your computer.
 Set up the environment variables in the `.bashrc` or `.bash_profile`
 
 ```
-export PYTHONPATH="/Users/dinohsu/projects/nirspec_pip:${PYTHONPATH}"`
+export PYTHONPATH="/Users/dinohsu/projects/nirspec_pip:${PYTHONPATH}"
 ```
 
 <!---*## Downloading the data from the Keck Observatory Archive (KOA)---> 
