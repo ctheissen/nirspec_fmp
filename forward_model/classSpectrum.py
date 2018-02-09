@@ -12,12 +12,12 @@
 import sys
 import os
 import numpy as np
-import scipy
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 from astropy.io import fits
 from astropy import units as u
+import warnings
+warnings.filterwarnings("ignore")
 
 
 class Spectrum():
@@ -42,6 +42,7 @@ class Spectrum():
 		self.name = kwargs.get('name')
 		self.order = kwargs.get('order')
 		self.path = kwargs.get('path')
+		#self.manaulmask = kwargs('manaulmask', False)
 
 		if self.path == None:
 			self.path = './'
@@ -56,6 +57,7 @@ class Spectrum():
 		self.flux  = hdulist[1].data
 		self.noise = hdulist[2].data
 		self.sky   = hdulist[3].data
+		self.mask  = []
 
 		#set up masking criteria
 		self.avgFlux = np.mean(self.flux)
@@ -65,12 +67,12 @@ class Spectrum():
 		#set the outliers as the flux below 
 		self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
 
-		mask = np.where(self.smoothFlux <= 0)
+		self.mask = np.where(self.smoothFlux <= 0)
 
-		self.wave  = np.delete(self.wave, list(mask))
-		self.flux  = np.delete(self.flux, list(mask))
-		self.noise = np.delete(self.noise, list(mask))
-		self.sky   = np.delete(self.sky, list(mask))
+		self.wave  = np.delete(self.wave, list(self.mask))
+		self.flux  = np.delete(self.flux, list(self.mask))
+		self.noise = np.delete(self.noise, list(self.mask))
+		self.sky   = np.delete(self.sky, list(self.mask))
 
 	def plot(self, **kwargs):
 		"""
