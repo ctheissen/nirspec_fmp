@@ -22,20 +22,37 @@ warnings.filterwarnings("ignore")
 
 class Spectrum():
 	"""
-	The spectrum class reading the NIRSPEC data with the parameters:
-	@Dino Hsu
+	The spectrum class for reading the reduced NIRSPEC data by NSDRP.
 
-	input parameters:
-	name: the part of the data filename before the order number
-	order: the order of the spectra
-	path: the path before the filename of the data
+	Parameters
+	----------
+	name : str
+	       The data filename before the order number.
+	       Ex. name='jan19s0022'
+	order: int
+	       The order of the spectra.
+	path : str
+	       The directory where the reduced data is.
 
-	output parameters:
-	flux: the flux of the spectrum
-	wave: the wavelength of the spectrum
-	noise: the noise of the spectrum
-	sky: the sky emission
-	plot: plot the spectrum (with noise on/off option)
+	Returns
+	-------
+	flux : numpy.ndarray
+	       The flux of the spectrum.
+	wave : numpy.ndarray
+	       The wavelength of the spectrum
+	noise: numpy.ndarray
+	       The noise of the spectrum
+	sky  : numpy.ndarray
+	       The sky emission
+	plot : matplotlib plot
+	       plot the spectrum (with noise on/off option)
+
+	Examples
+	--------
+	>>> import nirspec_pip as nsp
+	>>> path = '/path/to/reducedData'
+	>>> data = nsp.Spectrum(name='jan19s0022', order=33, path=path)
+	>>> data.plot()
 
 	"""
 	def __init__(self, **kwargs):
@@ -47,7 +64,7 @@ class Spectrum():
 		if self.path == None:
 			self.path = './'
 
-		fullpath = self.path + '/' + self.name + '_' + self.order + '_all.fits'
+		fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
 
 		hdulist = fits.open(fullpath, ignore_missing_end=True)
 
