@@ -41,6 +41,6 @@ $ python ~/path/to/NIRSPEC-Data-Reduction-Pipeline/nsdrp.py rawData/ reducedData
 
 , where the directory rawData/ is the path to the raw data is, and reducedData/ is the path where you want to store the reduce data.
 
-You can also optionally subtract the dark frames using subtractDark.py before running the NSDRP.
+<!---*You can also optionally subtract the dark frames using subtractDark.py before running the NSDRP.---> 
 
 <!---*## Forward Modeling the Spectra:---> 
