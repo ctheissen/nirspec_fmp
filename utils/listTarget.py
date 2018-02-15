@@ -16,6 +16,10 @@ def makeTargetList(path, **kwargs):
 
 	outdir    : str
 	            The path where the csv file will be stored.
+	            The default is the same is the path of the data.
+
+	save      : boolean value
+			    True returns a csv file.
 
 
 	Returns
@@ -28,13 +32,18 @@ def makeTargetList(path, **kwargs):
 	            'DATE-OBS',
 	            'PROGPI'
 
+	data frame: pandas format data frame
+	            including the same header keywords in the csv file.
+
 	Examples
 	--------
 	>>> makeTargetList(path='path/to/PI_name')
 
 	"""
 
+	cwd    = os.getcwd()
 	outdir = kwargs.get('outdir',path)
+	save   = kwargs.get('save', True)
 
 	# crear empty lists to store keywords
 	OBJECT_list   = []
@@ -80,6 +89,13 @@ def makeTargetList(path, **kwargs):
 			pass
 
 	df = pd.DataFrame({"OBJECT" : OBJECT_list, "FILENAME" : FILENAME_list, "SLITNAME":SLITNAME_list, "DATE-OBS":DATEOBS_list, "PROGPI":PROGPI_list})
-	save_to_path = outdir + 'targetlist.csv'
-	df.to_csv(save_to_path, index=False)
-	print("The target list is saved to {} .".format(save_to_path))
+	
+	
+	if save == True:
+		save_to_path = outdir + 'targetlist.csv'
+		df.to_csv(save_to_path, index=False)
+		print("The target list is saved to {} .".format(save_to_path))
+
+	os.chdir(cwd)
+
+	return df
