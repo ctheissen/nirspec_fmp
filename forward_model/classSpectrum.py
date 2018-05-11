@@ -76,6 +76,14 @@ class Spectrum():
 		self.sky   = hdulist[3].data
 		self.mask  = []
 
+		# define a list for storing the best wavelength shift
+		self.bestshift = []
+
+		# store the original parameters
+		self.oriWave  = hdulist[0].data
+		self.oriFlux  = hdulist[1].data
+		self.oriNoise = hdulist[2].data
+
 		#set up masking criteria
 		self.avgFlux = np.mean(self.flux)
 		self.stdFlux = np.std(self.flux)

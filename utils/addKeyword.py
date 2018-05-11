@@ -83,7 +83,7 @@ def addKeyword(file=input, debug=False):
 	>>> addKeyword(file='input_reduction.txt')
 
 	"""
-	with open(file="input_reduction.txt", mode="r") as f:
+	with open(file="reduction_input.txt", mode="r") as f:
 		table = f.readlines()
 	# cd to the datafolder
 	originalpath = os.getcwd()

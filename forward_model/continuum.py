@@ -64,6 +64,7 @@ def continuum(data, mdl, **kwargs):
     
     pcont  = np.polyfit(data.wave, mdldiv, deg)
     
-    mdlcont.flux *= np.polyval(pcont, mdlcont.wave)
+    #mdlcont.flux *= np.polyval(pcont, mdlcont.wave)
+    mdl.flux *= np.polyval(pcont, mdl.wave)/max(mdl_flux_vals)
 
-    return mdlcont
+    return mdl

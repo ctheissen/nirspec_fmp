@@ -18,7 +18,7 @@ def _constructModelName(teff, logg, feh, en, order, path=None):
     Return the full name of the BT-Settl model.
     """
     if path is None:
-        path = 'models/' + 'NIRSPEC-O' + str(order) + '-RAW/'
+        path = 'models/btsettl08/' + 'NIRSPEC-O' + str(order) + '-RAW/'
     else:
         path = path + '/NIRSPEC-O' + str(order) + '-RAW/'
     full_name = path + 'btsettl08_t'+ str(teff) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'

@@ -57,6 +57,8 @@ def makeTargetList(path, **kwargs):
 	SLITNAME_list = []
 	DATEOBS_list  = []
 	PROGPI_list   = []
+	RA_list       = []
+	DEC_list      = []
 
 	os.chdir(path)
 	listDataDir = os.listdir('.')
@@ -75,12 +77,15 @@ def makeTargetList(path, **kwargs):
 							'arc' not in f[0].header['OBJECT'] and 'flat' not in f[0].header['OBJECT'] and\
 							'test' not in f[0].header['OBJECT'] and 'Dark' not in f[0].header['OBJECT'] and\
 							'Arc' not in f[0].header['OBJECT'] and 'Flat' not in f[0].header['OBJECT'] and\
-							'Test' not in f[0].header['OBJECT']:
+							'Test' not in f[0].header['OBJECT'] and 'null' not in f[0].header['RA'] and\
+							'null' not in f[0].header['DEC']:
 								OBJECT_list.append(f[0].header['OBJECT'])
 								FILENAME_list.append(f[0].header['FILENAME'])
 								SLITNAME_list.append(f[0].header['SLITNAME'])
 								DATEOBS_list.append(f[0].header['DATE-OBS'])
 								PROGPI_list.append(f[0].header['PROGPI'])
+								RA_list.append(f[0].header['RA'])
+								DEC_list.append(f[0].header['DEC'])
 							else:
 								pass
 						else:
@@ -98,7 +103,10 @@ def makeTargetList(path, **kwargs):
 		except FileNotFoundError:
 			pass
 
-	df = pd.DataFrame({"OBJECT" : OBJECT_list, "FILENAME" : FILENAME_list, "SLITNAME":SLITNAME_list, "DATE-OBS":DATEOBS_list, "PROGPI":PROGPI_list})
+	df = pd.DataFrame({"OBJECT" : OBJECT_list, "FILENAME" : FILENAME_list, \
+		"SLITNAME": SLITNAME_list, "DATE-OBS": DATEOBS_list, "PROGPI":PROGPI_list, \
+		"RA":RA_list, "DEC":DEC_list})
+	df = df.reindex_axis(['OBJECT','PROGPI','DATE-OBS','FILENAME','SLITNAME','RA','DEC'], axis=1)
 	
 	# save as a csv file
 	if save == True:
