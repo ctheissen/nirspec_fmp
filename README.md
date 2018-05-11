@@ -4,6 +4,7 @@ The nirspec_pip is to make required adjustments before reducing private data usi
 Authors:
 * Dino Chih-Chun Hsu (UCSD)
 * Adam Burgasser, PI (UCSD)
+* Chris Theissen (BU, UCSD)
 
 ## Code Setup:
 Dependencies:
