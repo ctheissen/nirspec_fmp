@@ -5,6 +5,7 @@ from .forward_model.continuum import continuum
 from .forward_model.telluric_wavelength_fit import getTelluric, continuumTelluric, _continuumFit, waveSolution
 from .forward_model.telluric_wavelength_fit import *
 from .forward_model.residual import residual
+from .forward_model.model_fit import *
 from .utils.stats import chisquare
 from .utils.addKeyword import addKeyword
 from .utils.listTarget import makeTargetList

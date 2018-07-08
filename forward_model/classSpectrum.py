@@ -9,6 +9,7 @@
 # Refer to the Jessica's Apogee_tools
 #
 
+import nirspec_pip as nsp
 import sys
 import os
 import numpy as np
@@ -17,6 +18,7 @@ from matplotlib.ticker import AutoMinorLocator
 from astropy.io import fits
 from astropy import units as u
 import warnings
+import copy
 warnings.filterwarnings("ignore")
 
 
@@ -91,13 +93,12 @@ class Spectrum():
 		self.smoothFlux = self.flux
 		#set the outliers as the flux below 
 		self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
-
 		self.mask = np.where(self.smoothFlux <= 0)
-
 		self.wave  = np.delete(self.wave, list(self.mask))
 		self.flux  = np.delete(self.flux, list(self.mask))
 		self.noise = np.delete(self.noise, list(self.mask))
 		self.sky   = np.delete(self.sky, list(self.mask))
+		self.mask = self.mask[0]
 
 	def plot(self, **kwargs):
 		"""
@@ -141,6 +142,62 @@ class Spectrum():
 
 		plt.show()
 		plt.close()
+
+	def writeto(self, save_to_path):
+		"""
+		Save as a new fits file.
+		"""
+		fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
+		hdulist = fits.open(fullpath, ignore_missing_end=True)
+		hdulist.writeto(save_to_path)
+		hdulist.close()
+
+
+	def coadd(self, sp, method='pixel'):
+		"""
+		Coadd individual extractions, either in pixel space or
+		wavelength space.
+		usage: method='pixel' or 'wave'
+		"""
+		if sp is None:
+			print("Please select another spectra.")
+		if method=='pixel':
+			coadd = copy.deepcopy(sp)
+			w1 = 1/self.oriNoise**2
+			w2 = 1/sp.oriNoise**2
+			#sp.wave = sp.wave
+			coadd.oriFlux = (self.oriFlux*w1 + sp.oriFlux*w2)/(w1+w2)
+			coadd.oriNoise = np.sqrt(1/(w1 + w2))
+			#set up masking criteria
+			coadd.avgFlux = np.mean(coadd.oriFlux)
+			coadd.stdFlux = np.std(coadd.oriFlux)
+			coadd.smoothFlux = coadd.oriFlux
+			#set the outliers as the flux below 
+			coadd.smoothFlux[coadd.smoothFlux <= coadd.avgFlux-2*coadd.stdFlux] = 0
+			coadd.mask = np.where(coadd.smoothFlux <= 0)
+			coadd.wave  = np.delete(coadd.oriWave, list(coadd.mask))
+			coadd.flux  = np.delete(coadd.oriFlux, list(coadd.mask))
+			coadd.noise = np.delete(coadd.oriNoise, list(coadd.mask))
+
+		return coadd
+
+	def updateWaveSol(self, tell_sp):
+		"""
+		Return a new wavelength solution given a wavelength calibrated telluric spectrum.
+		"""
+		wfit0 = tell_sp.header['WFIT0NEW']
+		wfit1 = tell_sp.header['WFIT1NEW']
+		wfit2 = tell_sp.header['WFIT2NEW']
+		wfit3 = tell_sp.header['WFIT3NEW']
+		wfit4 = tell_sp.header['WFIT4NEW']
+		wfit5 = tell_sp.header['WFIT5NEW']
+		c3    = tell_sp.header['c3']
+		c4    = tell_sp.header['c4']
+		self.wave = np.delete(nsp.waveSolution(np.arange(1024)+1,wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4\
+			,order=self.order), list(self.mask))
+		return self
+
+
 
 
 

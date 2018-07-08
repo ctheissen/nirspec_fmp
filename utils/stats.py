@@ -7,5 +7,5 @@ def chisquare(data,model,dof=0):
     """
     d = data.flux
     m = model.flux
-    #return np.sum((d-m)**2/m) #the definition from scipy
+    
     return np.sum((d-m)**2/data.noise**2)

@@ -6,19 +6,23 @@
 # The model class for the BTSettl models
 #
 #
-
+import warnings
+warnings.filterwarnings("ignore")
+import splat
+import splat.model as spmd
 import numpy as np
 from astropy.io import fits
 from astropy.io import ascii
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 
+
 def _constructModelName(teff, logg, feh, en, order, path=None):
     """
     Return the full name of the BT-Settl model.
     """
     if path is None:
-        path = 'models/btsettl08/' + 'NIRSPEC-O' + str(order) + '-RAW/'
+        path = '/Users/dinohsu/projects/Models/models/btsettl08/' + 'NIRSPEC-O' + str(order) + '-RAW/'
     else:
         path = path + '/NIRSPEC-O' + str(order) + '-RAW/'
     full_name = path + 'btsettl08_t'+ str(teff) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
@@ -76,22 +80,29 @@ class Model():
             self.feh   = kwargs.get('feh')
             self.en    = kwargs.get('en')
             if self.teff == None:
-                self.teff = 3500
+                self.teff = 2500
             if self.logg == None:
                 self.logg = 5.00
             if self.feh  == None:
                 self.feh  = 0.00
             if self.en   == None:
                 self.en   = 0.00
-            print('Return a BT-Settl model of the order {0}, with Teff {1} logg {2}, FeH {3}, Alpha enhancement {4}.'\
-                .format(self.order, self.teff, self.logg, self.feh, self.en))
+            #print('Return a BT-Settl model of the order {0}, with Teff {1} logg {2}, z {3}, Alpha enhancement {4}.'\
+            #    .format(self.order, self.teff, self.logg, self.feh, self.en))
         
-            full_name = _constructModelName(self.teff, self.logg, self.feh, self.en, self.order, self.path)
-            model = ascii.read(full_name, format='no_header', fast_reader=False)
-            self.wave  = model[0][:]*10000 #convert to Angstrom
-            self.flux  = model[1][:]
+            #full_name = _constructModelName(self.teff, self.logg, self.feh, self.en, self.order, self.path)
+            #model = ascii.read(full_name, format='no_header', fast_reader=False)
+            #self.wave  = model[0][:]*10000 #convert to Angstrom
+            #self.flux  = model[1][:]
+            
+            #load the splat.interpolation BTSETTL model
+            instrument = "NIRSPEC-O{}-RAW".format(self.order)
+            sp = spmd.getModel(instrument=str(instrument),teff=self.teff,logg=self.logg,z=self.feh)
+            self.wave = sp.wave.value*10000 #convert to Angstrom
+            self.flux = sp.flux.value
+
         else:
-            print('Return a self-defined model.')
+            #print('Return a self-defined model.')
             self.wave   = kwargs.get('wave', [])
             self.flux   = kwargs.get('flux', [])
         
