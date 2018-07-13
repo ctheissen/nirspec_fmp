@@ -112,7 +112,7 @@ def getLSF(telluric_data, **kwargs):
 	Return a best LSF value from a telluric data.
 	"""
 	lsf_list = []
-	test_lsf = np.arange(3.0,12.0,0.1)
+	test_lsf = np.arange(3.0,10.0,0.1)
 	for i in test_lsf:
 		data = copy.deepcopy(telluric_data)
 		telluric_model = nsp.convolveTelluric(i,data)
