@@ -11,6 +11,7 @@ import numpy as np
 import scipy
 from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
+from scipy.special import wofz
 import time
 
 FULL_PATH  = os.path.realpath(__file__)
@@ -101,7 +102,32 @@ def getTelluric(wavelow, wavehigh, **kwargs):
 def _continuumFit(wave, a, b, c):
     return a*wave**2 + b*wave + c
 
-def continuumTelluric(data, model=None):
+def linear_fit(x,a,b):
+    return a*x + b
+
+def gaus_absorption_spec(x, x0, sigma, scale, a, b, c, d):
+    """
+    This function is to fit continuum of the spectra 
+    with one absorption feature.
+    
+    """
+    gaussian_absorption = 1 - scale*np.e**(-(x-x0)**2/(2*sigma**2))
+    return gaussian_absorption * (a*x**2 + b*x + c) + d
+
+def voigt_profile(x, x0, amp, gamma, scale, a, b, c, d):
+    """
+    Return a spectral line absorption with a second order 
+    polynomial and the Voigt line shape absorption at x0 
+    with Lorentzian component HWHM gamma and Gaussian component
+    HWHM alpha (the latter is absorbed in the amp parameter.
+
+    """
+    #sigma = alpha / np.sqrt(2 * np.log(2))
+
+    voigt_absorption = (1 - scale * np.real(wofz((x-x0 + 1j*gamma)*amp)))
+    return voigt_absorption * (a*x**2 + b*x + c) + d
+
+def continuumTelluric(data, model=None, order=None):
 	"""
 	Return a continnum telluric standard data.
 	Default: return a telluric flux of mean 1.
@@ -136,12 +162,48 @@ def continuumTelluric(data, model=None):
 		wavehigh = data.wave[-1]
 		model = nsp.getTelluric(wavelow,wavehigh)
 
-	# this second order polynomial continnum correction 
-	# works for the order 33 and 34
-	popt, pcov = curve_fit(_continuumFit, data.wave, data.flux)
-	const = np.mean(data.flux/_continuumFit(data.wave, *popt))-np.mean(model.flux)
-	data.flux = data.flux/_continuumFit(data.wave, *popt) - const
-	data.noise = data.noise/_continuumFit(data.wave, *popt)
+	if order == 35:
+		# O35 has a voigt absorption profile
+		popt, pcov = curve_fit(voigt_profile,data.wave[20:-20],
+			data.flux[20:-20],
+			p0=[21660,2000,0.1,0.1,0.01,0.1,10000,1000])
+		const = np.mean(data.flux/voigt_profile(data.wave, *popt))\
+		-np.mean(model.flux)
+		data.flux = data.flux/voigt_profile(data.wave, *popt) - const
+		data.noise = data.noise/voigt_profile(data.wave, *popt)
+
+	if order == 38:
+		# O38 has rich absorption features
+		def fit_continuum_O38(x,a,b,**kwargs):
+			flux = kwargs.get('flux',data.flux)
+			linear = a*x + b
+			return flux/linear
+
+		model2 = copy.deepcopy(model)
+		model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, 
+			flux=model2.flux, vbroad=4.8, 
+			rotate=False, gaussian=True)
+		model2.flux = np.array(spt.integralResample(xh=model2.wave, 
+			yh=model2.flux, xl=data.wave))
+		model2.wave = data.wave
+		
+		popt, pcov = curve_fit(fit_continuum_O38,data.wave,
+			model2.flux, p0=[ 8.54253062e+00  , -166000])
+		#const = np.mean(data.flux/linear_fit(data.wave, *popt))-np.mean(model.flux)
+		#data.flux = data.flux/linear_fit(data.wave, *popt) - const
+		data.flux = data.flux/linear_fit(data.wave, *popt)
+		data.noise = data.noise/linear_fit(data.wave, *popt)
+
+	else:
+		# this second order polynomial continnum correction 
+		# works for the O33, O34, O36, and O37
+		popt, pcov = curve_fit(_continuumFit, data.wave, data.flux)
+		const = np.mean(data.flux/_continuumFit(data.wave, *popt))-np.mean(model.flux)
+		data.flux = data.flux/_continuumFit(data.wave, *popt) - const
+		data.noise = data.noise/_continuumFit(data.wave, *popt)
+
+		if order == 37:
+			data.flux -= 0.05
 
 	return data
 
