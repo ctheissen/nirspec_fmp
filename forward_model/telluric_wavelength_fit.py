@@ -105,6 +105,9 @@ def _continuumFit(wave, a, b, c):
 def linear_fit(x,a,b):
     return a*x + b
 
+def gaus_absorption_only(x,x0,sigma,a,b):
+    return (1 - b*np.e**(-(x-x0)**2/(2*sigma**2)))*a
+
 def gaus_absorption_spec(x, x0, sigma, scale, a, b, c, d):
     """
     This function is to fit continuum of the spectra 
@@ -172,7 +175,7 @@ def continuumTelluric(data, model=None, order=None):
 		data.flux = data.flux/voigt_profile(data.wave, *popt) - const
 		data.noise = data.noise/voigt_profile(data.wave, *popt)
 
-	if order == 38:
+	elif order == 38:
 		# O38 has rich absorption features
 		def fit_continuum_O38(x,a,b,**kwargs):
 			flux = kwargs.get('flux',data.flux)
@@ -194,11 +197,21 @@ def continuumTelluric(data, model=None, order=None):
 		data.flux = data.flux/linear_fit(data.wave, *popt)
 		data.noise = data.noise/linear_fit(data.wave, *popt)
 
+	elif order == 65:
+		# O65 is best mateched by a gaussian absorption feature
+		popt, pcov = curve_fit(gaus_absorption_only,
+			data.wave,data.flux, p0=[11660,50,2000,2000])
+		const = np.mean(data.flux/gaus_absorption_only(data.wave, 
+			*popt))-np.mean(model.flux)
+		data.flux = data.flux/gaus_absorption_only(data.wave, *popt) - const
+		data.noise /= gaus_absorption_only(data.wave, *popt)
+
 	else:
 		# this second order polynomial continnum correction 
 		# works for the O33, O34, O36, and O37
 		popt, pcov = curve_fit(_continuumFit, data.wave, data.flux)
-		const = np.mean(data.flux/_continuumFit(data.wave, *popt))-np.mean(model.flux)
+		const = np.mean(data.flux/_continuumFit(data.wave, 
+			*popt))-np.mean(model.flux)
 		data.flux = data.flux/_continuumFit(data.wave, *popt) - const
 		data.noise = data.noise/_continuumFit(data.wave, *popt)
 
@@ -340,13 +353,17 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 	ax1.legend()
 	ax1t = ax1.twiny()
 	ax1t.set_xlim(data.wave[0],data.wave[-1])
-	ax1t.set_xticks([data.wave[np.where(pixel==200)],
-		data.wave[np.where(pixel==400)],
-		data.wave[np.where(pixel==600)],
-		data.wave[np.where(pixel==800)],
-		data.wave[np.where(pixel==1000)]])
-	ax1t.set_xticklabels(['200','400','600','800','1000'])
-	ax1t.set_xlabel("Pixel")
+	try:
+		ax1t.set_xticks([data.wave[np.where(pixel==200)],
+			data.wave[np.where(pixel==400)],
+			data.wave[np.where(pixel==600)],
+			data.wave[np.where(pixel==800)],
+			data.wave[np.where(pixel==1000)]])
+		ax1t.set_xticklabels(['200','400','600','800','1000'])
+		ax1t.set_xlabel("Pixel")
+	except ValueError:
+		# pass if some pixels are masked
+		pass
 
 	ax2.plot(data.wave, data.flux, color='black',linestyle='-', 
 		label='telluric data',alpha=0.5,linewidth=linewidth)
@@ -997,284 +1014,3 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	#return new_wave_sol, p0, np.std(residual2), np.std(residual2)/np.average(new_wave_sol)*299792.458
 	return new_wave_sol, p0, width_range_center2, residual2, best_shift_list
 	#return new_wave_sol, p0, std, stdV
-
-### Below is a test
-def wavelengthSolutionFit2(data,model,**kwargs):
-	"""
-	Using the least square fit to calculate the new wavelength solution.
-	
-	Parameters
-	----------
-	data:  spectrum object
-	       The input telluric data to obtain the initial wavelength solution
-	       parameters
-
-	model: model object
-		   The telluric model to calculate the delta wavelength
-
-	Optional Parameters
-	-------------------
-	spec_range  : int
-				  range of the spectrum for fitting wavelength solution 
-				  in the unit of pixels
-
-	window_width: int
-				  width of each xcorr window
-
-	delta_wave_range: float
-				  xcorr window range BY SHIFTING THE WAVELENGTH to calculate the max xcorr
-
-	step_size   : int
-				  step size of moving to the next xcorr window
-
-	niter		: int
-				  number of interations for fitting the wavelength solution
-
-	order		: int
-				  spectral order defined by NIRSPEC
-
-	Returns
-	-------
-	wavelength sol: numpy array
-				    a new wavelength solution
-
-
-	"""
-	# set up the initial parameters
-	spec_range = kwargs.get('spec_range',900)
-	width = kwargs.get('window_width',40)
-	delta_wave_range = kwargs.get('delta_wave_range',10)
-	step_size = kwargs.get('step_size',5)
-	step = kwargs.get('step',0.1)
-	niter = kwargs.get('niter',1)
-	order = kwargs.get('order',33)
-	test  = kwargs.get('test',False)
-
-	width_range = np.arange(0,spec_range,step_size)
-	width_range_center = width_range + width/2
-	pixel = np.delete(np.arange(1024),data.mask)+1
-
-	data2 = copy.deepcopy(data)
-	model2 = copy.deepcopy(model)
-	# model resample and LSF broadening
-	model2.flux = np.array(spt.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave))
-	model2.wave = data.wave
-
-	# LSF of the intrument
-	vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
-	model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, flux=model2.flux, vbroad=vbroad, rotate=False, gaussian=True)
-
-	# fitting the new wavelength solution
-	if test is True:
-		print("initial WFIT:",data2.header['WFIT0'],data2.header['WFIT1'],data2.header['WFIT2'],data2.header['WFIT3'],data2.header['WFIT4'],data2.header['WFIT5'])
-
-	for i in range(niter):
-	# getting the parameters of initial wavelength solution 
-		k = i + 1
-		time1 = time.time()
-		if i is 0:
-			wfit0 = data2.header['WFIT0']
-			wfit1 = data2.header['WFIT1']
-			wfit2 = data2.header['WFIT2']
-			wfit3 = data2.header['WFIT3']
-			wfit4 = data2.header['WFIT4']
-			wfit5 = data2.header['WFIT5']
-			c3 = 0
-			c4 = 0
-			p0 = np.array([wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4])
-			print("Loop {} old wave parameters, time {} s".format(k,time1))
-
-		else:
-			wfit0 = data2.header['WFIT0NEW']
-			wfit1 = data2.header['WFIT1NEW']
-			wfit2 = data2.header['WFIT2NEW']
-			wfit3 = data2.header['WFIT3NEW']
-			wfit4 = data2.header['WFIT4NEW']
-			wfit5 = data2.header['WFIT5NEW']
-			c3    = data2.header['C3']
-			c4    = data2.header['C4']
-			popt0_ori = data2.header['POPT0']
-			popt1_ori = data2.header['POPT1']
-			popt2_ori = data2.header['POPT2']
-			popt3_ori = data2.header['POPT3']
-			popt4_ori = data2.header['POPT4']
-			popt5_ori = data2.header['POPT5']
-			popt6_ori = data2.header['POPT6']
-			popt7_ori = data2.header['POPT7']
-			p0 = np.array([wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4])
-			print("Loop {} new wave parameters, time {} s".format(k,time1))
-
-		# calcutate the delta wavelentgh
-		best_shift_list  = []
-		for counter, j in enumerate(width_range):
-			testname = "loop{}".format(k)
-			if i is 0:
-				time2 = time.time()
-				best_shift = nsp.pixelWaveShift(data2,model,j,width,delta_wave_range,model2,test=test,testname=testname,counter=counter,step=step)
-				time3 = time.time()
-				print("xcorr time: {} s".format(round(time3-time2,4)))
-			elif i is 1:
-				# reduce the delta_wave_range by 5
-				time2 = time.time()
-				best_shift = nsp.pixelWaveShift(data2,model,j,width,5,model2,test=test,testname=testname,counter=counter,step=step)
-				time3 = time.time()
-				print("xcorr time: {} s".format(round(time3-time2,4)))
-			else:
-				# reduce the delta_wave_range by 8
-				time2 = time.time()
-				best_shift = nsp.pixelWaveShift(data2,model,j,width,2,model2,test=test,testname=testname,counter=counter,step=step)
-				time3 = time.time()
-				print("xcorr time: {} s".format(round(time3-time2,4)))
-			#else:
-			#	best_shift = nsp.pixelWaveShift(data2,model,j,width,0.2,model2,test=test,testname=testname,counter=counter,step=step)
-			#else:
-			#	best_shift = nsp.pixelWaveShift(data2,model,j,width,0.15,model2,test=test,testname=testname,counter=counter,step=0.001)
-
-			best_shift_list.append(best_shift)
-
-		time4 = time.time()
-		print("Total X correlation time: {} s".format(round(time4-time1,4)))
-		# fit a new wavelength solution
-		popt, pcov = curve_fit(lambda pixel, wfit0, wfit1, wfit2, wfit3, wfit4, wfit5, c3, c4: \
-			nsp.waveSolution(pixel, wfit0, wfit1, wfit2, wfit3, wfit4, wfit5, c3, c4,order=order),
-			width_range_center, best_shift_list,p0)
-
-		# outlier rejection
-		best_shift_array = np.asarray(best_shift_list)
-		
-		m = 2 # number of sigma for outlier rejection
-		if k is 1:
-			fit_sigma = 1.
-			#fit_sigma = np.std(original_fit - best_shift_array)
-			original_fit = nsp.waveSolution(width_range_center,popt[0],popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],order=order)
-		elif k < 6:
-			fit_sigma = data2.header['FITSTD']
-			original_fit = nsp.waveSolution(width_range_center,popt[0],popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],order=order)
-		else:
-			fit_sigma = data2.header['FITSTD']
-			original_fit = nsp.waveSolution(width_range_center,popt0_ori,popt1_ori,popt2_ori,popt3_ori,popt4_ori,popt5_ori,popt6_ori,popt7_ori,order=order)
-
-		# exclude the edge pixels in the fitting
-		#width_range_center2 = width_range_center[5:-5]
-		#best_shift_array2 = best_shift_array[5:-5]
-		#width_range_center2 = width_range_center2[np.where(abs(original_fit[5:-5] - best_shift_array[5:-5]) < m*fit_sigma)]
-		#best_shift_array2 = best_shift_array2[np.where(abs(original_fit[5:-5] - best_shift_array[5:-5]) < m*fit_sigma)]
-		width_range_center2 = width_range_center[np.where(abs(original_fit - best_shift_array) < m*fit_sigma)]
-		best_shift_array2 = best_shift_array[np.where(abs(original_fit - best_shift_array) < m*fit_sigma)]		
-
-		if len(width_range_center2) < 8:
-			print("Number of selected pixel < number of fits parameters (8)")
-			break
-
-		# drop the last 10 pixels for the fitting
-		popt2, pcov2 = curve_fit(lambda pixel, wfit0, wfit1, wfit2, wfit3, wfit4, wfit5, c3, c4: \
-			nsp.waveSolution(pixel, wfit0, wfit1, wfit2, wfit3, wfit4, wfit5, c3, c4,order=order),width_range_center2,best_shift_array2,p0)
-
-		# update the parameters
-		wfit0 = wfit0+popt2[0]
-		wfit1 = wfit1+popt2[1]
-		wfit2 = wfit2+popt2[2]
-		wfit3 = wfit3+popt2[3]
-		wfit4 = wfit4+popt2[4]
-		wfit5 = wfit5+popt2[5]
-		c3    = c3+popt2[6]
-		c4    = c4+popt2[7]
-		p0 = np.array([wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4])
-		
-		# update the fits header keywords WFIT0-5, c3, c4
-		data2.header['COMMENT']  = 'Below are the keywords added by NIRSPEC_PIP...'
-		data2.header['WFIT0NEW'] = wfit0
-		data2.header['WFIT1NEW'] = wfit1
-		data2.header['WFIT2NEW'] = wfit2
-		data2.header['WFIT3NEW'] = wfit3
-		data2.header['WFIT4NEW'] = wfit4
-		data2.header['WFIT5NEW'] = wfit5
-		data2.header['c3']       = c3
-		data2.header['c4']       = c4
-		data2.bestshift          = data2.bestshift + best_shift_list
-		data2.header['FITSTD']   = np.std(nsp.waveSolution(width_range_center2,popt2[0]\
-			,popt2[1],popt2[2],popt2[3],popt2[4],popt2[5],popt2[6],popt2[7],order=order) - best_shift_array2)
-		data2.header['POPT0']	= popt2[0]
-		data2.header['POPT1']	= popt2[1]
-		data2.header['POPT2']	= popt2[2]
-		data2.header['POPT3']	= popt2[3]
-		data2.header['POPT4']	= popt2[4]
-		data2.header['POPT5']	= popt2[5]
-		data2.header['POPT6']	= popt2[6]
-		data2.header['POPT7']	= popt2[7]
-
-		new_wave_sol = nsp.waveSolution(pixel,wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4,order=order)
-
-		time5 = time.time()
-		print("Pixel wavelength fit time: {} s".format(round(time5-time4,4)))
-		# plot for analysis
-		if test is True:
-			plt.rc('text', usetex=True)
-			plt.rc('font', family='serif')
-			fig = plt.figure(figsize=(8,8))
-			gs1 = gridspec.GridSpec(5, 4)
-			ax1 = plt.subplot(gs1[0:2,0:])
-			ax2 = plt.subplot(gs1[2:4,0:])
-			ax3 = plt.subplot(gs1[4:,0:], sharex=ax2)
-		
-			ax1.xaxis.tick_top()
-			ax1.plot(data.wave, data.flux, color='black',linestyle='-', label='telluric data',alpha=0.5,linewidth=0.8)
-			ax1.plot(new_wave_sol,data.flux,color='black',linestyle='-',label='corrected telluric data',alpha=0.8,linewidth=0.8)
-			ax1.plot(model2.wave, model2.flux, 'r-' ,label='telluric model',alpha=0.5)
-			ax1.set_xlabel(r"Wavelength($\displaystyle \AA $)")
-			ax1.set_ylabel('Transmission')
-			ax1.xaxis.set_label_position('top') 
-			ax1.set_ylim(0,1.1)
-			ax1.set_xlim(min(data.wave[0],new_wave_sol[0]),max(data.wave[-1],new_wave_sol[-1]))
-			#ax1.set_title("Telluric Spectra Region for Cross-Correlation:{} Iteration".format(k))
-			ax1.get_xaxis().get_major_formatter().set_scientific(False)
-			ax1.legend()
-			residual1 = nsp.waveSolution(width_range_center,popt[0],popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],order=order)-best_shift_array
-			residual2 = nsp.waveSolution(width_range_center2,popt2[0],popt2[1],popt2[2],popt2[3],popt2[4],popt2[5],popt2[6],popt2[7],order=order)-best_shift_array2
-			std = round(np.std(residual2),5)			
-			ax2.plot(width_range_center,best_shift_array,'k.',label="delta wavelength")
-			ax2.plot(width_range_center2,best_shift_array2,'b.',label="delta wavelength with ourlier rejection")
-			ax2.plot(width_range_center,nsp.waveSolution(width_range_center,popt[0],popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],order=order),'g.',\
-				label="fitted wavelength function".format(np.std(residual1)),alpha=0.5)
-			ax2.plot(width_range_center2,nsp.waveSolution(width_range_center2,popt2[0],popt2[1],popt2[2],popt2[3],popt2[4],popt2[5],popt2[6],popt2[7],order=order),'r.',\
-				label=r"fitted wavelength function with outlier rejection, STD={} $\displaystyle \AA $={} km/s".format(\
-				std,std/np.average(new_wave_sol)*299792.458),alpha=0.5)
-			ax2.set_ylabel(r"$\displaystyle\Delta \lambda (\displaystyle \AA)$")
-			ax2.legend()
-			# plot the residual
-			plt.setp(ax2.get_xticklabels(), visible=False)
-			yticks = ax3.yaxis.get_major_ticks()
-			yticks[-1].label1.set_visible(False)
-			ax3.plot(width_range_center,residual1,'g.',alpha=0.5)
-			ax3.plot(width_range_center2, residual2,'r.',alpha=0.5)
-			ax3.set_ylim(-3*fit_sigma,3*fit_sigma)
-			ax3.set_ylabel(r"$residual (\displaystyle \AA)$")
-			ax3.set_xlabel(r'Pixel')
-			#ax3.legend(loc=9, bbox_to_anchor=(0.5, -0.5))
-			plt.subplots_adjust(hspace=.0)
-			plt.savefig("pixel_to_delta_wavelength_loop_{}.png".format(k),bbox_inches='tight')
-			plt.close()
-
-			time6 = time.time()
-			print("Plot time:",format(round(time6-time5,4)))
-		
-		if data2.header['FITSTD']>fit_sigma and k is not 1:
-			print("Wavelength solution converges in {} loops, with STD {} Angstrom ({} km/s)".format(k,np.std(residual2),np.std(residual2)/np.average(new_wave_sol)*299792.458))
-			break
-
-	data2.wave = new_wave_sol
-
-	#return new_wave_sol, p0, np.std(residual2), np.std(residual2)/np.average(new_wave_sol)*299792.458
-	return new_wave_sol, p0, width_range_center2, residual2
-
-
-
-
-
-
-
-
-
-
-
-

@@ -9,4 +9,5 @@ from .forward_model.model_fit import *
 from .utils.stats import chisquare
 from .utils.addKeyword import addKeyword
 from .utils.listTarget import makeTargetList
+from .utils.defringeflat import defringeflat, defringeflatAll
 #from .utils.subtractDark import subtractDark
