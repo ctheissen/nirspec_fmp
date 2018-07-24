@@ -5,8 +5,6 @@ import splat
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib import rc
-rc('font', family='serif')
 import copy
 import time
 import os
@@ -47,24 +45,24 @@ def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
 
 	# read in a model
 	model = nsp.Model(teff=teff, logg=logg, feh=z, order=order)
-	# contunuum correction
-	if data is not None:
-		model = nsp.continuum(data=data, mdl=model)
-	# apply vsini
-	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, flux=model.flux, vbroad=vsini, rotate=True)
+	
 	# apply rv (including the barycentric correction)
 	model.wave = apmdl.rv_function.rvShift(model.wave, rv=rv)
+	# apply vsini
+	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, flux=model.flux, vbroad=vsini, rotate=True)
 	# apply telluric
 	if tell is True:
-		apmdl.telluric.BASE = '/Users/dinohsu/projects/apogee_all/apogee_tools/'
-		tell_sp = nsp.getTelluric(wavelow=model.wave[0],wavehigh=model.wave[-1])
-		model = apmdl.telluric.applyTelluric(mdl=model,tell_sp=tell_sp, alpha=alpha)
+		model = nsp.applyTelluric(model=model, alpha=alpha)
 	# NIRSPEC LSF
-	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
+	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
+		flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
 	# integral resampling
 	if data is not None:
-		model.flux = np.array(splat.integralResample(xh=model.wave, yh=model.flux, xl=data.wave))
+		model.flux = np.array(splat.integralResample(xh=model.wave, 
+			yh=model.flux, xl=data.wave))
 		model.wave = data.wave
+		# contunuum correction
+		model = nsp.continuum(data=data, mdl=model)
 
 	return model
 
@@ -89,9 +87,55 @@ def returnModelFit(data,theta,**kwargs):
 		plt.close()
 	return chisquare
 
+def applyTelluric(model, alpha):
+	"""
+	Apply the telluric model on the science model.
+
+	Parameters
+	----------
+	model 	:	model object
+				BT Settl model
+	alpha 	: 	float
+				telluric alpha parameter (the power on the flux)
+
+	Returns
+	-------
+	model 	: 	model object
+				BT Settl model times the corresponding model
+
+	"""
+	
+	if alpha is None:
+		alpha = 1
+
+	# read in a telluric model
+	wavelow = model.wave[0] - 10
+	wavehigh = model.wave[-1] + 10
+	telluric_model = nsp.getTelluric(wavelow=wavelow,
+		wavehigh=wavehigh)
+	# apply the telluric alpha parameter
+	telluric_model.flux = telluric_model.flux**(alpha)
+	time2 = time.time()
+	if len(model.wave) > len(telluric_model.wave):
+		model.flux = np.array(splat.integralResample(xh=model.wave, 
+			yh=model.flux, xl=telluric_model.wave))
+		model.wave = telluric_model.wave
+		model.flux *= telluric_model.flux
+
+	elif len(model.wave) < len(telluric_model.wave):
+		telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave, 
+			yh=telluric_model.flux, xl=model.wave))
+		telluric_model.wave = model.wave
+		model.flux *= telluric_model.flux
+
+	elif len(model.wave) == len(telluric_model.wave):
+		model.flux *= telluric_model.flux
+		
+	return model
+
 def convolveTelluric(lsf,telluric_data, **kwargs):
 	"""
-	Return a convolved telluric model given a telluric data and lsf.
+	Return a convolved telluric standard model given a telluric data and lsf.
 	"""
 	alpha = kwargs.get('alpha',1)
 	# get a telluric standard model
@@ -128,7 +172,7 @@ def getAlpha(telluric_data,lsf):
 	Return a best alpha value from a telluric data.
 	"""
 	alpha_list = []
-	test_alpha = np.arange(0.1,2,0.1)
+	test_alpha = np.arange(1,2,0.1)
 	for i in test_alpha:
 		data = copy.deepcopy(telluric_data)
 		telluric_model = nsp.convolveTelluric(lsf,data)

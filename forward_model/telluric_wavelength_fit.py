@@ -3,7 +3,6 @@ import apogee_tools.forward_model as apmdl
 import splat as spt
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from matplotlib.ticker import MultipleLocator, FormatStrFormatter
 import copy
 import os
 from astropy.io import fits
