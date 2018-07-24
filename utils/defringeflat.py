@@ -60,7 +60,7 @@ def defringeflat(flat_file, wbin=32, start_col=10,
 
 	flat = flat_file
 
-	# final diagnostic plot
+	# initial flat plot
 	if diagnostic is True:
 		fig = plt.figure(figsize=(8,8))
 		fig.suptitle("original flat",fontsize=14)
@@ -80,7 +80,7 @@ def defringeflat(flat_file, wbin=32, start_col=10,
 			.format(filename))
 		plt.close()
 
-	defringeflat_img = flat
+	defringeflat_img = flat_file
 
 	for k in np.arange(0,1024,wbin):
 		# extract the patch from the fits file
@@ -114,7 +114,7 @@ def defringeflat(flat_file, wbin=32, start_col=10,
 		for i in range(wbin):
 			for j in np.arange(start_col,end_col):
 				reconstruct_image[i,j] = rx[j - start_col]
-
+		
 		defringeflat_img[0].data[k:k+wbin,:] -= reconstruct_image
 		print("{} row starting {} is done".format(filename,k))
 
@@ -280,8 +280,9 @@ def defringeflat(flat_file, wbin=32, start_col=10,
 			.format(filename))
 		plt.close()
 
-
-	return defringeflat_img
+	hdu = fits.PrimaryHDU(data=defringeflat_img[0].data)
+	hdu.header = flat_file[0].header
+	return hdu
 
 def defringeflatAll(data_folder_path, wbin=32, start_col=10, 
 	end_col=980 ,diagnostic=True):
@@ -316,6 +317,9 @@ def defringeflatAll(data_folder_path, wbin=32, start_col=10,
 
 	diagnostic 		: 	boolean
 						output the diagnostic plots
+						The option may cause much more 
+						computation time and have some issues
+						in plotting.
 						Default is True
 
 	Returns
@@ -327,7 +331,7 @@ def defringeflatAll(data_folder_path, wbin=32, start_col=10,
 	--------
 	>>> import nirspec_pip as nsp
 	>>> nsp.defringeflatAll(data_folder_path, diagnostic=False)
-	
+
 	"""
 	originalpath = os.getcwd()
 

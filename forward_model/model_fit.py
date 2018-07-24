@@ -68,7 +68,6 @@ def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
 
 	return model
 
-
 def returnModelFit(data,theta,**kwargs):
 	"""
 	Chisquare computing function for MCMC.
@@ -94,10 +93,12 @@ def convolveTelluric(lsf,telluric_data, **kwargs):
 	"""
 	Return a convolved telluric model given a telluric data and lsf.
 	"""
+	alpha = kwargs.get('alpha',1)
 	# get a telluric standard model
 	wavelow = telluric_data.wave[0] - 50
 	wavehigh = telluric_data.wave[-1] + 50
 	telluric_model = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
+	telluric_model.flux **= alpha
 	# resample
 	telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave\
 		, yh=telluric_model.flux, xl=telluric_data.wave))
