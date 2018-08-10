@@ -51,7 +51,7 @@ def _addHeader(begin, end, date, imagetypes='object', debug=False):
 			header['DISPERS'] = 'high'
 
 		#save the changes
-		fits.writeto(files, data, header, clobber=True, output_verify='ignore')
+		fits.writeto(files, data, header, overwrite=True, output_verify='ignore')
 		
 		#check if the keywords were added to the header correctly
 		if debug is True:

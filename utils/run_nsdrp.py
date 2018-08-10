@@ -44,7 +44,7 @@ for filename in mylist:
     if ('DISPERS' in header) is False:
         header['DISPERS'] = 'high'
 
-    fits.writeto(file_path, data, header, clobber=True, output_verify='ignore')
+    fits.writeto(file_path, data, header, overwrite=True, output_verify='ignore')
 print("Keywords are added to the data. Ready to process by NSDRP.")
 
 # reduce the data using NSDRP

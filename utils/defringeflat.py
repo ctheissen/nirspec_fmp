@@ -3,6 +3,7 @@ from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 from astropy.io import fits
+from astropy.visualization import ZScaleInterval, ImageNormalize
 import copy
 import os
 import shutil
@@ -73,7 +74,6 @@ def defringeflat(flat_file, wbin=32, start_col=10,
 			alpha=0.5, label='60th row profile')
 		ax1.set_ylabel("Amp (DN)")
 		ax1.set_xlabel("Column number")
-		ax1.set_ylim(6000,10000)
 		fig.subplots_adjust(hspace=0)
 		plt.legend()
 		plt.savefig(save_to_path + "defringeflat_{}_0_original_flat.png"\
@@ -353,7 +353,7 @@ def defringeflatAll(data_folder_path, wbin=32, start_col=10,
 				save_to_path=save_to_path,filename=filename)
 			save_name = data_folder_path + filename.split('.')[0] + \
 			'_defringe.fits'
-			defringeflat_file.writeto(save_name, clobber=True,
+			defringeflat_file.writeto(save_name, overwrite=True,
 				output_verify='ignore')
 			file_path2 = save_to_path + filename
 			shutil.move(file_path, file_path2)
