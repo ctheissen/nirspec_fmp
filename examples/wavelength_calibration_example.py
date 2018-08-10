@@ -20,3 +20,4 @@ save = True # Save the wavelength calibrated spectra
 ## Run the telluric wavelength calibration
 nsp.run_wave_cal(data_name ,data_path ,order_list ,
 	save_to_path, test=test, save=save)
+

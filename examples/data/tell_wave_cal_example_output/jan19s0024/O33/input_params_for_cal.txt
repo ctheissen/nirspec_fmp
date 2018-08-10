@@ -9,3 +9,8 @@ niter 10
 outlier_rej 3 
 pixel range start 0 
 pixel range end -1 
+*** Below is the summary *** 
+wave_sol_params
+std 0.015275342643620154 Angstrom
+std_vel 0.19836445776021394 km/s
+comp_time 625.9596 min
