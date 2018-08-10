@@ -1,0 +1,11 @@
+data_path /Users/dinohsu/projects/nirspec_pip/nirspec_pip/examples/data/reduced/fits/all 
+data_name jan19s0024 
+order 33 
+window_width 40 
+window_step 5 
+xcorr_range 10 
+xcorr_range 0.05
+niter 10 
+outlier_rej 3 
+pixel range start 0 
+pixel range end -1 

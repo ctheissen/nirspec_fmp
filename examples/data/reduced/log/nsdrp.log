@@ -1,0 +1,68 @@
+2018-07-16 01:55:37,978 INFO - nsdrp.py:126 - start nsdrp version 0.9.17
+2018-07-16 01:55:37,978 INFO - nsdrp.py:127 - cwd: /Users/dinohsu/Google Drive/ucsd/research/nirspec
+2018-07-16 01:55:37,978 INFO - nsdrp.py:128 - input dir: data/2014jan19/spec
+2018-07-16 01:55:37,978 INFO - nsdrp.py:129 - output dir: data/2014jan19/spec/reduced
+2018-07-16 01:55:37,980 DEBUG - create_raw_data_sets.py:29 - creating raw data sets from files in data/2014jan19/spec/
+2018-07-16 01:55:38,226 INFO - create_raw_data_sets.py:40 - n fits files found = 44
+2018-07-16 01:55:38,229 INFO - create_raw_data_sets.py:57 - Failed to reduced 0 files because NAXIS1 != 1024
+2018-07-16 01:55:38,230 INFO - create_raw_data_sets.py:70 - n object frames found = 3
+2018-07-16 01:55:38,238 DEBUG - create_raw_data_sets.py:95 - jan19s0023 has 8 flats
+2018-07-16 01:55:38,238 DEBUG - create_raw_data_sets.py:95 - jan19s0024 has 8 flats
+2018-07-16 01:55:38,238 DEBUG - create_raw_data_sets.py:95 - jan19s0025 has 8 flats
+2018-07-16 01:55:38,238 INFO - create_raw_data_sets.py:105 - n raw data sets with flats = 3
+2018-07-16 01:55:38,240 INFO - FlatCacher.py:16 - instantiating flat cacher
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:423 - starting reduction of jan19s0023
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:425 - time of observation = 2014-01-19 12:24:22.20 UT
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:426 - target name = J0746-0846
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:427 - filter name = NIRSPEC-7
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:428 - slit name = 0.432x12
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:429 - integration time = 600.0 sec
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:430 - n coadds = 1
+2018-07-16 01:55:38,750 DEBUG - FlatCacher.py:52 - creating flat jan19s0011_defring_flat_0.fits which combines jan19s0011_defringe, jan19s0012_defringe, jan19s0013_defringe, jan19s0014_defringe, jan19s0015_defringe, jan19s0016_defringe, jan19s0017_defringe, jan19s0018_defringe
+2018-07-16 01:55:51,038 INFO - reduce_frame.py:210 - mean signal-to-noise ratio = 5.5
+2018-07-16 01:55:51,039 INFO - reduce_frame.py:219 - minimum signal-to-noise ratio = 3.6
+2018-07-16 01:55:51,039 INFO - reduce_frame.py:225 - mean spatial peak width = 3.4 pixels
+2018-07-16 01:55:51,039 INFO - reduce_frame.py:236 - maximum spatial peak width = 3.5 pixels
+2018-07-16 01:55:51,040 INFO - reduce_frame.py:268 - n sky lines identified = 39
+2018-07-16 01:55:51,204 INFO - reduce_frame.py:290 - n lines used in wavelength fit = 36
+2018-07-16 01:55:51,204 INFO - reduce_frame.py:292 - rms wavelength fit residual = 0.816
+2018-07-16 01:55:51,205 INFO - nsdrp_koa.py:103 - generating data products for single-frame set, nirspec config: disppos=35.45, echlpos=63.01, filname=NIRSPEC-7, slitname=0.432x12
+2018-07-16 01:56:04,950 INFO - products.py:357 - n data products generated for jan19s0023 = 134
+2018-07-16 01:56:04,958 INFO - nsdrp_koa.py:65 - starting new multi-frame set for nirpsec config: disppos=35.45, echlpos=63.01, filname=NIRSPEC-7, slitname=0.432x12
+2018-07-16 01:56:05,004 INFO - reduce_frame.py:423 - starting reduction of jan19s0024
+2018-07-16 01:56:05,004 INFO - reduce_frame.py:425 - time of observation = 2014-01-19 12:39:45.60 UT
+2018-07-16 01:56:05,004 INFO - reduce_frame.py:426 - target name = HD65102
+2018-07-16 01:56:05,005 INFO - reduce_frame.py:427 - filter name = NIRSPEC-7
+2018-07-16 01:56:05,005 INFO - reduce_frame.py:428 - slit name = 0.432x12
+2018-07-16 01:56:05,005 INFO - reduce_frame.py:429 - integration time = 60.0 sec
+2018-07-16 01:56:05,005 INFO - reduce_frame.py:430 - n coadds = 1
+2018-07-16 01:56:05,005 DEBUG - FlatCacher.py:62 - reusing flat jan19s0011_defring_flat_0.fits
+2018-07-16 01:56:14,247 INFO - reduce_frame.py:210 - mean signal-to-noise ratio = 13.4
+2018-07-16 01:56:14,248 INFO - reduce_frame.py:219 - minimum signal-to-noise ratio = 1.7
+2018-07-16 01:56:14,248 INFO - reduce_frame.py:225 - mean spatial peak width = 2.9 pixels
+2018-07-16 01:56:14,248 INFO - reduce_frame.py:236 - maximum spatial peak width = 3.3 pixels
+2018-07-16 01:56:14,248 INFO - reduce_frame.py:268 - n sky lines identified = 41
+2018-07-16 01:56:14,321 INFO - reduce_frame.py:290 - n lines used in wavelength fit = 38
+2018-07-16 01:56:14,321 INFO - reduce_frame.py:292 - rms wavelength fit residual = 0.434
+2018-07-16 01:56:14,323 INFO - nsdrp_koa.py:103 - generating data products for single-frame set, nirspec config: disppos=35.45, echlpos=63.01, filname=NIRSPEC-7, slitname=0.432x12
+2018-07-16 01:56:26,843 INFO - products.py:357 - n data products generated for jan19s0024 = 134
+2018-07-16 01:56:26,849 INFO - nsdrp_koa.py:65 - starting new multi-frame set for nirpsec config: disppos=35.45, echlpos=63.01, filname=NIRSPEC-7, slitname=0.432x12
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:423 - starting reduction of jan19s0025
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:425 - time of observation = 2014-01-19 12:41:10.60 UT
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:426 - target name = HD65102
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:427 - filter name = NIRSPEC-7
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:428 - slit name = 0.432x12
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:429 - integration time = 60.0 sec
+2018-07-16 01:56:26,898 INFO - reduce_frame.py:430 - n coadds = 1
+2018-07-16 01:56:26,898 DEBUG - FlatCacher.py:62 - reusing flat jan19s0011_defring_flat_0.fits
+2018-07-16 01:56:36,241 INFO - reduce_frame.py:210 - mean signal-to-noise ratio = 14.6
+2018-07-16 01:56:36,241 INFO - reduce_frame.py:219 - minimum signal-to-noise ratio = 6.7
+2018-07-16 01:56:36,241 INFO - reduce_frame.py:225 - mean spatial peak width = 3.1 pixels
+2018-07-16 01:56:36,241 INFO - reduce_frame.py:236 - maximum spatial peak width = 3.1 pixels
+2018-07-16 01:56:36,242 INFO - reduce_frame.py:268 - n sky lines identified = 38
+2018-07-16 01:56:36,314 INFO - reduce_frame.py:290 - n lines used in wavelength fit = 34
+2018-07-16 01:56:36,314 INFO - reduce_frame.py:292 - rms wavelength fit residual = 0.555
+2018-07-16 01:56:36,315 INFO - nsdrp_koa.py:103 - generating data products for single-frame set, nirspec config: disppos=35.45, echlpos=63.01, filname=NIRSPEC-7, slitname=0.432x12
+2018-07-16 01:56:50,684 INFO - products.py:357 - n data products generated for jan19s0025 = 134
+2018-07-16 01:56:50,687 INFO - nsdrp_koa.py:87 - n object frames reduced = 3/3
+2018-07-16 01:56:50,687 INFO - nsdrp_koa.py:91 - end nsdrp

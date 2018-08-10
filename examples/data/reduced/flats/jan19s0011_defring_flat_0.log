@@ -1,0 +1,136 @@
+2018-07-16 01:55:38,752 INFO - Flat.py:36 - creating jan19s0011_defring_flat_0.fits from jan19s0011_defringe, jan19s0012_defringe, jan19s0013_defringe, jan19s0014_defringe, jan19s0015_defringe, jan19s0016_defringe, jan19s0017_defringe, jan19s0018_defringe
+2018-07-16 01:55:38,753 INFO - Flat.py:71 - reducing flat jan19s0011_defring_flat_0
+2018-07-16 01:55:38,772 INFO - Flat.py:80 - ***** flat order 41 *****
+2018-07-16 01:55:38,772 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:38,772 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:38,772 DEBUG - GratingEq.py:181 - applying 60.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:38,772 INFO - Flat.py:88 - predicted top edge location = -230 pixels
+2018-07-16 01:55:38,772 INFO - Flat.py:89 - predicted bot edge location = -292 pixels
+2018-07-16 01:55:38,772 INFO - Flat.py:95 - order 41 is not on the detector
+2018-07-16 01:55:38,772 INFO - Flat.py:80 - ***** flat order 40 *****
+2018-07-16 01:55:38,772 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:38,772 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:38,772 DEBUG - GratingEq.py:181 - applying 60.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:38,773 INFO - Flat.py:88 - predicted top edge location = -115 pixels
+2018-07-16 01:55:38,773 INFO - Flat.py:89 - predicted bot edge location = -178 pixels
+2018-07-16 01:55:38,773 INFO - Flat.py:95 - order 40 is not on the detector
+2018-07-16 01:55:38,773 INFO - Flat.py:80 - ***** flat order 39 *****
+2018-07-16 01:55:38,773 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:38,773 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:38,773 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:38,773 INFO - Flat.py:88 - predicted top edge location = 5 pixels
+2018-07-16 01:55:38,773 INFO - Flat.py:89 - predicted bot edge location = -58 pixels
+2018-07-16 01:55:38,773 INFO - Flat.py:95 - order 39 is not on the detector
+2018-07-16 01:55:38,773 INFO - Flat.py:80 - ***** flat order 38 *****
+2018-07-16 01:55:38,773 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:38,773 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:38,773 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:38,773 INFO - Flat.py:88 - predicted top edge location = 131 pixels
+2018-07-16 01:55:38,773 INFO - Flat.py:89 - predicted bot edge location = 69 pixels
+2018-07-16 01:55:38,774 INFO - Flat.py:252 - measured y location:  top = 81, bottom = 18
+2018-07-16 01:55:38,774 DEBUG - Flat.py:260 - tracing top of order
+2018-07-16 01:55:38,818 DEBUG - Flat.py:264 - tracing bottom of order
+2018-07-16 01:55:38,864 INFO - Flat.py:271 - using top and bottom trace
+2018-07-16 01:55:38,866 INFO - Flat.py:303 - spatial trace smoothed, 28 points ignored
+2018-07-16 01:55:38,866 INFO - Flat.py:308 - spatial trace smoothing rms fit residual = 0.17
+2018-07-16 01:55:38,866 DEBUG - Flat.py:325 - cutout padding = 30
+2018-07-16 01:55:38,869 INFO - FlatOrder.py:64 - reducing flat order 38
+2018-07-16 01:55:38,880 INFO - FlatOrder.py:70 - flat normalized, flat mean = 7892.8
+2018-07-16 01:55:38,978 DEBUG - FlatOrder.py:83 - reduction of flat order 38 complete
+2018-07-16 01:55:38,978 DEBUG - Flat.py:143 - flat order 38 validated
+2018-07-16 01:55:38,978 INFO - Flat.py:80 - ***** flat order 37 *****
+2018-07-16 01:55:38,978 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:38,978 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:38,978 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:38,978 INFO - Flat.py:88 - predicted top edge location = 264 pixels
+2018-07-16 01:55:38,978 INFO - Flat.py:89 - predicted bot edge location = 202 pixels
+2018-07-16 01:55:38,979 INFO - Flat.py:252 - measured y location:  top = 215, bottom = 152
+2018-07-16 01:55:38,979 DEBUG - Flat.py:260 - tracing top of order
+2018-07-16 01:55:39,031 DEBUG - Flat.py:264 - tracing bottom of order
+2018-07-16 01:55:39,086 INFO - Flat.py:271 - using top and bottom trace
+2018-07-16 01:55:39,087 INFO - Flat.py:303 - spatial trace smoothed, 30 points ignored
+2018-07-16 01:55:39,087 INFO - Flat.py:308 - spatial trace smoothing rms fit residual = 0.12
+2018-07-16 01:55:39,088 DEBUG - Flat.py:325 - cutout padding = 30
+2018-07-16 01:55:39,090 INFO - FlatOrder.py:64 - reducing flat order 37
+2018-07-16 01:55:39,104 INFO - FlatOrder.py:70 - flat normalized, flat mean = 8902.4
+2018-07-16 01:55:39,203 DEBUG - FlatOrder.py:83 - reduction of flat order 37 complete
+2018-07-16 01:55:39,203 DEBUG - Flat.py:143 - flat order 37 validated
+2018-07-16 01:55:39,203 INFO - Flat.py:80 - ***** flat order 36 *****
+2018-07-16 01:55:39,203 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:39,203 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:39,203 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:39,203 INFO - Flat.py:88 - predicted top edge location = 404 pixels
+2018-07-16 01:55:39,204 INFO - Flat.py:89 - predicted bot edge location = 342 pixels
+2018-07-16 01:55:39,204 INFO - Flat.py:252 - measured y location:  top = 355, bottom = 294
+2018-07-16 01:55:39,204 DEBUG - Flat.py:260 - tracing top of order
+2018-07-16 01:55:39,258 DEBUG - Flat.py:264 - tracing bottom of order
+2018-07-16 01:55:39,309 INFO - Flat.py:271 - using top and bottom trace
+2018-07-16 01:55:39,310 INFO - Flat.py:303 - spatial trace smoothed, 36 points ignored
+2018-07-16 01:55:39,310 INFO - Flat.py:308 - spatial trace smoothing rms fit residual = 0.12
+2018-07-16 01:55:39,310 DEBUG - Flat.py:325 - cutout padding = 30
+2018-07-16 01:55:39,312 INFO - FlatOrder.py:64 - reducing flat order 36
+2018-07-16 01:55:39,323 INFO - FlatOrder.py:70 - flat normalized, flat mean = 9860.1
+2018-07-16 01:55:39,456 DEBUG - FlatOrder.py:83 - reduction of flat order 36 complete
+2018-07-16 01:55:39,456 DEBUG - Flat.py:143 - flat order 36 validated
+2018-07-16 01:55:39,456 INFO - Flat.py:80 - ***** flat order 35 *****
+2018-07-16 01:55:39,456 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:39,457 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:39,457 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:39,457 INFO - Flat.py:88 - predicted top edge location = 553 pixels
+2018-07-16 01:55:39,457 INFO - Flat.py:89 - predicted bot edge location = 491 pixels
+2018-07-16 01:55:39,458 INFO - Flat.py:252 - measured y location:  top = 505, bottom = 443
+2018-07-16 01:55:39,458 DEBUG - Flat.py:260 - tracing top of order
+2018-07-16 01:55:39,514 DEBUG - Flat.py:264 - tracing bottom of order
+2018-07-16 01:55:39,561 INFO - Flat.py:271 - using top and bottom trace
+2018-07-16 01:55:39,563 INFO - Flat.py:303 - spatial trace smoothed, 35 points ignored
+2018-07-16 01:55:39,563 INFO - Flat.py:308 - spatial trace smoothing rms fit residual = 0.13
+2018-07-16 01:55:39,563 DEBUG - Flat.py:325 - cutout padding = 30
+2018-07-16 01:55:39,566 INFO - FlatOrder.py:64 - reducing flat order 35
+2018-07-16 01:55:39,578 INFO - FlatOrder.py:70 - flat normalized, flat mean = 9794.6
+2018-07-16 01:55:39,740 DEBUG - FlatOrder.py:83 - reduction of flat order 35 complete
+2018-07-16 01:55:39,740 DEBUG - Flat.py:143 - flat order 35 validated
+2018-07-16 01:55:39,740 INFO - Flat.py:80 - ***** flat order 34 *****
+2018-07-16 01:55:39,740 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:39,740 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:39,740 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:39,740 INFO - Flat.py:88 - predicted top edge location = 710 pixels
+2018-07-16 01:55:39,740 INFO - Flat.py:89 - predicted bot edge location = 648 pixels
+2018-07-16 01:55:39,740 INFO - Flat.py:252 - measured y location:  top = 661, bottom = 600
+2018-07-16 01:55:39,740 DEBUG - Flat.py:260 - tracing top of order
+2018-07-16 01:55:39,829 DEBUG - Flat.py:264 - tracing bottom of order
+2018-07-16 01:55:39,928 INFO - Flat.py:271 - using top and bottom trace
+2018-07-16 01:55:39,930 INFO - Flat.py:303 - spatial trace smoothed, 32 points ignored
+2018-07-16 01:55:39,930 INFO - Flat.py:308 - spatial trace smoothing rms fit residual = 0.08
+2018-07-16 01:55:39,930 DEBUG - Flat.py:325 - cutout padding = 30
+2018-07-16 01:55:39,935 INFO - FlatOrder.py:64 - reducing flat order 34
+2018-07-16 01:55:39,953 INFO - FlatOrder.py:70 - flat normalized, flat mean = 9471.0
+2018-07-16 01:55:40,094 DEBUG - FlatOrder.py:83 - reduction of flat order 34 complete
+2018-07-16 01:55:40,094 DEBUG - Flat.py:143 - flat order 34 validated
+2018-07-16 01:55:40,094 INFO - Flat.py:80 - ***** flat order 33 *****
+2018-07-16 01:55:40,094 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:40,094 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:40,094 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:40,094 INFO - Flat.py:88 - predicted top edge location = 877 pixels
+2018-07-16 01:55:40,094 INFO - Flat.py:89 - predicted bot edge location = 815 pixels
+2018-07-16 01:55:40,094 INFO - Flat.py:252 - measured y location:  top = 829, bottom = 767
+2018-07-16 01:55:40,094 DEBUG - Flat.py:260 - tracing top of order
+2018-07-16 01:55:40,146 DEBUG - Flat.py:264 - tracing bottom of order
+2018-07-16 01:55:40,199 INFO - Flat.py:271 - using top and bottom trace
+2018-07-16 01:55:40,200 INFO - Flat.py:303 - spatial trace smoothed, 31 points ignored
+2018-07-16 01:55:40,200 INFO - Flat.py:308 - spatial trace smoothing rms fit residual = 0.12
+2018-07-16 01:55:40,201 INFO - Flat.py:323 - large order tilt detected, tilt = 23.8 threshold = 20 extra padding = 10
+2018-07-16 01:55:40,201 DEBUG - Flat.py:325 - cutout padding = 40
+2018-07-16 01:55:40,211 INFO - FlatOrder.py:64 - reducing flat order 33
+2018-07-16 01:55:40,236 INFO - FlatOrder.py:70 - flat normalized, flat mean = 9000.3
+2018-07-16 01:55:40,441 DEBUG - FlatOrder.py:83 - reduction of flat order 33 complete
+2018-07-16 01:55:40,441 DEBUG - Flat.py:143 - flat order 33 validated
+2018-07-16 01:55:40,441 INFO - Flat.py:80 - ***** flat order 32 *****
+2018-07-16 01:55:40,441 INFO - GratingEq.py:77 - using complicated order width calculation
+2018-07-16 01:55:40,442 DEBUG - GratingEq.py:142 - applying + 45 pixel y corr for filter NIRSPEC-7
+2018-07-16 01:55:40,442 DEBUG - GratingEq.py:181 - applying 70.0 Angstrom order-dependent wavelength shift
+2018-07-16 01:55:40,442 INFO - Flat.py:88 - predicted top edge location = 1054 pixels
+2018-07-16 01:55:40,442 INFO - Flat.py:89 - predicted bot edge location = 992 pixels
+2018-07-16 01:55:40,443 INFO - Flat.py:95 - order 32 is not on the detector
+2018-07-16 01:55:40,443 INFO - Flat.py:146 - flat reduction compete
+2018-07-16 01:55:40,443 INFO - Flat.py:147 - n orders expected = 6
+2018-07-16 01:55:40,443 INFO - Flat.py:149 - n orders found = 6

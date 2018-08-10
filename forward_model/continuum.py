@@ -42,7 +42,8 @@ def continuum(data, mdl, **kwargs):
               polynomial
     """
     
-    deg = kwargs.get('deg', 5) 
+    deg = kwargs.get('deg', 5)
+    prop = kwargs.get('prop',False)
 
     flux_in_rng = np.where((mdl.wave > data.wave[0]) & (mdl.wave < data.wave[-1]))[0]
     mdl_wave = mdl.wave[flux_in_rng]
@@ -72,7 +73,10 @@ def continuum(data, mdl, **kwargs):
     #mdlcont.flux *= np.polyval(pcont, mdlcont.wave)
     mdl.flux *= np.polyval(pcont, mdl.wave)/max(mdl_flux_vals)
 
-    return mdl
+    if prop is True:
+        return mdl, np.polyval(pcont, mdl.wave)/max(mdl_flux_vals)
+    else:
+        return mdl
 
 def _continuumFit(wave, a, b, c):
     return a*wave**2 + b*wave + c

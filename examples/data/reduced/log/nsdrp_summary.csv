@@ -1,0 +1,4 @@
+fn, date, time, target, filter, slit, disppos, echlpos, itime, coadds, n orders, n reduced, snr mean, snr min, width mean, width max, n lines found, n lines used, r rms, cal frame
+jan19s0023, 2014-01-19, 12:24:22.20, J0746-0846, NIRSPEC-7, 0.432x12, 35.45, 63.01, 600.000000, 1, 6, 6, 5.5, 3.6, 3.4, 3.5, 39, 36, 0.816, self
+jan19s0024, 2014-01-19, 12:39:45.60, HD65102, NIRSPEC-7, 0.432x12, 35.45, 63.01, 60.000000, 1, 6, 6, 13.4, 1.7, 2.9, 3.3, 41, 38, 0.434, self
+jan19s0025, 2014-01-19, 12:41:10.60, HD65102, NIRSPEC-7, 0.432x12, 35.45, 63.01, 60.000000, 1, 6, 6, 14.6, 6.7, 3.1, 3.1, 38, 34, 0.555, self

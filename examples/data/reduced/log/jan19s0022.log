@@ -1,0 +1,10 @@
+2018-07-15 23:54:43,609 INFO - reduce_frame.py:412 - nsdrp version 0.9.17
+2018-07-15 23:54:43,611 INFO - reduce_frame.py:423 - starting reduction of jan19s0022
+2018-07-15 23:54:43,611 INFO - reduce_frame.py:425 - time of observation = 2014-01-19 12:13:56.25 UT
+2018-07-15 23:54:43,611 INFO - reduce_frame.py:426 - target name = J0746-0846
+2018-07-15 23:54:43,612 INFO - reduce_frame.py:427 - filter name = NIRSPEC-7
+2018-07-15 23:54:43,612 INFO - reduce_frame.py:428 - slit name = 0.432x12
+2018-07-15 23:54:43,612 INFO - reduce_frame.py:429 - integration time = 600.0 sec
+2018-07-15 23:54:43,612 INFO - reduce_frame.py:430 - n coadds = 1
+2018-07-15 23:54:43,613 INFO - reduce_frame.py:431 - echelle angle = 63.01 deg
+2018-07-15 23:54:43,613 INFO - reduce_frame.py:432 - cross disperser angle = 35.45 deg

@@ -161,7 +161,7 @@ class Spectrum():
 		"""
 		if sp is None:
 			print("Please select another spectra.")
-		if method=='pixel':
+		if method == 'pixel':
 			coadd = copy.deepcopy(sp)
 			w1 = 1/self.oriNoise**2
 			w2 = 1/sp.oriNoise**2

@@ -1,0 +1,166 @@
+2018-07-16 01:55:38,295 INFO - reduce_frame.py:412 - nsdrp version 0.9.17
+2018-07-16 01:55:38,296 INFO - reduce_frame.py:423 - starting reduction of jan19s0023
+2018-07-16 01:55:38,297 INFO - reduce_frame.py:425 - time of observation = 2014-01-19 12:24:22.20 UT
+2018-07-16 01:55:38,297 INFO - reduce_frame.py:426 - target name = J0746-0846
+2018-07-16 01:55:38,297 INFO - reduce_frame.py:427 - filter name = NIRSPEC-7
+2018-07-16 01:55:38,297 INFO - reduce_frame.py:428 - slit name = 0.432x12
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:429 - integration time = 600.0 sec
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:430 - n coadds = 1
+2018-07-16 01:55:38,298 INFO - reduce_frame.py:431 - echelle angle = 63.01 deg
+2018-07-16 01:55:38,299 INFO - reduce_frame.py:432 - cross disperser angle = 35.45 deg
+2018-07-16 01:55:40,540 INFO - reduce_frame.py:56 - using flat jan19s0011_defring_flat_0
+2018-07-16 01:55:40,540 INFO - reduce_frame.py:63 - cosmic ray cleaning object frame A
+2018-07-16 01:55:49,700 DEBUG - reduce_frame.py:65 - cosmic ray cleaning object frame A complete
+2018-07-16 01:55:49,700 INFO - reduce_frame.py:450 - no darks
+2018-07-16 01:55:49,700 INFO - reduce_frame.py:168 - ***** order 38 *****
+2018-07-16 01:55:49,704 INFO - reduce_order.py:137 - order has been flat fielded
+2018-07-16 01:55:49,820 INFO - reduce_order.py:151 - order has been rectified in the spatial dimension
+2018-07-16 01:55:49,820 INFO - reduce_order.py:310 - frame A spatial profile peak intensity row 38
+2018-07-16 01:55:49,820 INFO - reduce_order.py:318 - frame A spatial profile peak centroid row 38.1
+2018-07-16 01:55:49,820 DEBUG - reduce_order.py:273 - gaussian window width = 20
+2018-07-16 01:55:49,828 DEBUG - reduce_order.py:273 - gaussian window width = 40
+2018-07-16 01:55:49,830 INFO - reduce_order.py:288 - frame A spatial peak width = 3.4 pixels
+2018-07-16 01:55:49,830 INFO - nirspec_lib.py:168 - n sky line peaks with intensity > 2003 = 5
+2018-07-16 01:55:49,834 INFO - nirspec_lib.py:203 - 3 sky lines used for spectral rectification
+2018-07-16 01:55:49,834 INFO - nirspec_lib.py:213 - spectral tilt is 0.076 pixels/pixel
+2018-07-16 01:55:49,875 INFO - reduce_order.py:205 - frame A extraction window width = 9
+2018-07-16 01:55:49,875 INFO - reduce_order.py:207 - frame A top background window width = 4
+2018-07-16 01:55:49,875 INFO - reduce_order.py:210 - frame A top background window separation = 2
+2018-07-16 01:55:49,875 INFO - reduce_order.py:212 - frame A bottom background window width = 8
+2018-07-16 01:55:49,875 INFO - reduce_order.py:215 - frame A bottom background window separation = 2
+2018-07-16 01:55:49,875 INFO - reduce_order.py:255 - frame A signal-to-noise ratio = 4.4
+2018-07-16 01:55:49,875 INFO - wavelength_utils.py:161 - reading OH line data from /Users/dinohsu/projects/NIRSPEC-Data-Reduction-Pipeline/ir_ohlines.dat
+2018-07-16 01:55:49,926 INFO - wavelength_utils.py:76 - wavelength scale shift = 3.435 pixels
+2018-07-16 01:55:49,927 INFO - wavelength_utils.py:801 - using calibration line location algorithm 2
+2018-07-16 01:55:49,927 DEBUG - wavelength_utils.py:296 - n sky line peaks = 7
+2018-07-16 01:55:49,928 INFO - wavelength_utils.py:104 - slope of accepted vs measured wavelengths = 1.002
+2018-07-16 01:55:49,928 INFO - reduce_order.py:84 - 5 matched sky lines found in order
+2018-07-16 01:55:49,930 INFO - reduce_order.py:107 - per order wavelength fit: n = 5, a = 38.861394, b = 0.998210, r = 0.999928
+2018-07-16 01:55:49,930 INFO - reduce_frame.py:168 - ***** order 37 *****
+2018-07-16 01:55:49,933 INFO - reduce_order.py:137 - order has been flat fielded
+2018-07-16 01:55:50,051 INFO - reduce_order.py:151 - order has been rectified in the spatial dimension
+2018-07-16 01:55:50,052 INFO - reduce_order.py:310 - frame A spatial profile peak intensity row 41
+2018-07-16 01:55:50,052 INFO - reduce_order.py:318 - frame A spatial profile peak centroid row 41.0
+2018-07-16 01:55:50,052 DEBUG - reduce_order.py:273 - gaussian window width = 20
+2018-07-16 01:55:50,055 DEBUG - reduce_order.py:273 - gaussian window width = 40
+2018-07-16 01:55:50,057 INFO - reduce_order.py:288 - frame A spatial peak width = 3.5 pixels
+2018-07-16 01:55:50,058 INFO - nirspec_lib.py:168 - n sky line peaks with intensity > 3499 = 6
+2018-07-16 01:55:50,062 DEBUG - nirspec_lib.py:96 - sky line trace jump limit exceeded: n jumps=40 limit=10
+2018-07-16 01:55:50,064 INFO - nirspec_lib.py:203 - 3 sky lines used for spectral rectification
+2018-07-16 01:55:50,064 INFO - nirspec_lib.py:213 - spectral tilt is 0.046 pixels/pixel
+2018-07-16 01:55:50,106 INFO - reduce_order.py:205 - frame A extraction window width = 9
+2018-07-16 01:55:50,106 INFO - reduce_order.py:207 - frame A top background window width = 4
+2018-07-16 01:55:50,107 INFO - reduce_order.py:210 - frame A top background window separation = 2
+2018-07-16 01:55:50,107 INFO - reduce_order.py:212 - frame A bottom background window width = 8
+2018-07-16 01:55:50,107 INFO - reduce_order.py:215 - frame A bottom background window separation = 2
+2018-07-16 01:55:50,107 INFO - reduce_order.py:255 - frame A signal-to-noise ratio = 4.1
+2018-07-16 01:55:50,149 INFO - wavelength_utils.py:76 - wavelength scale shift = 0.471 pixels
+2018-07-16 01:55:50,150 INFO - wavelength_utils.py:801 - using calibration line location algorithm 2
+2018-07-16 01:55:50,151 DEBUG - wavelength_utils.py:296 - n sky line peaks = 6
+2018-07-16 01:55:50,151 INFO - wavelength_utils.py:104 - slope of accepted vs measured wavelengths = 1.001
+2018-07-16 01:55:50,151 INFO - reduce_order.py:84 - 5 matched sky lines found in order
+2018-07-16 01:55:50,152 INFO - reduce_order.py:107 - per order wavelength fit: n = 5, a = 30.090587, b = 0.998592, r = 0.999972
+2018-07-16 01:55:50,152 INFO - reduce_frame.py:168 - ***** order 36 *****
+2018-07-16 01:55:50,154 INFO - reduce_order.py:137 - order has been flat fielded
+2018-07-16 01:55:50,268 INFO - reduce_order.py:151 - order has been rectified in the spatial dimension
+2018-07-16 01:55:50,268 INFO - reduce_order.py:310 - frame A spatial profile peak intensity row 43
+2018-07-16 01:55:50,269 INFO - reduce_order.py:318 - frame A spatial profile peak centroid row 43.2
+2018-07-16 01:55:50,269 DEBUG - reduce_order.py:273 - gaussian window width = 20
+2018-07-16 01:55:50,272 INFO - reduce_order.py:288 - frame A spatial peak width = 3.3 pixels
+2018-07-16 01:55:50,272 INFO - nirspec_lib.py:168 - n sky line peaks with intensity > 2530 = 15
+2018-07-16 01:55:50,276 INFO - nirspec_lib.py:203 - 3 sky lines used for spectral rectification
+2018-07-16 01:55:50,277 INFO - nirspec_lib.py:213 - spectral tilt is 0.055 pixels/pixel
+2018-07-16 01:55:50,323 INFO - reduce_order.py:205 - frame A extraction window width = 9
+2018-07-16 01:55:50,323 INFO - reduce_order.py:207 - frame A top background window width = 5
+2018-07-16 01:55:50,323 INFO - reduce_order.py:210 - frame A top background window separation = 2
+2018-07-16 01:55:50,323 INFO - reduce_order.py:212 - frame A bottom background window width = 8
+2018-07-16 01:55:50,323 INFO - reduce_order.py:215 - frame A bottom background window separation = 2
+2018-07-16 01:55:50,324 INFO - reduce_order.py:255 - frame A signal-to-noise ratio = 6.9
+2018-07-16 01:55:50,368 INFO - wavelength_utils.py:76 - wavelength scale shift = -2.275 pixels
+2018-07-16 01:55:50,369 INFO - wavelength_utils.py:801 - using calibration line location algorithm 2
+2018-07-16 01:55:50,369 DEBUG - wavelength_utils.py:296 - n sky line peaks = 17
+2018-07-16 01:55:50,370 INFO - wavelength_utils.py:104 - slope of accepted vs measured wavelengths = 1.002
+2018-07-16 01:55:50,370 INFO - reduce_order.py:84 - 17 matched sky lines found in order
+2018-07-16 01:55:50,371 INFO - reduce_order.py:107 - per order wavelength fit: n = 17, a = 42.759716, b = 0.997918, r = 0.999952
+2018-07-16 01:55:50,371 INFO - reduce_frame.py:168 - ***** order 35 *****
+2018-07-16 01:55:50,374 INFO - reduce_order.py:137 - order has been flat fielded
+2018-07-16 01:55:50,493 INFO - reduce_order.py:151 - order has been rectified in the spatial dimension
+2018-07-16 01:55:50,494 INFO - reduce_order.py:310 - frame A spatial profile peak intensity row 39
+2018-07-16 01:55:50,494 INFO - reduce_order.py:318 - frame A spatial profile peak centroid row 39.1
+2018-07-16 01:55:50,494 DEBUG - reduce_order.py:273 - gaussian window width = 20
+2018-07-16 01:55:50,497 INFO - reduce_order.py:288 - frame A spatial peak width = 3.3 pixels
+2018-07-16 01:55:50,497 INFO - nirspec_lib.py:168 - n sky line peaks with intensity > 2618 = 3
+2018-07-16 01:55:50,502 INFO - nirspec_lib.py:203 - 3 sky lines used for spectral rectification
+2018-07-16 01:55:50,502 INFO - nirspec_lib.py:213 - spectral tilt is 0.049 pixels/pixel
+2018-07-16 01:55:50,542 INFO - reduce_order.py:205 - frame A extraction window width = 9
+2018-07-16 01:55:50,542 INFO - reduce_order.py:207 - frame A top background window width = 7
+2018-07-16 01:55:50,542 INFO - reduce_order.py:210 - frame A top background window separation = 2
+2018-07-16 01:55:50,542 INFO - reduce_order.py:212 - frame A bottom background window width = 8
+2018-07-16 01:55:50,542 INFO - reduce_order.py:215 - frame A bottom background window separation = 2
+2018-07-16 01:55:50,543 INFO - reduce_order.py:255 - frame A signal-to-noise ratio = 7.0
+2018-07-16 01:55:50,588 INFO - wavelength_utils.py:76 - wavelength scale shift = -4.846 pixels
+2018-07-16 01:55:50,588 INFO - wavelength_utils.py:801 - using calibration line location algorithm 2
+2018-07-16 01:55:50,589 DEBUG - wavelength_utils.py:296 - n sky line peaks = 13
+2018-07-16 01:55:50,590 INFO - wavelength_utils.py:104 - slope of accepted vs measured wavelengths = 1.001
+2018-07-16 01:55:50,590 INFO - reduce_order.py:84 - 4 matched sky lines found in order
+2018-07-16 01:55:50,591 INFO - reduce_order.py:107 - per order wavelength fit: n = 4, a = 10.077671, b = 0.999333, r = 0.999988
+2018-07-16 01:55:50,591 INFO - reduce_frame.py:168 - ***** order 34 *****
+2018-07-16 01:55:50,597 INFO - reduce_order.py:137 - order has been flat fielded
+2018-07-16 01:55:50,726 INFO - reduce_order.py:151 - order has been rectified in the spatial dimension
+2018-07-16 01:55:50,726 INFO - reduce_order.py:310 - frame A spatial profile peak intensity row 42
+2018-07-16 01:55:50,726 INFO - reduce_order.py:318 - frame A spatial profile peak centroid row 41.9
+2018-07-16 01:55:50,726 DEBUG - reduce_order.py:273 - gaussian window width = 20
+2018-07-16 01:55:50,729 DEBUG - reduce_order.py:273 - gaussian window width = 40
+2018-07-16 01:55:50,732 INFO - reduce_order.py:288 - frame A spatial peak width = 3.4 pixels
+2018-07-16 01:55:50,732 INFO - nirspec_lib.py:168 - n sky line peaks with intensity > 2334 = 5
+2018-07-16 01:55:50,736 INFO - nirspec_lib.py:203 - 3 sky lines used for spectral rectification
+2018-07-16 01:55:50,736 INFO - nirspec_lib.py:213 - spectral tilt is 0.006 pixels/pixel
+2018-07-16 01:55:50,784 INFO - reduce_order.py:205 - frame A extraction window width = 9
+2018-07-16 01:55:50,784 INFO - reduce_order.py:207 - frame A top background window width = 5
+2018-07-16 01:55:50,784 INFO - reduce_order.py:210 - frame A top background window separation = 2
+2018-07-16 01:55:50,784 INFO - reduce_order.py:212 - frame A bottom background window width = 8
+2018-07-16 01:55:50,784 INFO - reduce_order.py:215 - frame A bottom background window separation = 2
+2018-07-16 01:55:50,785 INFO - reduce_order.py:255 - frame A signal-to-noise ratio = 7.0
+2018-07-16 01:55:50,830 INFO - wavelength_utils.py:76 - wavelength scale shift = -5.647 pixels
+2018-07-16 01:55:50,831 INFO - wavelength_utils.py:801 - using calibration line location algorithm 2
+2018-07-16 01:55:50,832 DEBUG - wavelength_utils.py:296 - n sky line peaks = 9
+2018-07-16 01:55:50,832 INFO - wavelength_utils.py:104 - slope of accepted vs measured wavelengths = 1.002
+2018-07-16 01:55:50,832 INFO - reduce_order.py:84 - 4 matched sky lines found in order
+2018-07-16 01:55:50,833 INFO - reduce_order.py:107 - per order wavelength fit: n = 4, a = 48.644207, b = 0.997562, r = 0.999994
+2018-07-16 01:55:50,833 INFO - reduce_frame.py:168 - ***** order 33 *****
+2018-07-16 01:55:50,842 INFO - reduce_order.py:137 - order has been flat fielded
+2018-07-16 01:55:50,980 INFO - reduce_order.py:151 - order has been rectified in the spatial dimension
+2018-07-16 01:55:50,980 INFO - reduce_order.py:310 - frame A spatial profile peak intensity row 42
+2018-07-16 01:55:50,980 INFO - reduce_order.py:318 - frame A spatial profile peak centroid row 42.0
+2018-07-16 01:55:50,980 DEBUG - reduce_order.py:273 - gaussian window width = 20
+2018-07-16 01:55:50,983 DEBUG - reduce_order.py:273 - gaussian window width = 40
+2018-07-16 01:55:50,986 INFO - reduce_order.py:288 - frame A spatial peak width = 3.3 pixels
+2018-07-16 01:55:50,986 INFO - nirspec_lib.py:168 - n sky line peaks with intensity > 4469 = 0
+2018-07-16 01:55:50,986 WARNING - nirspec_lib.py:206 - failed to find sky line trace
+2018-07-16 01:55:50,986 WARNING - reduce_order.py:45 - not rectifying order 33 in spectral dimension
+2018-07-16 01:55:50,988 INFO - reduce_order.py:205 - frame A extraction window width = 9
+2018-07-16 01:55:50,988 INFO - reduce_order.py:207 - frame A top background window width = 6
+2018-07-16 01:55:50,988 INFO - reduce_order.py:210 - frame A top background window separation = 2
+2018-07-16 01:55:50,988 INFO - reduce_order.py:212 - frame A bottom background window width = 8
+2018-07-16 01:55:50,988 INFO - reduce_order.py:215 - frame A bottom background window separation = 2
+2018-07-16 01:55:50,989 INFO - reduce_order.py:255 - frame A signal-to-noise ratio = 3.6
+2018-07-16 01:55:51,036 INFO - wavelength_utils.py:76 - wavelength scale shift = -7.249 pixels
+2018-07-16 01:55:51,037 INFO - wavelength_utils.py:801 - using calibration line location algorithm 2
+2018-07-16 01:55:51,037 DEBUG - wavelength_utils.py:296 - n sky line peaks = 15
+2018-07-16 01:55:51,038 INFO - wavelength_utils.py:104 - slope of accepted vs measured wavelengths = 1.033
+2018-07-16 01:55:51,038 INFO - reduce_order.py:84 - 4 matched sky lines found in order
+2018-07-16 01:55:51,038 INFO - reduce_order.py:107 - per order wavelength fit: n = 4, a = 730.619482, b = 0.967914, r = 0.999998
+2018-07-16 01:55:51,038 INFO - reduce_frame.py:210 - mean signal-to-noise ratio = 5.5
+2018-07-16 01:55:51,039 INFO - reduce_frame.py:219 - minimum signal-to-noise ratio = 3.6
+2018-07-16 01:55:51,039 INFO - reduce_frame.py:225 - mean spatial peak width = 3.4 pixels
+2018-07-16 01:55:51,039 INFO - reduce_frame.py:236 - maximum spatial peak width = 3.5 pixels
+2018-07-16 01:55:51,040 INFO - reduce_frame.py:268 - n sky lines identified = 39
+2018-07-16 01:55:51,072 DEBUG - wavelength_utils.py:656 - deleting outlier from 2d fit, col=935, order=37, wave accepted = 20193.0
+2018-07-16 01:55:51,072 DEBUG - wavelength_utils.py:656 - deleting outlier from 2d fit, col=62, order=34, wave accepted = 21637.0
+2018-07-16 01:55:51,088 DEBUG - wavelength_utils.py:685 - deleting outlier from 2d fit, col=829, order=33, accepted wavelength=22516.7
+2018-07-16 01:55:51,203 INFO - wavelength_utils.py:759 - wavelength calibration rms fit residual = 0.816
+2018-07-16 01:55:51,203 INFO - wavelength_utils.py:762 - wavelength eq coefficients: 1.65E+02, 8.90E-03, -1.04E-04, 7.51E+05, 9.88E+00, 4.40E-03
+2018-07-16 01:55:51,204 INFO - reduce_frame.py:290 - n lines used in wavelength fit = 36
+2018-07-16 01:55:51,204 INFO - reduce_frame.py:292 - rms wavelength fit residual = 0.816
+2018-07-16 01:55:51,205 INFO - products.py:98 - generating data products for jan19s0023...
+2018-07-16 01:56:04,950 INFO - products.py:360 - n data products generated for jan19s0023 = 134
