@@ -5,6 +5,7 @@ Authors:
 * Dino Chih-Chun Hsu (UCSD)
 * Adam Burgasser, PI (UCSD)
 * Chris Theissen (BU, UCSD)
+* Jessica Birky (UCSD)
 
 ## Code Setup:
 Dependencies:
