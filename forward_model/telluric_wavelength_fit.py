@@ -141,8 +141,8 @@ def xcorrTelluric(data, model, shift, start_pixel, width):
 	condition = np.where(model2.wave>model_low)
 	model2.wave = model2.wave[condition]
 	model2.flux = model2.flux[condition]
-	
-	# LSF of the intrument (skipped)
+
+	## LSF of the intrument (skipped)
 	vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
 	model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, 
 		flux=model2.flux, vbroad=vbroad, rotate=False, gaussian=True)
@@ -157,7 +157,7 @@ def xcorrTelluric(data, model, shift, start_pixel, width):
 	#m = model2.flux[start_pixel:start_pixel+width]
 	m = model2.flux
 	xcorr = np.inner(d, m)/(np.average(d)*np.average(m))
-	
+
 	return xcorr
 
 def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=10,
@@ -189,6 +189,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 
 	if model2 is None:
 		model2 = model
+
 	# select the range of the pixel shift to compute the max xcorr
 	for i in np.arange(-delta_wave_range,delta_wave_range,step):
 		# propagate the best pixel shift
@@ -197,8 +198,10 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 		else:
 			j = i
 		xcorr = nsp.xcorrTelluric(data,model,j,start_pixel,window_width)
+
 		#print("delta wavelength shift:{}, xcorr value:{}".format(i,xcorr))
 		xcorr_list.append(xcorr)
+
 	#print("xcorr list:",xcorr_list)
 	best_shift = np.arange(-delta_wave_range,delta_wave_range,
 		step)[np.argmax(xcorr_list)]
@@ -456,7 +459,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 	ax3.set_xlim(-(delta_wave_range),(delta_wave_range))
 	ax3.set_ylim(np.min(xcorr_list),np.max(xcorr_list))
 	ax3.legend(loc=9, bbox_to_anchor=(0.5, -0.2))
-	plt.tight_layout(h_pad=3.3)
+	#plt.tight_layout(h_pad=3.3)
 	if test is True:
 		if testname is None:
 			testname = 'test'
@@ -659,7 +662,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			popt6_ori = data2.header['POPT6']
 			popt7_ori = data2.header['POPT7']
 			p0 = np.array([wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4])
-
 		# calcutate the delta wavelentgh
 		best_shift_list  = []
 		for counter, j in enumerate(width_range):
@@ -709,7 +711,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 			best_shift_list.append(best_shift)
 
-		time4 = time.time()
+			time4 = time.time()
 		if test is True:
 			print("Total X correlation time for loop {}: {} s".format(k, 
 				round(time4-time1,4)))
@@ -938,11 +940,31 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 	"""
 	Run the telluric wavelength calibration.
 	"""
+
+	##################################
+	## parameters set up
+	##################################
+	window_width = 40
+	window_step = 10
+	xcorr_step = 0.05
+	niter = 15
+	outlier_rej = 3
+
+	##################################
+
 	original_path = os.getcwd()
 	for order in order_list:
-		if order == 33 or order == 34:
-			xcorr_range = 10
-		elif order == 37 or order == 55 or order == 56:
+		if order == 32 or order == 33:
+			xcorr_range = 12
+		elif order == 34:
+			xcorr_range = 4
+		elif order == 35:
+			xcorr_range = 4
+		elif order == 36 or order == 37:
+			xcorr_range = 2
+		elif order == 38:
+			xcorr_range = 3
+		elif order == 55 or order == 56:
 			xcorr_range = 5
 		elif order == 58:
 			xcorr_range = 2
@@ -973,7 +995,24 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 
 		data1 = copy.deepcopy(data)
 		# this is a test for O63 to reduce the fringing effects
-		if order == 55:
+		if order == 32:
+			pixel_range_start = 10
+			pixel_range_end = -60
+
+		elif order == 33 or order == 34 \
+		or order == 36:
+			pixel_range_start = 5
+			pixel_range_end = -5
+
+		elif order == 35:
+			pixel_range_start = 10
+			pixel_range_end = -10
+
+		elif order == 37 or order == 38:
+			pixel_range_start = 50
+			pixel_range_end = -20
+
+		elif order == 55:
 			pixel_range_start = 0
 			pixel_range_end = 600
 	
@@ -1054,12 +1093,12 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		file_log.write("data_path {} \n".format(data_path))
 		file_log.write("data_name {} \n".format(data_name))
 		file_log.write("order {} \n".format(order))
-		file_log.write("window_width {} \n".format(40))
-		file_log.write("window_step {} \n".format(5))
+		file_log.write("window_width {} \n".format(window_width))
+		file_log.write("window_step {} \n".format(window_step))
 		file_log.write("xcorr_range {} \n".format(xcorr_range))
-		file_log.write("xcorr_range {}\n".format(0.05))
-		file_log.write("niter {} \n".format(10))
-		file_log.write("outlier_rej {} \n".format(3))
+		file_log.write("xcorr_step {}\n".format(xcorr_step))
+		file_log.write("niter {} \n".format(niter))
+		file_log.write("outlier_rej {} \n".format(outlier_rej))
 		file_log.write("pixel range start {} \n".format(pixel_range_start))
 		file_log.write("pixel range end {} \n".format(pixel_range_end))
 		file_log.close()
@@ -1072,12 +1111,12 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		new_wave_sol, p0, width_range_center, residual, best_shift_list = \
 		nsp.wavelengthSolutionFit(data, model,
 			order=order,
-			window_width=40,
-			window_step=5,
+			window_width=window_width,
+			window_step=window_step,
 			xcorr_range=xcorr_range,
-			xcorr_step=0.05,
-			niter=20,
-			outlier_rej=3,
+			xcorr_step=xcorr_step,
+			niter=niter,
+			outlier_rej=outlier_rej,
 			test=test,
 			save=save,
 			pixel_range_start=pixel_range_start,
