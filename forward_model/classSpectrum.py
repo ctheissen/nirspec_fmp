@@ -52,6 +52,7 @@ class Spectrum():
 		self.name = kwargs.get('name')
 		self.order = kwargs.get('order')
 		self.path = kwargs.get('path')
+		self.applymask = kwargs.get('applymask',False)
 		#self.manaulmask = kwargs('manaulmask', False)
 
 		if self.path == None:
@@ -77,56 +78,91 @@ class Spectrum():
 		self.oriFlux  = hdulist[1].data
 		self.oriNoise = hdulist[2].data
 
-		#set up masking criteria
+		if self.applymask:
+			# set up masking criteria
+			self.avgFlux = np.mean(self.flux)
+			self.stdFlux = np.std(self.flux)
+
+			self.smoothFlux = self.flux
+			# set the outliers as the flux below 
+			self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
+		
+			self.mask = np.where(self.smoothFlux <= 0)
+			self.wave  = np.delete(self.wave, list(self.mask))
+			self.flux  = np.delete(self.flux, list(self.mask))
+			self.noise = np.delete(self.noise, list(self.mask))
+			self.sky   = np.delete(self.sky, list(self.mask))
+			self.mask = self.mask[0]
+
+	def maskBySigmas(self, sigma=2):
+		"""
+		Mask the outlier data points by sigmas.
+		"""
+		# set up masking criteria
 		self.avgFlux = np.mean(self.flux)
 		self.stdFlux = np.std(self.flux)
 
 		self.smoothFlux = self.flux
-		#set the outliers as the flux below 
-		self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
-		self.mask = np.where(self.smoothFlux <= 0)
+		# set the outliers as the flux below 
+		self.smoothFlux[self.smoothFlux <= self.avgFlux - sigma * self.stdFlux] = 0
+		
+		self.mask  = np.where(self.smoothFlux <= 0)
 		self.wave  = np.delete(self.wave, list(self.mask))
 		self.flux  = np.delete(self.flux, list(self.mask))
 		self.noise = np.delete(self.noise, list(self.mask))
 		self.sky   = np.delete(self.sky, list(self.mask))
-		self.mask = self.mask[0]
+		self.mask  = self.mask[0]
 
 	def plot(self, **kwargs):
 		"""
 		Plot the spectrum.
 		"""
-		xlim = kwargs.get('xrange', [self.wave[0], self.wave[-1]])
-		ylim = kwargs.get('yrange', [min(self.flux)-.2, max(self.flux)+.2])
-		items  = kwargs.get('items', ['spec'])
+		#xlim   = kwargs.get('xrange', [self.wave[0], self.wave[-1]])
+		#ylim   = kwargs.get('yrange', [min(self.flux)-.2, max(self.flux)+.2])
+		items  = kwargs.get('items', ['spec','noise'])
 		title  = kwargs.get('title')
+		mask   = kwargs.get('mask', True)
 		save   = kwargs.get('save', False)
-		output = kwargs.get('output', str(self.name) + '.pdf')
-
-		plt.figure(figsize=(16,4))
-		#Plot masked spectrum
+		output = kwargs.get('output', str(self.name) + '.png')
+		
+		plt.figure(figsize=(16,6))
+		plt.rc('font', family='sans-serif')
+		## Plot masked spectrum
 		if ('spectrum' in items) or ('spec' in items):
-			plt.plot(self.wave, self.flux, color='k', alpha=.8, linewidth=1, label=self.name)
+			if "_" in self.name:
+				plot_name = self.name.split("_")[0]
+			else:
+				plot_name = self.name
+			if mask:
+				plt.plot(self.wave, self.flux, color='k', 
+					alpha=.8, linewidth=1, 
+					label="{} O{}".format(plot_name,self.order))
+			if not mask:
+				plt.plot(self.oriWave, self.oriFlux, color='k', 
+					alpha=.8, linewidth=1, 
+					label="{} O{}".format(plot_name,self.order))
 
-		#Plot spectrum noise
+		## Plot spectrum noise
 		if 'noise' in items:
-			plt.plot(self.wave, self.noise, color='c', linewidth=1, alpha=.6)
+			if mask:
+				plt.fill_between(self.wave, -self.noise, self.noise,
+					color='gray', linewidth=1, alpha=.6)
+			elif not mask:
+				plt.fill_between(self.oriWave, -self.oriNoise, 
+					self.oriNoise,
+					color='gray', linewidth=1, alpha=.6)
 
-		plt.legend(loc='upper right', fontsize=12)
-        
-        
-		plt.xlim(xlim)
-		plt.ylim(ylim)    
+		plt.legend(fontsize=12)
+		#plt.xlim(xlim)
+		#plt.ylim(ylim)    
     
-		minor_locator = AutoMinorLocator(5)
-		#ax.xaxis.set_minor_locator(minor_locator)
-		# plt.grid(which='minor') 
-    
-		plt.xlabel(r'$\lambda$ [$\mathring{A}$]', fontsize=18)
-		plt.ylabel(r'$Flux$', fontsize=18)
-		#plt.ylabel(r'$F_{\lambda}$ [$erg/s \cdot cm^{2}$]', fontsize=18)
+		plt.xlabel('Wavelength [$\AA$]', fontsize=18)
+		plt.ylabel('Flux (cnts/s)', fontsize=18)
+		plt.minorticks_on()
+		plt.tick_params(axis='both', labelsize=18)
+
 		if title != None:
 			plt.title(title, fontsize=20)
-		plt.tight_layout()
 
 		if save == True:
 			plt.savefig(output)
@@ -252,7 +288,7 @@ class Spectrum():
 
 
 			df.to_csv(save_to_path2, index=None, 
-				sep=',', mode='a')
+				sep='	', mode='a')
 
 
 	def coadd(self, sp, method='pixel'):
@@ -295,40 +331,85 @@ class Spectrum():
 
 		elif method == 'wavelength':
 			import splat
-			self_cp = copy.deepcopy(self)
+			self_supers = copy.deepcopy(self)
+			g = interpolate.interp1d(self.wave, self.flux)
 			sp_supers = copy.deepcopy(sp)
 			f = interpolate.interp1d(sp.wave, sp.flux)
 			## 10x supersample the average difference of 
 			## the wavelength
-			step = np.mean(np.diff(sp.wave))/10
-			sp_supers.wave = np.arange(sp.wave[0],sp.wave[-1],step)
-			sp_supers.flux = f(sp_supers.wave)
-			sp_supers.oriWave = np.arange(sp.oriWave[0],sp.oriWave[-1],step)
+			#step0 = np.mean(np.diff(self.wave))/10
+			#self_supers.wave = np.arange(self.wave[0],
+			#	self.wave[-1],step0)
+			self_supers.flux = g(self_supers.wave)
+			self_supers.oriWave = np.arange(self.oriWave[0],
+				self.oriWave[-1],(self.oriWave[-1]-self.oriWave[0])/10240)
+			g1 = interpolate.interp1d(self.oriWave, self.oriFlux)
+			self_supers.oriFlux = g1(self_supers.oriWave)
+
+			#step = np.mean(np.diff(sp.wave))/10
+			#sp_supers.wave = np.arange(sp.wave[0],sp.wave[-1],step)
+			#sp_supers.flux = f(sp_supers.wave)
+			sp_supers.oriWave = np.arange(sp.oriWave[0],
+				sp.oriWave[-1],(sp.oriWave[-1]-sp.oriWave[0])/10240)
 			f1 = interpolate.interp1d(sp.oriWave, sp.oriFlux)
 			sp_supers.oriFlux = f1(sp_supers.oriWave)
 
 			## calculate the max cross correlation value
-			def xcorr(a0,b0,shift,step):
+			def xcorr(a0,b0,shift):
+				"""
+				Shift is the index number after supersampling 
+				both of the spectra.
+				"""
 				a = copy.deepcopy(a0)
 				b = copy.deepcopy(b0)
+
 				## shift the wavelength of b
-				b.wave += shift * step
+				length = b.oriFlux.shape[0]
+				if shift >= 0:
+					mask_a = np.arange(0,shift,1)
+					a.oriFlux = np.delete(a.oriFlux,mask_a)
+					mask_b = np.arange(length-1,length-shift-1,-1)
+					b.oriFlux = np.delete(b.oriFlux,mask_b)
+
+				elif shift < 0:
+					mask_a = np.arange(length-1,length+shift-1,-1)
+					a.oriFlux = np.delete(a.oriFlux,mask_a)
+					mask_b = np.arange(0,-shift,1)
+					b.oriFlux = np.delete(b.oriFlux,mask_b)
+
+				## shift the wavelength of b
+				#b.wave += shift * step
 				## discard the points where the wavelength values
 				## are larger
-				condition = (a.wave > b.wave[0]) & (a.wave < b.wave[-1])
+				#condition = (a.wave > b.wave[0]) & (a.wave < b.wave[-1])
 				
-				a.flux = a.flux[np.where(condition)]
-				a.wave = a.wave[np.where(condition)]
-				# resampling the telluric model
-				b.flux = np.array(splat.integralResample(xh=b.wave, 
-					yh=b.flux, xl=a.wave))
+				#a.flux = a.flux[np.where(condition)]
+				#a.wave = a.wave[np.where(condition)]
+				## resampling the telluric model
+				#b.flux = np.array(splat.integralResample(xh=b.wave, 
+				#	yh=b.flux, xl=a.wave))
 				
-				return np.inner(a.flux, b.flux)/(np.average(a.flux)*np.average(b.flux))
+				return np.inner(a.oriFlux, b.oriFlux)/\
+				(np.average(a.oriFlux)*np.average(b.oriFlux))/a.oriFlux.shape[0]
 
 			xcorr_list = []
-			for shift in np.arange(-10*step,10*step,step):
-				xcorr_list.append(xcorr(self,sp_supers,shift,step))
+			## mask the ending pixels
+			self_supers2 = copy.deepcopy(self_supers)
+			sp_supers2 = copy.deepcopy(sp_supers)
+			self_supers2.wave = self_supers2.wave[1000:-1000]
+			self_supers2.flux = self_supers2.flux[1000:-1000]
+			sp_supers2.wave = sp_supers2.wave[1000:-1000]
+			sp_supers2.flux = sp_supers2.flux[1000:-1000]
+			for shift in np.arange(-10,10,1):
+				xcorr_list.append(xcorr(self_supers2,sp_supers2,shift))
 
+			## dignostic plot for cc result
+			fig, ax = plt.subplots()
+			ax.plot(np.arange(-10,10,1),np.array(xcorr_list),'k-')
+			plt.show()
+			plt.close()
+
+			step = np.absolute(np.mean(np.diff(sp_supers.wave)))
 			bestshift = np.arange(-10*step,10*step,step)[np.argmax(xcorr_list)]
 			sp_supers.oriWave += bestshift
 			## discard the points where the wavelength values

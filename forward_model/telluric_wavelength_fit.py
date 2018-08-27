@@ -1,6 +1,3 @@
-import nirspec_pip as nsp
-import apogee_tools.forward_model as apmdl
-import splat
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import copy
@@ -12,6 +9,9 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
 import time
+import nirspec_pip as nsp
+import apogee_tools.forward_model as apmdl
+import splat
 
 FULL_PATH  = os.path.realpath(__file__)
 BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
@@ -82,11 +82,17 @@ def getTelluric(wavelow, wavehigh, **kwargs):
 	"""
 	
 	airmass = kwargs.get('airmass', '1.5')
-	alpha = kwargs.get('alpha', 1)
-	am_key = {'1.0':'10', '1.5':'15'}
-	tfile = 'pwv_R300k_airmass{}/LBL_A{}_s0_w005_R0300000_T.fits'.format(airmass, 
-		am_key[airmass])
-	tellurics = fits.open(BASE + '/nirspec_pip/libraries/' + tfile)
+	alpha   = kwargs.get('alpha', 1)
+	method  = kwargs.get('method', 'pwv')
+	pwv = kwargs.get('pwv', '0.5')
+	am_key  = {'1.0':'10','1.5':'15','2.0':'20','2.5':'25','3.0':'30'}
+	pwv_key = {'0.5':'005','1.0':'010','1.5':'015','2.5':'025',
+	'3.5':'035','5.0':'050','7.5':'075','10.0':'100','20.0':'200'}
+	if method == 'pwv':
+		tfile = 'pwv_R300k_airmass{}/LBL_A{}_s0_w{}_R0300000_T.fits'.format(airmass, 
+			am_key[airmass],pwv_key[pwv])
+	tellurics = fits.open(BASE + '/nirspec_pip/libraries/telluric/'\
+	 + tfile)
 
 	telluric = nsp.Model()
 	telluric.wave = np.array(tellurics[1].data['lam'] * 10000)
@@ -99,7 +105,7 @@ def getTelluric(wavelow, wavehigh, **kwargs):
 	return telluric
 
 
-def xcorrTelluric(data, model, shift, start_pixel, width):
+def xcorrTelluric(data, model, shift, start_pixel, width, lsf):
 	"""
 	Calculate the cross-correlation of the telluric model and data.
 	
@@ -110,21 +116,23 @@ def xcorrTelluric(data, model, shift, start_pixel, width):
 	
 	Parameters
 	----------
-	data 	   	: spectrum object 
-		         telluric data
-	model      	: model object 
-		   		 telluric model
-	shift      	: float 
-		   		 wavelength shift of the telluric MODEL in (ANGSTROM)
-	start_pixel: int
-				 starting pixel number to compute the xcorr
-	width       : int
-				 window width to compute the xcorr
+	data 	   	: 	spectrum object 
+		        	telluric data
+	model      	:	model object 
+		   		 	telluric model
+	shift      	: 	float 
+		   		 	wavelength shift of the telluric MODEL in (ANGSTROM)
+	start_pixel : 	int
+				 	starting pixel number to compute the xcorr
+	width       : 	int
+				 	window width to compute the xcorr
+	lsf 		: 	float
+				 	the line-spread function for the instrument
 
 	Returns
 	-------
-	xcorr 		: float
-				  cross-corelation value
+	xcorr 		: 	float
+				  	cross-corelation value
 	"""
 	# shift the wavelength on the telluric model
 	# minus sign means we want to know the shift of the data
@@ -143,9 +151,9 @@ def xcorrTelluric(data, model, shift, start_pixel, width):
 	model2.flux = model2.flux[condition]
 
 	## LSF of the intrument (skipped)
-	vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
+	#vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
 	model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, 
-		flux=model2.flux, vbroad=vbroad, rotate=False, gaussian=True)
+		flux=model2.flux, vbroad=lsf, rotate=False, gaussian=True)
 
 	# resampling the telluric model
 	model2.flux = np.array(splat.integralResample(xh=model2.wave, 
@@ -180,6 +188,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 	"""
 	# the step for wavelength shift, default=0.1 Angstrom
 	step = kwargs.get('step',0.1)
+	lsf = kwargs.get('lsf')
 	pixel_range_start = kwargs.get('pixel_range_start',0)
 	pixel_range_end = kwargs.get('pixel_range_end',-1)
 	pixel = np.delete(np.arange(1024),data.mask)+1
@@ -197,7 +206,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 			j = data.bestshift[counter] + i
 		else:
 			j = i
-		xcorr = nsp.xcorrTelluric(data,model,j,start_pixel,window_width)
+		xcorr = nsp.xcorrTelluric(data,model,j,start_pixel,window_width,lsf)
 
 		#print("delta wavelength shift:{}, xcorr value:{}".format(i,xcorr))
 		xcorr_list.append(xcorr)
@@ -208,8 +217,8 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=1
 	central_pixel = start_pixel + window_width/2
 
 	# parameters setup for plotting
-	plt.rc('text', usetex=True)
-	plt.rc('font', family='serif')
+	#plt.rc('text', usetex=True)
+	plt.rc('font', family='sans-serif')
 	linewidth=1.0
 
 	pixel = np.delete(np.arange(1024),data.mask)+1
@@ -589,9 +598,11 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	width_range_center = width_range + width/2
 
 	# increase the telluric model strength for N3
-	if order == 62 or order == 63 \
-	or order == 64 or order == 65 or order == 66:
+	if order == 63 or order == 64 or \
+	order == 65 or order == 66:
 		model.flux **= 6
+	elif order == 62:
+		model.flux **= 4
 	elif order == 57 or order == 58:
 		model.flux **= 4
 	elif order == 59:
@@ -614,7 +625,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	# LSF of the intrument
 	#vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
-	vbroad = nsp.getLSF(data2)
+	vbroad = nsp.getLSF(data2, continuum=False)
 	if test is True:
 		print("LSF: ", vbroad)
 
@@ -672,7 +683,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 					delta_wave_range,model2,test=test,testname=testname,
 					counter=counter,step=step,
 					pixel_range_start=pixel_range_start,
-					pixel_range_end=pixel_range_end)
+					pixel_range_end=pixel_range_end,
+					lsf=vbroad)
 				time3 = time.time()
 				if test is True:
 					print("xcorr time: {} s".format(round(time3-time2,4)))
@@ -683,7 +695,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 					best_shift = nsp.pixelWaveShift(data2,model,j,width,5,
 						model2,test=test,testname=testname,counter=counter,step=step,
 						pixel_range_start=pixel_range_start,
-						pixel_range_end=pixel_range_end)
+						pixel_range_end=pixel_range_end,
+						lsf=vbroad)
 					time3 = time.time()
 					if test is True:
 						print("xcorr time: {} s".format(round(time3-time2,4)))
@@ -692,7 +705,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 					best_shift = nsp.pixelWaveShift(data2,model,j,width,2,
 						model2,test=test,testname=testname,counter=counter,step=step,
 						pixel_range_start=pixel_range_start,
-						pixel_range_end=pixel_range_end)
+						pixel_range_end=pixel_range_end,
+						lsf=vbroad)
 					time3 = time.time()
 					if test is True:
 						print("xcorr time: {} s".format(round(time3-time2,4)))
@@ -704,7 +718,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 				best_shift = nsp.pixelWaveShift(data2,model,j,width,delta_wave_range,model2,
 					test=test,testname=testname,counter=counter,step=step,
 					pixel_range_start=pixel_range_start,
-					pixel_range_end=pixel_range_end)
+					pixel_range_end=pixel_range_end,
+					lsf=vbroad)
 				time3 = time.time()
 				if test is True:
 					print("xcorr time: {} s".format(round(time3-time2,4)))
@@ -771,6 +786,11 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 		if len(width_range_center2) < 8:
 			print("Number of selected pixel < number of fits parameters (8)")
+			width_range_center2 = width_range_center
+			best_shift_array2   = best_shift_array
+			residual2           = nsp.waveSolution(width_range_center,popt[0],
+				popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],
+				order=order)-best_shift_array
 			break
 
 		# fit the wavelength again after the outlier rejections
@@ -825,8 +845,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			print("Pixel wavelength fit time for loop {}: {} s".format(k,
 				round(time5-time4,4)))
 		# plot for analysis
-		plt.rc('text', usetex=True)
-		plt.rc('font', family='serif')
+		#plt.rc('text', usetex=True)
+		plt.rc('font', family='sans-serif')
 		fig = plt.figure(figsize=(8,8))
 		gs1 = gridspec.GridSpec(5, 4)
 		ax1 = plt.subplot(gs1[0:2,0:])
@@ -837,7 +857,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		#ax1.plot(data.wave, data.flux, color='black',linestyle='-', label='telluric data',alpha=0.5,linewidth=0.8)
 		ax1.plot(new_wave_sol,data.flux,color='black',linestyle='-',label='corrected telluric data',alpha=0.8,linewidth=0.8)
 		ax1.plot(model2.wave, model2.flux, 'r-' ,label='telluric model',alpha=0.5)
-		ax1.set_xlabel(r"Wavelength($\displaystyle \AA $)")
+		ax1.set_xlabel("Wavelength($\AA$)")
 		ax1.set_ylabel('Transmission')
 		ax1.xaxis.set_label_position('top') 
 		ax1.set_ylim(0,1.1)
@@ -872,8 +892,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		#ax3.plot(width_range_center,residual1,'g.',alpha=0.5)
 		ax3.plot(width_range_center2, residual2,'r.',alpha=0.5)
 		ax3.set_ylim(-3*fit_sigma,3*fit_sigma)
-		ax3.set_ylabel(r"$residual (\displaystyle \AA)$")
-		ax3.set_xlabel(r'Pixel')
+		ax3.set_ylabel("residual ($\AA$)")
+		ax3.set_xlabel('Pixel')
 		#ax3.legend(loc=9, bbox_to_anchor=(0.5, -0.5))
 		plt.subplots_adjust(hspace=.0)
 		plt.savefig("pixel_to_delta_wavelength_loop_{}.png".format(k),
@@ -895,7 +915,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	if save is True:
 		if data_path is None:
 			data_path = save_to_path + '_' + str(order) + '_all.fits'
-		save_name = save_to_path + "_new_wave_sol_{}_all.fits".format(order)
+		save_name = save_to_path + "_calibrated_{}_all.fits".format(order)
 		with fits.open(data_path) as hdulist:
 			hdulist[0].header['COMMENT']  = 'Below are the keywords added by NIRSPEC_PIP...'
 			hdulist[0].header['WFIT0NEW'] = wfit0
@@ -944,12 +964,16 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 	##################################
 	## parameters set up
 	##################################
-	window_width = 40
-	window_step = 10
-	xcorr_step = 0.05
-	niter = 15
-	outlier_rej = 3
+	window_width  = 40
+	window_step   = 5
+	xcorr_step    = 0.05
+	niter         = 15
+	outlier_rej   = 3
+	airmass       = '1.5'
+	pwv           = '0.5'
 
+	defringe_list = [35, 61, 62, 63, 64, 65, 66]
+	applymask     = False # if True: apply a simple mask
 	##################################
 
 	original_path = os.getcwd()
@@ -959,7 +983,8 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		elif order == 34:
 			xcorr_range = 4
 		elif order == 35:
-			xcorr_range = 4
+			xcorr_range = 5
+			outlier_rej = 2
 		elif order == 36 or order == 37:
 			xcorr_range = 2
 		elif order == 38:
@@ -968,32 +993,41 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			xcorr_range = 5
 		elif order == 58:
 			xcorr_range = 2
+		elif order == 59:
+			xcorr_range = 1.5
 		elif order == 61:
 			xcorr_range = 5
 		elif order == 62:
-			xcorr_range = 5
-		elif order == 63 or order == 65:
+			xcorr_range = 2
+		elif order == 63:
 			xcorr_range = 2
 		elif order == 64:
 			xcorr_range = 1
+		elif order == 65:
+			xcorr_range = 1.5
 		elif order == 66:
 			xcorr_range = 3
+			outlier_rej = 2
+			applymask   = False
 		else:
 			xcorr_range = 5
 
 		data = nsp.Spectrum(name=data_name,
-			order=order, path=data_path)
+			order=order, path=data_path,
+			applymask=applymask)
 
 		# the telluric standard model
 		wavelow = data.wave[0] - 300
 		wavehigh = data.wave[-1] + 300
-		model = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
+		model = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh,
+			airmass=airmass, pwv=pwv)
 
 		# continuum correction for the data
 		data = nsp.continuumTelluric(data=data, 
 			model=model,order=order)
 
 		data1 = copy.deepcopy(data)
+
 		# this is a test for O63 to reduce the fringing effects
 		if order == 32:
 			pixel_range_start = 10
@@ -1022,6 +1056,12 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			for i in range(len(data.flux)):
 				if data.flux[i] > 1.0:
 					data.flux[i] = 1.0
+		elif order == 59:
+			pixel_range_start = 0
+			pixel_range_end = -1
+			for i in range(len(data.flux)):
+				if data.flux[i] > 1.05:
+					data.flux[i] = 1.05
 					
 		elif order == 61:
 			for i in range(len(data.flux)):
@@ -1034,7 +1074,7 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			for i in range(len(data.flux)):
 				if data.flux[i] > 1.0:
 					data.flux[i] = 1.0
-			pixel_range_start = 0
+			pixel_range_start = 20
 			pixel_range_end = -20
 
 		elif order == 63:
@@ -1049,14 +1089,14 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 				if data.flux[i] > 1.0:
 					data.flux[i] = 1.0
 			pixel_range_start = 10
-			pixel_range_end = -1
+			pixel_range_end = -10
 
 		elif order == 65:
-			pixel_range_start = 20
-			pixel_range_end = -60
-			for i in range(len(data.flux)):
-				if data.flux[i] > 0.9:
-					data.flux[i] = 1.0
+			pixel_range_start = 0
+			pixel_range_end = -70
+			#for i in range(len(data.flux)):
+			#	if data.flux[i] > 0.9:
+			#		data.flux[i] = 1.0
 
 		elif order == 66:
 			pixel_range_start = 20
@@ -1069,12 +1109,22 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			pixel_range_start = 0
 			pixel_range_end = -1
 
+		if not data.applymask:
+			pixel_range_start += 30
+			pixel_range_end   += -30
+
 		# select the pixel for wavelength calibration
 		data.flux = data.flux[pixel_range_start:pixel_range_end]
 		data.wave = data.wave[pixel_range_start:pixel_range_end]
 		data.noise = data.noise[pixel_range_start:pixel_range_end]
 		
-		lsf0 = nsp.getLSF(data)
+		# defringe
+		if order in defringe_list:
+			data, fringe = nsp.fringeTelluric(data)
+		#else:
+		#	fringe = 0
+
+		lsf0 = nsp.getLSF(data,continuum=False,test=True)
 		print("initial lsf: ",lsf0)
 		model2 = nsp.convolveTelluric(lsf0, data)
 
@@ -1142,7 +1192,7 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		# add the summary to the txt file
 		file_log = open("input_params_for_cal.txt","a")
 		file_log.write("*** Below is the summary *** \n")
-		file_log.write("wave_sol_params\n".format(str(p0)))
+		file_log.write("wave_sol_params {}\n".format(str(p0)))
 		file_log.write("std {} Angstrom\n".format(stdWaveSol))
 		file_log.write("std_vel {} km/s\n".format(stdWaveSolV))
 		file_log.write("comp_time {} min\n".format(round((time2-time1)/60,4)))
@@ -1154,33 +1204,33 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			yh=telluric.flux, xl=data.wave))
 		telluric.wave = data.wave
 		# compute the LSF average broadening of the instrument (km/s)
-		vbroad = (299792458/1000)*np.mean(np.diff(telluric.wave))/np.mean(telluric.wave)
-		telluric.flux = apmdl.rotation_broaden.broaden(wave=telluric.wave, flux=telluric.flux, vbroad=vbroad, rotate=False, gaussian=True)
+		#vbroad = (299792458/1000)*np.mean(np.diff(telluric.wave))/np.mean(telluric.wave)
+		#vbroad = lsf0
+		telluric.flux = apmdl.rotation_broaden.broaden(wave=telluric.wave, 
+			flux=telluric.flux, vbroad=lsf0, rotate=False, gaussian=True)
 		# check the result for telluric
 		residual_telluric_data = nsp.residual(data,telluric)
 		telluric_new = copy.deepcopy(data)
 		telluric_new.wave = new_wave_sol
 		telluric_new.flux = data.flux
 		# get an estimate for lsf and telluric alpha
-		lsf = nsp.getLSF(telluric_new)
-		alpha = nsp.getAlpha(telluric_new,lsf)
+		lsf = nsp.getLSF(telluric_new,continuum=False)
+		alpha = nsp.getAlpha(telluric_new,lsf,continuum=False)
 		print("LSF = {} km/s; alpha = {}".format(lsf, alpha))
+		# add the final LSF and alpha to the txt file
+		file_log = open("input_params_for_cal.txt","a")
+		file_log.write("lsf {} km/s\n".format(lsf))
+		file_log.write("alpha {}\n".format(alpha))
+		file_log.close()
 		
 		telluric_new2 = nsp.convolveTelluric(lsf,telluric_new,alpha=alpha)
-		#wavelow = telluric_new.wave[0]-10
-		#wavehigh = telluric_new.wave[-1]+10
-		#telluric_new2 = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
-		#telluric_new2.flux = np.array(splat.integralResample(xh=telluric_new2.wave, yh=telluric_new2.flux, xl=telluric_new.wave))**(alpha)
-		#telluric_new2.wave = telluric_new.wave
-		#vbroad = nsp.getLSF(telluric_new)
-		#vbroad = (299792458/1000)*np.mean(np.diff(telluric_new2.wave))/np.mean(telluric_new2.wave)
+		if order in defringe_list:
+			# add back the fringe
+			telluric_new2_no_fringe = copy.deepcopy(telluric_new2)
+			telluric_new2.flux += fringe
+
 		print("vbroad: ",lsf, " km/s")
-		#if order == 38:
-		#	# this is to handle a plotting bug for O38
-		#	pass
-		#else:
-		#	telluric_new2.flux = apmdl.rotation_broaden.broaden(wave=telluric_new2.wave, flux=telluric_new2.flux, vbroad=vbroad, rotate=False, gaussian=True)
-		
+
 		residual_telluric_wavesol = nsp.residual(telluric_new,telluric_new2)
 		
 		if order == 38:
@@ -1200,65 +1250,82 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			residual_telluric_wavesol.wave = residual_telluric_wavesol.wave[select]
 
 		# plot the telluric for comparison
-		plt.rc('text', usetex=True)
-		plt.rc('font', family='serif')
+		plt.rc('font', family='sans-serif')
 		plt.tick_params(labelsize=20)
 		fig = plt.figure(figsize=(16,6))
 		ax1 = fig.add_subplot(111)
-		ax1.plot(data.wave, data.flux, color='black',linestyle='-', label="data, STD:{}, chisquare:{}".format(\
-			round(np.nanstd(residual_telluric_data.flux),5),round(nsp.chisquare(data,telluric),8)),alpha=0.5,linewidth=linewidth)
-		ax1.plot(telluric.wave, telluric.flux, color='red',linestyle='-',label='model',alpha=0.5,linewidth=linewidth)
-		ax1.plot(residual_telluric_data.wave,residual_telluric_data.flux,color='black',linestyle='-',alpha=0.5,linewidth=linewidth)
+		ax1.plot(data.wave, data.flux, color='black',linestyle='-', 
+			label="data, STD:{}, chisquare:{}".format(\
+			round(np.nanstd(residual_telluric_data.flux),5),
+			round(nsp.chisquare(data,telluric),8)),alpha=0.5,linewidth=linewidth)
+		ax1.plot(telluric.wave, telluric.flux, color='red',linestyle='-',
+			label='model',alpha=0.5,linewidth=linewidth)
+		ax1.plot(residual_telluric_data.wave,residual_telluric_data.flux,
+			color='black',linestyle='-',alpha=0.5,linewidth=linewidth)
 		ax1.axhline(y=0,color='grey',linestyle=':',alpha=0.5)
-		ax1.set_title("Telluric Comparison {} O{} Original Spectra".format(data_name,order),y=1.15,fontsize=25)
-		ax1.set_xlabel(r"Wavelength($ \displaystyle \AA $)",fontsize=20)
+		ax1.set_title("Telluric Comparison {} O{} Original Spectra".format(data_name,order),
+			y=1.15,fontsize=25)
+		ax1.set_xlabel("Wavelength($\AA$)",fontsize=20)
 		ax1.set_ylabel('Normalized Flux',fontsize=20)
+		ax1.tick_params(labelsize=15)
 		ax2 = ax1.twiny()
 		ax2.plot(pixel,data.flux,color='w',alpha=0)
 		ax2.set_xlabel('Pixel',fontsize=20)
+		ax2.tick_params(labelsize=15)
 		ax1.legend(loc=9, bbox_to_anchor=(0.5, -0.2),fontsize=15)
+		plt.minorticks_on()
 		fig.savefig("telluric_comparison_{}_O{}_1.png".format(data_name,order), 
 			bbox_inches='tight')
 		plt.close()
 
-		plt.rc('text', usetex=True)
-		plt.rc('font', family='serif')
+		plt.rc('font', family='sans-serif')
 		plt.tick_params(labelsize=20)
 		fig = plt.figure(figsize=(16,8))
 		gs = gridspec.GridSpec(2, 1, height_ratios=[3, 1]) 
 		ax1 = fig.add_subplot(gs[0])
-		ax1.plot(telluric_new2.wave, telluric_new2.flux, color='red',linestyle='-',label='model',alpha=0.5,linewidth=linewidth)
+		ax1.plot(telluric_new2.wave, telluric_new2.flux, 
+			color='red',linestyle='-',label='model',alpha=0.5,linewidth=linewidth)
 		ax1.plot(new_wave_sol,data.flux,color='black',
 			linestyle='-',
-			label="new wavelength solution, STD:{}, chisquare:{}".format(round(np.nanstd(residual_telluric_wavesol.flux),5),
+			label="new wavelength solution, STD:{}, $\chi^2$:{}".format(round(np.nanstd(residual_telluric_wavesol.flux),5),
 				round(nsp.chisquare(telluric_new,telluric_new2),8)),
 			alpha=0.5,
 			linewidth=linewidth)
-		ax1.plot(residual_telluric_wavesol.wave,residual_telluric_wavesol.flux,color='blue',linestyle='-',alpha=0.5,linewidth=linewidth)
+		if order in defringe_list:
+			ax1.plot(telluric_new2_no_fringe.wave, telluric_new2_no_fringe.flux, 
+				color='blue',linestyle='-',
+				label='model w/o fringe',alpha=0.5,linewidth=linewidth)
+		ax1.plot(residual_telluric_wavesol.wave,residual_telluric_wavesol.flux,
+			color='blue',linestyle='-',alpha=0.5,linewidth=linewidth)
 		ax1.fill_between(new_wave_sol,-data.noise,data.noise,facecolor='grey',alpha=0.5)
 		ax1.axhline(y=0,color='grey',linestyle=':',alpha=0.5)
-		ax1.set_title("Telluric Comparison {} O{} Calibrated Spectra".format(data_name,order),y=1.25,fontsize=25)
-		ax1.set_xlabel(r"Wavelength($ \displaystyle \AA $)",fontsize=20)
+		ax1.set_title("Telluric Comparison {} O{} Calibrated Spectra".format(data_name,order),
+			y=1.25,fontsize=25)
+		ax1.set_xlabel("Wavelength($\AA$)",fontsize=20)
 		ax1.set_ylabel('Normalized Flux',fontsize=20)
 		ax1.set_ylim(-0.1, 1.1)
 		ax1.tick_params(labelsize=15)
 		ax2 = ax1.twiny()
 		ax2.plot(new_wave_sol,data.flux,color='w',alpha=0)
-		ax2.set_xlabel(r"Wavelength($ \displaystyle \AA $)",fontsize=20)
+		ax2.set_xlabel("Wavelength($\AA$)",fontsize=20)
 		ax2.tick_params(labelsize=15)
 		ax2.set_ylim(-0.1, 1.1)
 		#ax2.set_xlabel('Pixel',fontsize=20)
 		#ax1.legend(loc=9, bbox_to_anchor=(0.5, -0.2),fontsize=15)
-		ax1.legend(fontsize=15)
+		ax1.legend(fontsize=15,
+			loc='lower center', bbox_to_anchor=(0.5, -0.7))
 		ax3 = fig.add_subplot(gs[1])
-		ax3.plot(width_range_center, residual,'r.',alpha=0.5,label=r"fitted wavelength function with outlier rejection, STD={} $\displaystyle \AA $={} km/s".format(\
+		ax3.plot(width_range_center, residual,'r.',alpha=0.5,
+			label="fitted wavelength function with outlier rejection, STD={} $\AA$ ={} km/s".format(\
 			np.std(residual),np.std(residual)/np.average(new_wave_sol)*299792.458))
-		ax3.set_ylabel(r"$residual (\displaystyle \AA)$",fontsize=20)
+		ax3.set_ylabel("residual ($\AA$)",fontsize=20)
 		ax3.set_ylim(-3*np.std(residual),3*np.std(residual))
 		ax3.set_xlabel('Pixel',fontsize=20)
 		ax3.tick_params(labelsize=15)
 		plt.subplots_adjust(hspace=.0)
-		ax3.legend(fontsize=15)
+		plt.minorticks_on()
+		ax3.legend(fontsize=15,
+			loc='lower center', bbox_to_anchor=(0.5, -1.4))
 		fig.savefig("telluric_comparison_{}_O{}_2.png".format(data_name,order),
 			dpi=512, bbox_inches='tight')
 		plt.close()

@@ -1,31 +1,27 @@
 #!/usr/bin/env python
-#
-# Jan. 31 2018
-# @Dino Hsu
-#
-# The model class for the BTSettl models
-#
-#
 import warnings
 warnings.filterwarnings("ignore")
 import splat
 import splat.model as spmd
 import numpy as np
-from astropy.io import fits
-from astropy.io import ascii
+from astropy.io import fits, ascii
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
-
+import nirspec_pip as nsp
 
 def _constructModelName(teff, logg, feh, en, order, path=None):
     """
     Return the full name of the BT-Settl model.
     """
     if path is None:
-        path = '/Users/dinohsu/projects/Models/models/btsettl08/' + 'NIRSPEC-O' + str(order) + '-RAW/'
+        path  = '/Users/dinohsu/projects/Models/models/btsettl08/' + \
+        'NIRSPEC-O' + str(order) + '-RAW/'
     else:
-        path = path + '/NIRSPEC-O' + str(order) + '-RAW/'
-    full_name = path + 'btsettl08_t'+ str(teff) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+        path  = path + '/NIRSPEC-O' + str(order) + '-RAW/'
+    full_name = path + 'btsettl08_t'+ str(teff) + '_g' + \
+    '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + \
+    '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+    
     return full_name
 
 class Model():
@@ -39,7 +35,7 @@ class Model():
           The effective temperature, given from 500 to 3,500 K.
     logg : float
           The log(gravity), given in two decimal digits. 
-          Ex: logg=3.50
+          Ex: logg=4.50
     feh  : float
            The metalicity, given in two decimal digits. 
            Ex. feh=0.00
@@ -95,11 +91,16 @@ class Model():
             #self.wave  = model[0][:]*10000 #convert to Angstrom
             #self.flux  = model[1][:]
             
-            #load the splat.interpolation BTSETTL model
-            instrument = "NIRSPEC-O{}-RAW".format(self.order)
-            sp = spmd.getModel(instrument=str(instrument),teff=self.teff,logg=self.logg,z=self.feh)
-            self.wave = sp.wave.value*10000 #convert to Angstrom
-            self.flux = sp.flux.value
+            ## load the splat.interpolation BTSETTL model
+            #instrument = "NIRSPEC-O{}-RAW".format(self.order)
+            #sp = spmd.getModel(instrument=str(instrument),teff=self.teff,logg=self.logg,z=self.feh)
+            #self.wave = sp.wave.value*10000 #convert to Angstrom
+            #self.flux = sp.flux.value
+
+            wave, flux = nsp.forward_model.InterpolateModel.InterpModel(self.teff, self.logg,
+                modelset='btsettl08', order=self.order)
+            self.wave = wave * 10000 #convert to Angstrom
+            self.flux = flux
 
         else:
             #print('Return a self-defined model.')
@@ -112,14 +113,16 @@ class Model():
         Plot the model spectrum.
         """
         if self.order != None:
-            name = str(_constructModelName(self.teff, self.logg, self.feh, self.en, self.order, self.path))
+            name = str(_constructModelName(self.teff, self.logg, 
+                self.feh, self.en, self.order, self.path))
             output = kwargs.get('output', str(name) + '.pdf')
             ylim = kwargs.get('yrange', [min(self.flux)-.2, max(self.flux)+.2])
             title  = kwargs.get('title')
             save   = kwargs.get('save', False)
         
-            plt.figure(figsize=(16,4))
-            plt.plot(self.wave, self.flux, color='k', alpha=.8, linewidth=1, label=name)
+            plt.figure(figsize=(16,6))
+            plt.plot(self.wave, self.flux, color='k', 
+                alpha=.8, linewidth=1, label=name)
             plt.legend(loc='upper right', fontsize=12)
             plt.ylim(ylim)    
     
@@ -138,16 +141,17 @@ class Model():
                 plt.savefig(output)
             plt.show()
             plt.close()
+
         else:
             output = kwargs.get('output'+ '.pdf')
-            ylim = kwargs.get('yrange', [min(self.flux)-.2, max(self.flux)+.2])
+            ylim   = kwargs.get('yrange', [min(self.flux)-.2, max(self.flux)+.2])
             title  = kwargs.get('title')
             save   = kwargs.get('save', False)
         
-            plt.figure(figsize=(16,4))
+            plt.figure(figsize=(16,6))
             plt.plot(self.wave, self.flux, color='k', alpha=.8, linewidth=1)
             plt.legend(loc='upper right', fontsize=12)
-            plt.ylim(ylim)    
+            plt.ylim(ylim)
     
             minor_locator = AutoMinorLocator(5)
             #ax.xaxis.set_minor_locator(minor_locator)

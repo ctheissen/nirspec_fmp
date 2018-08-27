@@ -9,14 +9,15 @@
 # Refer to Apogee_tool
 #
 
-import nirspec_pip as nsp
-import apogee_tools.forward_model as apmdl
-import splat
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy.signal as signal
 from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
+import nirspec_pip as nsp
+import apogee_tools.forward_model as apmdl
+import splat
 import copy
 
 
@@ -109,6 +110,56 @@ def voigt_profile(x, x0, amp, gamma, scale, a, b, c, d):
     voigt_absorption = (1 - scale * np.real(wofz((x-x0 + 1j*gamma)*amp)))
     return voigt_absorption * (a*x**2 + b*x + c) + d
 
+def sineFit(wavelength,frequency,amplitude,phase,offset):
+    """
+    A sine fit function of wavelength, frequency,
+    amplitude, and phase.
+    """
+    return amplitude * np.sin(frequency * (wavelength - phase)) + offset
+
+def fringeTelluric(data):
+    """
+    Model the fringe pattern for telluric data.
+    
+    Note: The input data should be continuum corrected 
+    before using this function.
+    """
+    lsf = nsp.getLSF(data)
+    alpha = nsp.getAlpha(data, lsf)
+    tell_mdl2 = nsp.convolveTelluric(lsf=lsf,
+        telluric_data=data,alpha=alpha)
+    
+    pgram_x = np.array(data.wave,float)[10:-10]
+    pgram_y = np.array(data.flux-tell_mdl2.flux,float)[10:-10]
+    offset = np.mean(pgram_y)
+    pgram_y -= offset
+    mask = np.where(np.absolute(pgram_y)-1.*np.std(pgram_y)>0)
+    pgram_x = np.delete(pgram_x,mask)
+    pgram_y = np.delete(pgram_y,mask)
+    pgram_x = np.array(pgram_x,float)
+    pgram_y = np.array(pgram_y,float)
+
+    f = np.linspace(0.01,10,100000)
+
+    ## Lomb Scargle Periodogram
+    pgram = signal.lombscargle(pgram_x, pgram_y, f)
+
+    freq = f[np.argmax(pgram)]
+
+    ## initial guess for the sine fit
+    amp0 = np.absolute(np.std(pgram_y))
+    p0 = [freq, amp0, 0, 0]
+    popt, pcov = curve_fit(sineFit, pgram_x, pgram_y, p0=p0,
+        maxfev=10000)
+
+    #data.wave = pgram_x
+    #data.flux = np.delete(data.flux[10:-10],
+    #    mask)-(sineFit(pgram_x,*popt)-popt[-1])
+    #data.noise = np.delete(data.noise[10:-10],mask)
+    data.flux -= (sineFit(data.wave,*popt)-popt[-1])
+
+    return data, sineFit(data.wave,*popt)-popt[-1]
+
 def continuumTelluric(data, model=None, order=None):
     """
     Return a continnum telluric standard data.
@@ -140,28 +191,37 @@ def continuumTelluric(data, model=None, order=None):
 
     """
     if model is None:
-        wavelow = data.wave[0]
-        wavehigh = data.wave[-1]
-        model = nsp.getTelluric(wavelow,wavehigh)
+        wavelow  = data.wave[0] - 20
+        wavehigh = data.wave[-1] + 20
+        model    = nsp.getTelluric(wavelow,wavehigh)
 
-    if order == 35:
+    if not data.applymask:
+        data2 = copy.deepcopy(data)
+        data.maskBySigmas()
+
+    if data.order == 35:
         # O35 has a voigt absorption profile
         popt, pcov = curve_fit(voigt_profile,data.wave[20:-20],
             data.flux[20:-20],
-            p0=[21660,2000,0.1,0.1,0.01,0.1,10000,1000])
+            p0=[21660,2000,0.1,0.1,0.01,0.1,10000,1000],
+            maxfev=10000)
         const = np.mean(data.flux/voigt_profile(data.wave, *popt))\
         -np.mean(model.flux)
-        data.flux = data.flux/voigt_profile(data.wave, *popt) - const
+        data.flux  = data.flux/voigt_profile(data.wave, *popt) - const
         data.noise = data.noise/voigt_profile(data.wave, *popt)
+        if not data.applymask:
+            data2.flux  = data2.flux/voigt_profile(data2.wave, *popt) - const
+            data2.noise = data2.noise/voigt_profile(data2.wave, *popt)
+            data        = data2
 
-    elif order == 38:
+    elif data.order == 38:
         # O38 has rich absorption features
         def fit_continuum_O38(x,a,b,**kwargs):
             flux = kwargs.get('flux',data.flux)
             linear = a*x + b
             return flux/linear
 
-        model2 = copy.deepcopy(model)
+        model2      = copy.deepcopy(model)
         model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, 
             flux=model2.flux, vbroad=4.8, 
             rotate=False, gaussian=True)
@@ -169,23 +229,35 @@ def continuumTelluric(data, model=None, order=None):
             yh=model2.flux, xl=data.wave))
         model2.wave = data.wave
         
-        popt, pcov = curve_fit(fit_continuum_O38,data.wave,
+        popt, pcov  = curve_fit(fit_continuum_O38,data.wave,
             model2.flux, p0=[ 8.54253062e+00  , -166000])
         #const = np.mean(data.flux/linear_fit(data.wave, *popt))-np.mean(model.flux)
         #data.flux = data.flux/linear_fit(data.wave, *popt) - const
-        data.flux = data.flux/linear_fit(data.wave, *popt)
-        data.noise = data.noise/linear_fit(data.wave, *popt)
+        data.flux   = data.flux/linear_fit(data.wave, *popt)
+        data.noise  = data.noise/linear_fit(data.wave, *popt)
+        if not data.applymask:
+            data2.flux  /= linear_fit(data2.wave, *popt)
+            data2.noise /= linear_fit(data2.wave, *popt)
+            data         = data2
 
-    elif order == 55:
-        popt, pcov = curve_fit(_continuumFit, data.wave, data.flux)
-        data.flux = data.flux/_continuumFit(data.wave, *popt)
-        data.noise = data.noise/_continuumFit(data.wave, *popt)
-        data.flux /= np.max(data.flux)
+    elif data.order == 55:
+        popt, pcov  = curve_fit(_continuumFit, data.wave, data.flux)
+        data.flux   = data.flux/_continuumFit(data.wave, *popt)
+        data.noise  = data.noise/_continuumFit(data.wave, *popt)
+        data.flux  /= np.max(data.flux)
         data.noise /= np.max(data.flux)
-        data.flux /= 0.93
+        data.flux  /= 0.93
         data.noise /= 0.93
+        if not data.applymask:
+            data2.flux   = data2.flux/_continuumFit(data2.wave, *popt)
+            data2.noise  = data2.noise/_continuumFit(data2.wave, *popt)
+            data2.flux  /= np.max(data.flux)
+            data2.noise /= np.max(data.flux)
+            data2.flux  /= 0.93
+            data2.noise /= 0.93
+            data         = data2
 
-    elif order == 56:
+    elif data.order == 56:
         # select the highest points to fit a polynomial
         x1 = np.max(data.flux[0:100])
         x2 = np.max(data.flux[100:150])
@@ -207,33 +279,51 @@ def continuumTelluric(data, model=None, order=None):
 
         data.flux = data.flux/_continuumFit(data.wave,*popt)*0.85
         data.noise = data.noise/_continuumFit(data.wave,*popt)*0.85
+        if not data.applymask:
+            data2.flux  = data2.flux/_continuumFit(data2.wave,*popt)*0.85
+            data2.noise = data2.noise/_continuumFit(data2.wave,*popt)*0.85
+            data        = data2
 
-    elif order == 59:
+    elif data.order == 59:
+        wave0 = int(data.wave[np.where(data.flux==np.min(data.flux))])
         popt, pcov = curve_fit(voigt_profile,
-            data.wave, data.flux, 
-            p0=[12820,2000,0.1,0.1,0.01,0.1,10000,1000])
-        data.flux /= voigt_profile(data.wave, *popt)
+            data.wave, data.flux,
+            p0=[12820,2000,0.1,0.1,0.01,0.1,10000,1000]
+            ,maxfev=10000)
+            #p0=[wave0,2000,0.1,0.1,0.01,0.1,10000,1000],
+            #maxfev=10000)        
+        data.flux  /= voigt_profile(data.wave, *popt)
         data.noise /= voigt_profile(data.wave, *popt)
+        if not data.applymask:
+            data2.flux  /= voigt_profile(data2.wave, *popt)
+            data2.noise /= voigt_profile(data2.wave, *popt)
+            data         = data2
 
-    elif order == 65:
+
+    elif data.order == 65:
         # O65 is best mateched by a gaussian absorption feature
-        popt, pcov = curve_fit(gaus_absorption_only,
-            data.wave,data.flux, p0=[11660,50,2000,2000])
-        const = np.mean(data.flux/gaus_absorption_only(data.wave, 
-            *popt))-np.mean(model.flux)
-        data.flux = data.flux/gaus_absorption_only(data.wave, *popt) - const
+        popt, pcov  = curve_fit(gaus_absorption_only,
+            data.wave,data.flux, p0=[11660,50,2000,2000],maxfev=10000)
+        const       = np.mean(data.flux/gaus_absorption_only(data.wave, 
+            *popt)) - np.mean(model.flux)
+        data.flux   = data.flux/gaus_absorption_only(data.wave, *popt) - const
         data.noise /= gaus_absorption_only(data.wave, *popt)
+        if not data.applymask:
+            data2.flux   = data2.flux/gaus_absorption_only(data2.wave, *popt) - const
+            data2.noise /= gaus_absorption_only(data2.wave, *popt)
+            data         = data2
 
     else:
         # this second order polynomial continnum correction 
         # works for the O33, O34, O36, and O37
         popt, pcov = curve_fit(_continuumFit, data.wave, data.flux)
-        const = np.mean(data.flux/_continuumFit(data.wave, 
-            *popt))-np.mean(model.flux)
-        data.flux = data.flux/_continuumFit(data.wave, *popt) - const
+        const      = np.mean(data.flux/_continuumFit(data.wave, 
+            *popt)) - np.mean(model.flux)
+        data.flux  = data.flux/_continuumFit(data.wave, *popt) - const
         data.noise = data.noise/_continuumFit(data.wave, *popt)
-
-        #if order == 37:
-        #    data.flux -= 0.05
-
+        if not data.applymask:
+            data2.flux  = data2.flux/_continuumFit(data2.wave, *popt) - const
+            data2.noise = data2.noise/_continuumFit(data2.wave, *popt)
+            data        = data2
+        
     return data
