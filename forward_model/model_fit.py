@@ -10,7 +10,7 @@ import apogee_tools as ap
 import apogee_tools.forward_model as apmdl
 import splat
 
-def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
+def makeModel(teff,logg,z,vsini,rv,alpha,B,**kwargs):
 	"""
 	Return a forward model.
 
@@ -35,7 +35,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
 	#rv    = params['rv']
 	#alpha = params['alpha']
 	order = kwargs.get('order', 33)
-	lsf   = kwargs.get('lsf', 4.5) # instrumental LSF
+	lsf   = kwargs.get('lsf', 4.5)   # instrumental LSF
 	tell  = kwargs.get('tell', True) # apply telluric
 	data  = kwargs.get('data', None) # for continuum correction and resampling
 
@@ -43,13 +43,14 @@ def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
 	model = nsp.Model(teff=teff, logg=logg, feh=z, order=order)
 	
 	# apply rv (including the barycentric correction)
-	model.wave = apmdl.rv_function.rvShift(model.wave, rv=rv)
+	#model.wave = apmdl.rv_function.rvShift(model.wave, rv=rv)
+	model.wave = rvShift(model.wave, rv=rv)
 	# apply vsini
 	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
 	# apply telluric
 	if tell is True:
-		model = nsp.applyTelluric(model=model, alpha=alpha)
+		model = nsp.applyTelluric(model=model, alpha=alpha, airmass='1.5')
 	# NIRSPEC LSF
 	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
@@ -57,6 +58,9 @@ def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
 	# add a fringe pattern to the model
 	#model.flux *= (1+amp*np.sin(freq*(model.wave-phase)))
 
+	# wavelength offset
+	model.wave += B
+	
 	# integral resampling
 	if data is not None:
 		model.flux = np.array(splat.integralResample(xh=model.wave, 
@@ -67,7 +71,26 @@ def makeModel(teff,logg,z,vsini,rv,alpha,**kwargs):
 
 	return model
 
-def applyTelluric(model, alpha):
+def rvShift(wavelength, rv):
+	"""
+	Perfrom the radial velocity correction.
+
+	Parameters
+	----------
+	wavelength 	: 	numpy array 
+					model wavelength (in Angstroms)
+
+	rv 			: 	float
+					radial velocity shift (in km/s)
+
+	Returns
+	-------
+	wavelength 	: 	numpy array 
+					shifted model wavelength (in Angstroms)
+	"""
+	return wavelength * ( 1 + rv / 299792.458)
+
+def applyTelluric(model, alpha=1, airmass='1.5'):
 	"""
 	Apply the telluric model on the science model.
 
@@ -76,7 +99,7 @@ def applyTelluric(model, alpha):
 	model 	:	model object
 				BT Settl model
 	alpha 	: 	float
-				telluric alpha parameter (the power on the flux)
+				telluric scaling factor (the power on the flux)
 
 	Returns
 	-------
@@ -84,32 +107,31 @@ def applyTelluric(model, alpha):
 				BT Settl model times the corresponding model
 
 	"""
-	
-	if alpha is None:
-		alpha = 1
-
 	# read in a telluric model
-	wavelow = model.wave[0] - 10
+	wavelow  = model.wave[0] - 10
 	wavehigh = model.wave[-1] + 10
 	telluric_model = nsp.getTelluric(wavelow=wavelow,
-		wavehigh=wavehigh)
+		wavehigh=wavehigh, alpha=alpha, airmass=airmass)
 	# apply the telluric alpha parameter
-	telluric_model.flux = telluric_model.flux**(alpha)
+	#telluric_model.flux = telluric_model.flux**(alpha)
 
-	if len(model.wave) > len(telluric_model.wave):
-		model.flux = np.array(splat.integralResample(xh=model.wave, 
-			yh=model.flux, xl=telluric_model.wave))
-		model.wave = telluric_model.wave
-		model.flux *= telluric_model.flux
+	#if len(model.wave) > len(telluric_model.wave):
+	#	print("The model has a higher resolution ({}) than the telluric model ({})."\
+	#		.format(len(model.wave),len(telluric_model.wave)))
+	#	model.flux = np.array(splat.integralResample(xh=model.wave, 
+	#		yh=model.flux, xl=telluric_model.wave))
+	#	model.wave = telluric_model.wave
+	#	model.flux *= telluric_model.flux
 
-	elif len(model.wave) < len(telluric_model.wave):
-		telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave, 
-			yh=telluric_model.flux, xl=model.wave))
-		telluric_model.wave = model.wave
-		model.flux *= telluric_model.flux
+	#elif len(model.wave) < len(telluric_model.wave):
+	## This should be always true
+	telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave, 
+		yh=telluric_model.flux, xl=model.wave))
+	telluric_model.wave = model.wave
+	model.flux *= telluric_model.flux
 
-	elif len(model.wave) == len(telluric_model.wave):
-		model.flux *= telluric_model.flux
+	#elif len(model.wave) == len(telluric_model.wave):
+	#	model.flux *= telluric_model.flux
 		
 	return model
 

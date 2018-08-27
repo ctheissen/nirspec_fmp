@@ -1035,8 +1035,8 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 
 		elif order == 33 or order == 34 \
 		or order == 36:
-			pixel_range_start = 5
-			pixel_range_end = -5
+			pixel_range_start = 0
+			pixel_range_end = -1
 
 		elif order == 35:
 			pixel_range_start = 10
