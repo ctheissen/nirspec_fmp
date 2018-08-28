@@ -2,7 +2,7 @@
 # The example to demonstrate the defringe function 
 ##################################################
 ## Import the nirspec_pip package
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 import os
 
 ## Set up the data path

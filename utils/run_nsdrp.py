@@ -1,7 +1,7 @@
 # rountine for reducing the NIRSPEC data
 # using NSDRP
 
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 from astropy.io import fits
 import os
 import warnings

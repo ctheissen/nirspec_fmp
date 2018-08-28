@@ -1,4 +1,4 @@
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 import numpy as np
 
 def _residual(data,model):

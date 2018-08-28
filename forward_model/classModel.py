@@ -7,7 +7,7 @@ import numpy as np
 from astropy.io import fits, ascii
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 
 def _constructModelName(teff, logg, feh, en, order, path=None):
     """

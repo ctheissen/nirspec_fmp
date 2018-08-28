@@ -6,7 +6,7 @@ import scipy.signal as signal
 from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 import apogee_tools.forward_model as apmdl
 import splat
 import copy

@@ -5,7 +5,7 @@
 # 'data/reduced/fits/all'
 ####################################################
 ## Import the nirspec_pip package
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 import os
 
 ## Set up the input paramters

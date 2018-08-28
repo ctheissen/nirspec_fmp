@@ -9,7 +9,7 @@ import sys
 import os
 import warnings
 import copy
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 warnings.filterwarnings("ignore")
 
 

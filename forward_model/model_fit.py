@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import copy
 import time
 import os
-import nirspec_pip as nsp
+import nirspec_fmp as nsp
 import apogee_tools as ap
 import apogee_tools.forward_model as apmdl
 import splat
