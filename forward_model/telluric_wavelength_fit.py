@@ -624,10 +624,9 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	model2.wave = data.wave
 
 	# LSF of the intrument
-	#vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
-	vbroad = nsp.getLSF(data2, continuum=False)
-	if test is True:
-		print("LSF: ", vbroad)
+	vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
+	#vbroad = nsp.getLSF(data2, continuum=False)
+	print("LSF for telluric wavelength calibration: ", vbroad)
 
 	model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, 
 		flux=model2.flux, vbroad=vbroad, rotate=False, gaussian=True)
@@ -871,7 +870,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		residual2 = nsp.waveSolution(width_range_center2,popt2[0],
 			popt2[1],popt2[2],popt2[3],popt2[4],popt2[5],popt2[6],
 			popt2[7],order=order)-best_shift_array2
-		std = round(np.std(residual2),5)		
+		std = round(np.std(residual2),4)		
 		ax2.plot(width_range_center,best_shift_array,'k.',label="delta wavelength")
 		ax2.plot(width_range_center2,best_shift_array2,'b.',
 			label="delta wavelength with ourlier rejection")
@@ -882,7 +881,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			popt2[0],popt2[1],popt2[2],popt2[3],popt2[4],popt2[5],popt2[6],
 			popt2[7],order=order),'r.',
 			label=r"fitted wavelength function with outlier rejection, STD={} $\displaystyle \AA $={} km/s".format(\
-			std,std/np.average(new_wave_sol)*299792.458),alpha=0.5)
+			std,np.round_(std/np.average(new_wave_sol)*299792.458,decimals=3)),alpha=0.5)
 		ax2.set_ylabel(r"$\displaystyle\Delta \lambda (\displaystyle \AA)$")
 		ax2.legend()
 		# plot the residual
@@ -1124,9 +1123,9 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		#else:
 		#	fringe = 0
 
-		lsf0 = nsp.getLSF(data,continuum=False,test=True)
-		print("initial lsf: ",lsf0)
-		model2 = nsp.convolveTelluric(lsf0, data)
+		#lsf0 = nsp.getLSF(data,continuum=False,test=True)
+		#print("initial fitted LSF: ",lsf0)
+		#model2 = nsp.convolveTelluric(lsf0, data)
 
 		directory = save_to_path + '/O{}'.format(order)
 		# create a new directory and change to the new dir
@@ -1199,17 +1198,18 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		file_log.close()
 
 		# resampling the telluric model
-		telluric = copy.deepcopy(model)
-		telluric.flux = np.array(splat.integralResample(xh=telluric.wave, 
-			yh=telluric.flux, xl=data.wave))
-		telluric.wave = data.wave
+		#telluric = copy.deepcopy(model)
+		#telluric.flux = np.array(splat.integralResample(xh=telluric.wave, 
+		#	yh=telluric.flux, xl=data.wave))
+		#telluric.wave = data.wave
 		# compute the LSF average broadening of the instrument (km/s)
 		#vbroad = (299792458/1000)*np.mean(np.diff(telluric.wave))/np.mean(telluric.wave)
-		#vbroad = lsf0
-		telluric.flux = apmdl.rotation_broaden.broaden(wave=telluric.wave, 
-			flux=telluric.flux, vbroad=lsf0, rotate=False, gaussian=True)
+		#telluric.flux = apmdl.rotation_broaden.broaden(wave=telluric.wave, 
+		#	flux=telluric.flux, vbroad=vbroad, rotate=False, gaussian=True)
 		# check the result for telluric
-		residual_telluric_data = nsp.residual(data,telluric)
+		#residual_telluric_data = nsp.residual(data,telluric)
+		
+		vbroad = (299792458/1000)*np.mean(np.diff(data.wave))/np.mean(data.wave)
 		telluric_new = copy.deepcopy(data)
 		telluric_new.wave = new_wave_sol
 		telluric_new.flux = data.flux
@@ -1217,6 +1217,10 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		lsf = nsp.getLSF(telluric_new,continuum=False)
 		alpha = nsp.getAlpha(telluric_new,lsf,continuum=False)
 		print("LSF = {} km/s; alpha = {}".format(lsf, alpha))
+
+		# make a telluric model for the input data
+		telluric = nsp.convolveTelluric(vbroad,data,alpha=alpha)
+		residual_telluric_data = nsp.residual(data,telluric)
 		# add the final LSF and alpha to the txt file
 		file_log = open("input_params_for_cal.txt","a")
 		file_log.write("lsf {} km/s\n".format(lsf))
@@ -1287,8 +1291,8 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 			color='red',linestyle='-',label='model',alpha=0.5,linewidth=linewidth)
 		ax1.plot(new_wave_sol,data.flux,color='black',
 			linestyle='-',
-			label="new wavelength solution, STD:{}, $\chi^2$:{}".format(round(np.nanstd(residual_telluric_wavesol.flux),5),
-				round(nsp.chisquare(telluric_new,telluric_new2),8)),
+			label="new wavelength solution, STD:{}, $\chi^2$:{}".format(round(np.nanstd(residual_telluric_wavesol.flux),4),
+				round(nsp.chisquare(telluric_new,telluric_new2),0)),
 			alpha=0.5,
 			linewidth=linewidth)
 		if order in defringe_list:
@@ -1317,7 +1321,8 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		ax3 = fig.add_subplot(gs[1])
 		ax3.plot(width_range_center, residual,'r.',alpha=0.5,
 			label="fitted wavelength function with outlier rejection, STD={} $\AA$ ={} km/s".format(\
-			np.std(residual),np.std(residual)/np.average(new_wave_sol)*299792.458))
+			np.round_(np.std(residual),decimals=4),
+			np.round_(np.std(residual)/np.average(new_wave_sol)*299792.458,decimals=3)))
 		ax3.set_ylabel("residual ($\AA$)",fontsize=20)
 		ax3.set_ylim(-3*np.std(residual),3*np.std(residual))
 		ax3.set_xlabel('Pixel',fontsize=20)

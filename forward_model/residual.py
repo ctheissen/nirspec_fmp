@@ -1,9 +1,9 @@
 import nirspec_pip as nsp
 import numpy as np
 
-def residual(data,model):
+def _residual(data,model):
 	"""
-	Return a residual flux array with the length of the data.
+	Return a residual flux array with the length of the data. (deprecated)
 	"""
 	residual = []
 	# find the region where the model is in the range of the data
@@ -30,3 +30,20 @@ def residual(data,model):
 	#residual_model.flux = residual_model.flux[np.absolute(residual_model.flux)<5*np.std(residual_model.flux)]
 	#residual_model.wave = residual_model.wave[np.absolute(residual_model.flux)<5*np.std(residual_model.flux)]
 	return residual_model
+
+def residual(data, model):
+	"""
+	Return a residual flux array with the length of the data.
+	"""
+	if np.array_equal(data.wave,model.wave):
+		residual_model      = nsp.Model()
+		residual_model.flux = data.flux - model.flux
+		residual_model.wave = data.wave
+
+		return residual_model
+	
+	else:
+		print("The wavelength arrays of the data and model are not equal.")
+
+		return None
+

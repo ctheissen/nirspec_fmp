@@ -203,8 +203,11 @@ class Spectrum():
 		#pixel = np.delete(np.arange(1024)+1,list(self.mask))
 		pixel = np.arange(1024)+1
 		## create the output mask array 0=good; 1=bad
-		mask = np.zeros((1024,),dtype=int)
-		np.put(mask,self.mask.tolist(),int(1))
+		if self.applymask:
+			mask = np.zeros((1024,),dtype=int)
+			np.put(mask,self.mask.tolist(),int(1))
+		else:
+			mask = np.zeros((1024,),dtype=int)
 
 		if method == 'fits':
 			#fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
@@ -288,7 +291,7 @@ class Spectrum():
 
 
 			df.to_csv(save_to_path2, index=None, 
-				sep='	', mode='a')
+				sep='\t', mode='a')
 
 
 	def coadd(self, sp, method='pixel'):

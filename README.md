@@ -11,6 +11,7 @@ Authors:
 Dependencies:
 * astropy
 * numpy
+* scipy
 * matplotlib
 <!---* scipy---> 
 <!---* pandas---> 
