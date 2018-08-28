@@ -16,7 +16,7 @@ Dependencies:
 <!---* scipy---> 
 <!---* pandas---> 
 
-Download the nispec_pip and the forked and modified NSDRP to your computer.
+Download the nispec_fmp and the forked and modified NSDRP to your computer.
 
 Set up the environment variables in the `.bashrc` or `.bash_profile`
 
