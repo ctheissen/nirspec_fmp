@@ -1,4 +1,4 @@
-# nirspec_pip
+# nirspec_fmp (NIRSPEC Forward Modeling Pipeline)
 The nirspec_pip is to make required adjustments before reducing private data using [NIRSPEC-Data-Reduction-Pipeline(NSDRP)](https://github.com/Keck-DataReductionPipelines/NIRSPEC-Data-Reduction-Pipeline), and to forward model the NIRSPEC spectral data.
 
 Authors:
