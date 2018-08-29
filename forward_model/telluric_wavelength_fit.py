@@ -980,7 +980,7 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		if order == 32 or order == 33:
 			xcorr_range = 12
 		elif order == 34:
-			xcorr_range = 4
+			xcorr_range = 10
 		elif order == 35:
 			xcorr_range = 5
 			outlier_rej = 2

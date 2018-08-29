@@ -10,7 +10,7 @@ import apogee_tools as ap
 import apogee_tools.forward_model as apmdl
 import splat
 
-def makeModel(teff,logg,z,vsini,rv,alpha,B,**kwargs):
+def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	"""
 	Return a forward model.
 
@@ -25,17 +25,8 @@ def makeModel(teff,logg,z,vsini,rv,alpha,B,**kwargs):
 	"""
 
 	# read in the parameters
-	#params  = kwargs.get('params')
-	#teff  = params['teff']
-	#logg  = params['logg']
-	#z     = params['z']
-	#en    = params['en']
-	#order = params['order']
-	#vsini = params['vsini']
-	#rv    = params['rv']
-	#alpha = params['alpha']
 	order = kwargs.get('order', 33)
-	lsf   = kwargs.get('lsf', 4.5)   # instrumental LSF
+	lsf   = kwargs.get('lsf', 6.0)   # instrumental LSF
 	tell  = kwargs.get('tell', True) # apply telluric
 	data  = kwargs.get('data', None) # for continuum correction and resampling
 
@@ -59,7 +50,10 @@ def makeModel(teff,logg,z,vsini,rv,alpha,B,**kwargs):
 	#model.flux *= (1+amp*np.sin(freq*(model.wave-phase)))
 
 	# wavelength offset
-	model.wave += B
+	model.wave += wave_offset
+
+	# flux offset
+	model.flux += flux_offset
 	
 	# integral resampling
 	if data is not None:
