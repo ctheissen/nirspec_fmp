@@ -41,13 +41,13 @@ $ python ~/path/to/NIRSPEC-Data-Reduction-Pipeline/nsdrp.py rawData/ reducedData
 
 , where the directory rawData/ is the path to the raw data is, and reducedData/ is the path where you want to store the reduce data.
 
-*## Dark Subtraction. 
+## Dark Subtraction:
 You can also optionally subtract the dark frames using subtractDark.py before running the NSDRP. This may be put into the NSDRP in the future.
 
-*## Defringe Flats:
+## Defringe Flats:
 The algorithm follows Rojo & Harrington (2006) to remove fringe patterns from flat files, but it does not smooth over the adjacent data points. This may cause a problem when observed spectra are close to the edge of the order. The example and sample outputs are upder the example folder.
 
-*## Wavelength Calibration using Telluric Standard Spectra:
+## Wavelength Calibration using Telluric Standard Spectra:
 The algorithm follows Blake at el. (2010) to cross-correlate the ESO atmospheric model and an observed telluric spectrum, fit the residuals, and iterate the process until the standard deviation of the residual reaches a mininum. The example and sample outputs are upder the example folder.
 
 <!---*## Forward Modeling Science Spectra:---> 
