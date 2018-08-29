@@ -1,5 +1,5 @@
 # nirspec_fmp (NIRSPEC Forward Modeling Pipeline)
-The nirspec_fmp is a forward-modeling pipeline for the NIRSPEC spectrometer, which is intended to make required adjustments before reducing private data using [NIRSPEC-Data-Reduction-Pipeline(NSDRP)](https://github.com/Keck-DataReductionPipelines/NIRSPEC-Data-Reduction-Pipeline), to perform telluric wavelength calibrations, and to forward model spectral data. The code is currently being developed.
+The nirspec_fmp is a forward-modeling framework for the NIRSPEC spectrometer, which is intended to make required adjustments before reducing private data using [NIRSPEC-Data-Reduction-Pipeline(NSDRP)](https://github.com/Keck-DataReductionPipelines/NIRSPEC-Data-Reduction-Pipeline), to perform telluric wavelength calibrations, and to forward model spectral data. The code is currently being developed.
 
 Authors:
 * Dino Chih-Chun Hsu (UCSD)
@@ -48,6 +48,6 @@ You can also optionally subtract the dark frames using subtractDark.py before ru
 The algorithm follows Rojo & Harrington (2006) to remove fringe patterns from flat files, but it does not smooth over the adjacent data points. This may cause a problem when observed spectra are close to the edge of the order. The example and sample outputs are upder the example folder.
 
 ## Wavelength Calibration using Telluric Standard Spectra:
-The algorithm follows Blake at el. (2010) to cross-correlate the ESO atmospheric model and an observed telluric spectrum, fit the residuals, and iterate the process until the standard deviation of the residual reaches a mininum. The example and sample outputs are upder the example folder.
+The algorithm follows Blake at el. (2010) to cross-correlate the ESO atmospheric model and an observed telluric spectrum, fit the residual, and iterate the process until the standard deviation of the residual reaches a mininum. The example and sample outputs are upder the "examples" folder.
 
 <!---*## Forward Modeling Science Spectra:---> 
