@@ -33,12 +33,14 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	# read in a model
 	model = nsp.Model(teff=teff, logg=logg, feh=z, order=order)
 	
-	# apply rv (including the barycentric correction)
-	#model.wave = apmdl.rv_function.rvShift(model.wave, rv=rv)
-	model.wave = rvShift(model.wave, rv=rv)
 	# apply vsini
 	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
+	
+	# apply rv (including the barycentric correction)
+	#model.wave = apmdl.rv_function.rvShift(model.wave, rv=rv)
+	model.wave = rvShift(model.wave, rv=rv)
+	
 	# apply telluric
 	if tell is True:
 		model = nsp.applyTelluric(model=model, alpha=alpha, airmass='1.5')

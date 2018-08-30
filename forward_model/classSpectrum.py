@@ -91,12 +91,12 @@ class Spectrum():
 			# set the outliers as the flux below 
 			self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
 		
-			self.mask = np.where(self.smoothFlux <= 0)
+			self.mask  = np.where(self.smoothFlux <= 0)
 			self.wave  = np.delete(self.wave, list(self.mask))
 			self.flux  = np.delete(self.flux, list(self.mask))
 			self.noise = np.delete(self.noise, list(self.mask))
 			self.sky   = np.delete(self.sky, list(self.mask))
-			self.mask = self.mask[0]
+			self.mask  = self.mask[0]
 
 	def maskBySigmas(self, sigma=2):
 		"""
@@ -284,18 +284,20 @@ class Spectrum():
 				tell_sp2.wave = tell_sp2.oriWave
 				tell_mdl = nsp.convolveTelluric(lsf0, tell_sp2)
 
-				df = pd.DataFrame(data={'1_wavelength':list(self.oriWave/10000),
-					'2_flux':list(self.oriFlux),
-					'3_uncertainty':list(self.oriNoise),
-					'4_telluric_flux':list(tell_sp.oriFlux),
-					'5_telluric_uncertainty':list(tell_sp.oriNoise),
-					'6_telluric_model':list(tell_mdl.flux),
-					'7_pixel':list(pixel),
-					'8_mask':list(mask)})
+				df = pd.DataFrame(data={'wavelength':list(self.oriWave/10000),
+					'flux':list(self.oriFlux),
+					'uncertainty':list(self.oriNoise),
+					'telluric_flux':list(tell_sp.oriFlux),
+					'telluric_uncertainty':list(tell_sp.oriNoise),
+					'telluric_model':list(tell_mdl.flux),
+					'pixel':list(pixel),
+					'mask':list(mask)})
 
 
-			df.to_csv(save_to_path2, index=None, 
-				sep='\t', mode='a')
+			df.to_csv(save_to_path2, index=None, sep='\t', mode='a',
+				header=True, columns=['wavelength', 'flux', 'uncertainty', 
+				'telluric_flux', 'telluric_uncertainty', 'telluric_model',
+				'pixel', 'mask'])
 
 
 	def coadd(self, sp, method='pixel'):

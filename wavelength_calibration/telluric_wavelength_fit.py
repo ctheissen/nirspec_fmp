@@ -757,7 +757,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			return fitFn
 
 		# fit a second order polynomial for the first iteration
-		if i == 0:
+		if i==0 or i==1:
 			p1 = p0[:-2]
 			popt, pcov = curve_fit(waveSolutionFn0(order), width_range_center, 
 				np.asarray(best_shift_list),p1)
@@ -811,22 +811,38 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 		if len(width_range_center2) < 8:
 			print("Number of selected pixel < number of fits parameters (8)")
-			width_range_center2 = width_range_center
-			best_shift_array2   = best_shift_array
-			residual2           = nsp.waveSolution(width_range_center,popt[0],
-				popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],
+			#width_range_center2 = width_range_center
+			#best_shift_array2   = best_shift_array
+			residual2           = nsp.waveSolution(width_range_center,popt0_ori,
+				popt1_ori,popt2_ori,popt3_ori,popt4_ori,popt5_ori,popt6_ori,popt7_ori,
 				order=order)-best_shift_array
+			residual2           = residual2[np.where\
+			(abs(original_fit - best_shift_array) < m*fit_sigma)]
+			break
+
+		elif len(width_range_center2) < len(width_range_center)*0.4 and i != 0:
+			print("The iteration stops because the selected points for fitting",
+				len(width_range_center2),"are smaller than 2/5 of the total points",
+				len(width_range_center))
+			#width_range_center2 = width_range_center
+			#best_shift_array2   = best_shift_array
+			residual2           = nsp.waveSolution(width_range_center,popt0_ori,
+				popt1_ori,popt2_ori,popt3_ori,popt4_ori,popt5_ori,popt6_ori,popt7_ori,
+				order=order)-best_shift_array
+			residual2           = residual2[np.where\
+			(abs(original_fit - best_shift_array) < m*fit_sigma)]
 			break
 
 		# fit the wavelength again after the outlier rejections
-		if i == 0:
+		if i==0 or i==1:
 			p1 = p0[:-2]
 			popt2, pcov2  = curve_fit(waveSolutionFn0(order),
 				width_range_center2,best_shift_array2,p1)
 			popt2         = np.append(popt2, [0,0])
 
-			for num_fit in range(5):
-				# re-fit again after the second outlier rejection
+			for num_fit in range(8):
+				## re-fit for five times after the second outlier rejection
+				## the residual fit in the first iteration is the most important part
 				original_fit2 = nsp.waveSolution(width_range_center, *popt2, order=order)
 				width_range_center2 = width_range_center[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]
 				best_shift_array2   = best_shift_array[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]	
@@ -834,32 +850,30 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 					width_range_center2,best_shift_array2,p1)
 				popt2         = np.append(popt2, [0,0])
 
-			## re-fit again after the third outlier rejection
-			#original_fit3 = nsp.waveSolution(width_range_center, *popt2, order=order)
-			#width_range_center2 = width_range_center[np.where(abs(original_fit3 - best_shift_array) < m*fit_sigma)]
-			#best_shift_array2   = best_shift_array[np.where(abs(original_fit3 - best_shift_array) < m*fit_sigma)]	
-			#popt2, pcov2  = curve_fit(waveSolutionFn0(order),
-			#	width_range_center2,best_shift_array2,p1)
-			#popt2         = np.append(popt2, [0,0])
-
-			# re-fit again after the third outlier rejection
-			#original_fit4 = nsp.waveSolution(width_range_center, *popt2, order=order)
-			#width_range_center2 = width_range_center[np.where(abs(original_fit4 - best_shift_array) < m*fit_sigma)]
-			#best_shift_array2   = best_shift_array[np.where(abs(original_fit4 - best_shift_array) < m*fit_sigma)]	
-			#popt2, pcov2  = curve_fit(waveSolutionFn0(order),
-			#	width_range_center2,best_shift_array2,p1)
-			#popt2         = np.append(popt2, [0,0])
-
 		else:
 			popt2, pcov2 = curve_fit(waveSolutionFn1(order),
 				width_range_center2,best_shift_array2,p0)
 
-			# re-fit again after the second outlier rejection
-			original_fit2 = nsp.waveSolution(width_range_center, *popt2, order=order)
-			width_range_center2 = width_range_center[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]
-			best_shift_array2   = best_shift_array[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]	
-			popt2, pcov2  = curve_fit(waveSolutionFn1(order),
-				width_range_center2,best_shift_array2,p0)
+			for num_fit in range(5):
+				## re-fit again after the second outlier rejection
+				original_fit2 = nsp.waveSolution(width_range_center, *popt2, order=order)
+				width_range_center2 = width_range_center[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]
+				best_shift_array2   = best_shift_array[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]	
+				popt2, pcov2  = curve_fit(waveSolutionFn1(order),
+					width_range_center2,best_shift_array2,p0)
+				if len(width_range_center2) < len(width_range_center)*0.4 and i != 0:
+					print("The iteration stops because the selected points for fitting",
+						len(width_range_center2),"are smaller than 2/5 of the total points",
+						len(width_range_center))
+					#width_range_center2 = width_range_center
+					#best_shift_array2   = best_shift_array
+					residual2           = nsp.waveSolution(width_range_center,popt0_ori,
+						popt1_ori,popt2_ori,popt3_ori,popt4_ori,popt5_ori,popt6_ori,popt7_ori,
+						order=order)-best_shift_array
+					residual2           = residual2[np.where\
+					(abs(original_fit - best_shift_array) < m*fit_sigma)]
+					break
+
 
 		# update the parameters
 		wfit0 = wfit0+popt2[0]
@@ -884,18 +898,21 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		data2.header['WFIT5NEW'] = wfit5
 		data2.header['c3']       = c3
 		data2.header['c4']       = c4
-		data2.bestshift          = data2.bestshift + best_shift_list
+		if i == 0:
+			data2.bestshift      = np.asarray(best_shift_list)
+		else:
+			data2.bestshift      = data2.bestshift + np.asarray(best_shift_list)
 		data2.header['FITSTD']   = np.std(nsp.waveSolution(width_range_center2,
 			popt2[0],popt2[1],popt2[2],popt2[3],popt2[4],popt2[5],popt2[6],
 			popt2[7],order=order) - best_shift_array2)
-		data2.header['POPT0']	= popt2[0]
-		data2.header['POPT1']	= popt2[1]
-		data2.header['POPT2']	= popt2[2]
-		data2.header['POPT3']	= popt2[3]
-		data2.header['POPT4']	= popt2[4]
-		data2.header['POPT5']	= popt2[5]
-		data2.header['POPT6']	= popt2[6]
-		data2.header['POPT7']	= popt2[7]
+		data2.header['POPT0']	 = popt2[0]
+		data2.header['POPT1']	 = popt2[1]
+		data2.header['POPT2']	 = popt2[2]
+		data2.header['POPT3']	 = popt2[3]
+		data2.header['POPT4']	 = popt2[4]
+		data2.header['POPT5']	 = popt2[5]
+		data2.header['POPT6']	 = popt2[6]
+		data2.header['POPT7']	 = popt2[7]
 
 		new_wave_sol = nsp.waveSolution(pixel,wfit0,wfit1,wfit2,wfit3,
 			wfit4,wfit5,c3,c4,order=order)
@@ -981,6 +998,15 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			print("Total calculation time: {} min".format(round((time6-time0)/60,4)))
 			break
 
+		elif len(width_range_center2) < len(width_range_center)*0.4 and i != 0:
+			print("The iteration stops because the selected points for fitting",
+				len(width_range_center2),"are smaller than 2/5 of the total points",
+				len(width_range_center))
+			print("Wavelength solution converges in {} loops, with STD {} Angstrom ({} km/s)".format(k,
+				np.std(residual2),np.std(residual2)/np.average(new_wave_sol)*299792.458))
+			print("Total calculation time: {} min".format(round((time6-time0)/60,4)))
+			break
+
 	data2.wave = new_wave_sol
 
 	if save is True:
@@ -1051,7 +1077,7 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 	for order in order_list:
 		if order == 32:
 			xcorr_range  = 12
-			window_width = 30
+			#window_width = 30
 		elif order == 33:
 			xcorr_range  = 12
 		elif order == 34:
@@ -1059,12 +1085,11 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		elif order == 35:
 			xcorr_range = 5
 			outlier_rej = 2
-		elif order == 36 or order == 37:
+			applymask   = True
+		elif order == 36:
 			xcorr_range = 2
-		elif order == 38:
-			xcorr_range  = 3
-			window_width = 40
-			window_step  = 5
+		elif order == 37 or order == 38:
+			xcorr_range  = 4
 		elif order == 55 or order == 56:
 			xcorr_range = 5
 		elif order == 58:
