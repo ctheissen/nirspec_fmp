@@ -67,7 +67,11 @@ class Spectrum():
 		self.wave  = hdulist[0].data
 		self.flux  = hdulist[1].data
 		self.noise = hdulist[2].data
-		self.sky   = hdulist[3].data
+		try:
+			self.sky = hdulist[3].data
+		except IndexError:
+			print("No sky line data.")
+			self.sky = np.zeros(self.wave.shape) 
 		self.mask  = []
 
 		# define a list for storing the best wavelength shift
