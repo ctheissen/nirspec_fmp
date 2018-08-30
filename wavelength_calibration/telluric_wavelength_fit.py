@@ -825,21 +825,30 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 				width_range_center2,best_shift_array2,p1)
 			popt2         = np.append(popt2, [0,0])
 
-			# re-fit again after the second outlier rejection
-			original_fit2 = nsp.waveSolution(width_range_center, *popt2, order=order)
-			width_range_center2 = width_range_center[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]
-			best_shift_array2   = best_shift_array[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]	
-			popt2, pcov2  = curve_fit(waveSolutionFn0(order),
-				width_range_center2,best_shift_array2,p1)
-			popt2         = np.append(popt2, [0,0])
+			for num_fit in range(5):
+				# re-fit again after the second outlier rejection
+				original_fit2 = nsp.waveSolution(width_range_center, *popt2, order=order)
+				width_range_center2 = width_range_center[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]
+				best_shift_array2   = best_shift_array[np.where(abs(original_fit2 - best_shift_array) < m*fit_sigma)]	
+				popt2, pcov2  = curve_fit(waveSolutionFn0(order),
+					width_range_center2,best_shift_array2,p1)
+				popt2         = np.append(popt2, [0,0])
+
+			## re-fit again after the third outlier rejection
+			#original_fit3 = nsp.waveSolution(width_range_center, *popt2, order=order)
+			#width_range_center2 = width_range_center[np.where(abs(original_fit3 - best_shift_array) < m*fit_sigma)]
+			#best_shift_array2   = best_shift_array[np.where(abs(original_fit3 - best_shift_array) < m*fit_sigma)]	
+			#popt2, pcov2  = curve_fit(waveSolutionFn0(order),
+			#	width_range_center2,best_shift_array2,p1)
+			#popt2         = np.append(popt2, [0,0])
 
 			# re-fit again after the third outlier rejection
-			original_fit3 = nsp.waveSolution(width_range_center, *popt2, order=order)
-			width_range_center2 = width_range_center[np.where(abs(original_fit3 - best_shift_array) < m*fit_sigma)]
-			best_shift_array2   = best_shift_array[np.where(abs(original_fit3 - best_shift_array) < m*fit_sigma)]	
-			popt2, pcov2  = curve_fit(waveSolutionFn0(order),
-				width_range_center2,best_shift_array2,p1)
-			popt2         = np.append(popt2, [0,0])
+			#original_fit4 = nsp.waveSolution(width_range_center, *popt2, order=order)
+			#width_range_center2 = width_range_center[np.where(abs(original_fit4 - best_shift_array) < m*fit_sigma)]
+			#best_shift_array2   = best_shift_array[np.where(abs(original_fit4 - best_shift_array) < m*fit_sigma)]	
+			#popt2, pcov2  = curve_fit(waveSolutionFn0(order),
+			#	width_range_center2,best_shift_array2,p1)
+			#popt2         = np.append(popt2, [0,0])
 
 		else:
 			popt2, pcov2 = curve_fit(waveSolutionFn1(order),
