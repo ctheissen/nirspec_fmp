@@ -47,7 +47,18 @@ You can also optionally subtract the dark frames using subtractDark.py before ru
 ## Defringe Flats:
 The algorithm follows Rojo & Harrington (2006) to remove fringe patterns from flat files. The example and sample outputs are upder the example folder.
 
+```
+>>> import nirspec_fmp as nsp
+>>> nsp.defringeflatAll(data_folder_path, diagnostic=False)
+```
+
 ## Wavelength Calibration using Telluric Standard Spectra:
 The algorithm follows Blake at el. (2010) to cross-correlate the ESO atmospheric model and an observed telluric spectrum, fit the residual, and iterate the process until the standard deviation of the residual reaches a mininum. The example and sample outputs are upder the "examples" folder.
+
+```
+>>> import nirspec_fmp as nsp
+>>> nsp.run_wave_cal(data_name, data_path ,order_list,
+save_to_path, test=False, save=True)
+```
 
 <!---*## Forward Modeling Science Spectra:---> 
