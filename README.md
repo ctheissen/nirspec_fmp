@@ -57,7 +57,7 @@ The algorithm follows Blake at el. (2010) to cross-correlate the ESO atmospheric
 
 ```
 >>> import nirspec_fmp as nsp
->>> nsp.run_wave_cal(data_name, data_path ,order_list,
+>>> nsp.run_wave_cal(data_name, data_path , order_list,
 save_to_path, test=False, save=True)
 ```
 
