@@ -1,4 +1,5 @@
 import numpy as np
+import scipy as sp
 from scipy.optimize import curve_fit
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
@@ -34,7 +35,7 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 	wbin 			:	int
 						the bin width to calculate each 
 						enhance row
-						Default is 10
+						Default is 32
 
 	start_col 		: 	int
 						starting column number for the
@@ -60,6 +61,8 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 	#save_to_path = 'defringeflat/allflat/'
 
 
+	print(flat_file)
+
 	data = fits.open(flat_file, ignore_missing_end=True)
 
 	# Use the data to figure out the values to mask through the image (low counts/order edges)
@@ -68,33 +71,37 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 	index1     = np.where( (bins > np.percentile(data[0].data.flatten(),10)) & 
 		                   (bins < np.percentile(data[0].data.flatten(),30)) )
 	lowval     = bins[index1][np.where(hist[index1] == np.min(hist[index1]))]
+
+	#print(lowval, len(lowval))
+	if len(lowval) >= 2: lowval = np.min(lowval)
 	
 	flat = data
 
 	# initial flat plot
+	if diagnostic is True:
 		
-	# Save the images to a separate folder
-	save_to_image_path = save_to_path + '/images/'
-	if not os.path.exists(save_to_image_path):
-		os.makedirs(save_to_image_path)
+		# Save the images to a separate folder
+		save_to_image_path = save_to_path + '/images/'
+		if not os.path.exists(save_to_image_path):
+			os.makedirs(save_to_image_path)
 
-	fig = plt.figure(figsize=(8,8))
-	fig.suptitle("original flat",fontsize=14)
-	gs = gridspec.GridSpec(2, 1, height_ratios=[6, 1]) 
-	ax0 = plt.subplot(gs[0])
-	# Create an ImageNormalize object
-	norm = ImageNormalize(flat[0].data, interval=ZScaleInterval())
-	ax0.imshow(flat[0].data, cmap='gray', norm=norm, origin='lower')
-	ax0.set_ylabel("Row number")
-	ax1 = plt.subplot(gs[1],sharex=ax0)
-	ax1.plot(flat[0].data[60,:],'k-',
-		alpha=0.5, label='60th row profile')
-	ax1.set_ylabel("Amp (DN)")
-	ax1.set_xlabel("Column number")
-	plt.legend()
-	plt.savefig(save_to_image_path + "defringeflat_{}_0_original_flat.png"\
-		.format(filename))#, bbox_inches='tight')
-	plt.close()
+		fig = plt.figure(figsize=(8,8))
+		fig.suptitle("original flat",fontsize=14)
+		gs = gridspec.GridSpec(2, 1, height_ratios=[6, 1]) 
+		ax0 = plt.subplot(gs[0])
+		# Create an ImageNormalize object
+		norm = ImageNormalize(flat[0].data, interval=ZScaleInterval())
+		ax0.imshow(flat[0].data, cmap='gray', norm=norm, origin='lower')
+		ax0.set_ylabel("Row number")
+		ax1 = plt.subplot(gs[1],sharex=ax0)
+		ax1.plot(flat[0].data[60,:],'k-',
+			alpha=0.5, label='60th row profile')
+		ax1.set_ylabel("Amp (DN)")
+		ax1.set_xlabel("Column number")
+		plt.legend()
+		plt.savefig(save_to_image_path + "defringeflat_{}_0_original_flat.png"\
+			.format(filename), bbox_inches='tight')
+		plt.close()
 
 	defringeflat_img = data
 	defringe_data    = np.array(defringeflat_img[0].data, dtype=float)
@@ -107,24 +114,34 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 		mask[baddata] = 1
 
 		# extract the patch from the fits file
-		flat_patch = np.ma.array(flat[0].data[k:k+wbin,:], mask=mask)
-
+		#flat_patch = np.ma.array(flat[0].data[k:k+wbin,:], mask=mask)
+		flat_patch = np.array(flat[0].data[k:k+wbin,:])
+		
 		# median average the selected region in the order
 		flat_patch_median = np.ma.median(flat_patch, axis=0)
 
-
 		# continuum fit
-		pcont    = np.ma.polyfit(np.arange(start_col,end_col),
-			                     flat_patch_median[start_col:end_col],6)
-		cont_fit = np.polyval(pcont, np.arange(0,1024))
+		# smooth the continuum (Chris's method)
+		smoothed  = sp.ndimage.uniform_filter1d(flat_patch_median, 20)
+		splinefit = sp.interpolate.interp1d(np.arange(len(smoothed)), smoothed, kind='cubic')
+		cont_fit  = splinefit(np.arange(0,1024))#smoothed
+		#plt.plot(flat_patch_median, c='r')
+		#plt.plot(smoothed, c='b')
+		#plt.savefig(save_to_image_path + "TEST.png", bbox_inches='tight')
+		#plt.close()
+		#plt.show()
+		#sys.exit()
+
+		#pcont    = np.ma.polyfit(np.arange(start_col,end_col),
+		#	                     flat_patch_median[start_col:end_col],10)
+		#cont_fit = np.polyval(pcont, np.arange(0,1024))
 
 		# use wavelets package: WaveletAnalysis
 		enhance_row = flat_patch_median - cont_fit
 
 		dt = 0.1
-		row_for_analysis = enhance_row[start_col:end_col]
-		wa = WaveletAnalysis(row_for_analysis,
-			dt=dt)
+		wa = WaveletAnalysis(enhance_row[start_col:end_col],
+		 dt=dt)
 		# wavelet power spectrum
 		power = wa.wavelet_power
 		# scales
@@ -150,6 +167,7 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 
 		# diagnostic plots
 		if diagnostic is True:
+			print("Generating diagnostic plots")
 			# middle cut plot
 			fig = plt.figure(figsize=(12,4))
 			fig.suptitle("middle cut at row{}".format(k+wbin/2),
@@ -160,12 +178,12 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 			ax1.imshow(flat_patch, cmap='gray', norm=norm, origin='lower')
 			ax1.set_ylabel("Row number")
 			ax2 = fig.add_subplot(2,1,2, sharex=ax1)
-			ax2.plot(flat_patch[int(wbin/2),:],'k-',alpha=0.5)
+			ax2.plot(flat_patch[wbin//2,:],'k-',alpha=0.5)
 			ax2.set_ylabel("Amp (DN)")
 			ax2.set_xlabel("Column number")
 			plt.savefig(save_to_image_path + \
 				'defringeflat_{}_flat_start_row_{}_middle_profile.png'\
-				.format(filename,k))#, bbox_inches='tight')
+				.format(filename,k), bbox_inches='tight')
 			plt.close()
 
         	# continuum fit plot
@@ -186,37 +204,37 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 			plt.legend()
 			plt.savefig(save_to_image_path + \
 				"defringeflat_{}_start_row_{}_continuum_fit.png".\
-				format(filename,k))#, bbox_inches='tight')
+				format(filename,k), bbox_inches='tight')
 			plt.close()
 
 			# enhance row vs. reconstructed wavelet plot
 			try:
 				fig = plt.figure(figsize=(12,4))
-				fig.suptitle("reconstruct fringe conparison row {}-{}".\
+				fig.suptitle("reconstruct fringe comparison row {}-{}".\
 					format(k,k+wbin), fontsize=14)
 				ax1 = fig.add_subplot(3,1,1)
 				ax1.plot(enhance_row,'k-',alpha=0.5,
 					label="enhance_row start row {}".format(k))
 				ax1.set_ylabel("Amp (DN)")
-				plt.legend()
+				#plt.legend()
 				ax2 = fig.add_subplot(3,1,2, sharex=ax1)
 				ax2.plot(rx,'k-',alpha=0.5,
 					label='reconstructed fringe pattern')
 				ax2.set_ylabel("Amp (DN)")
-				plt.legend()
+				#plt.legend()
 				ax3 = fig.add_subplot(3,1,3, sharex=ax1)
 				ax3.plot(enhance_row[start_col:end_col] - rx,
 					'k-',alpha=0.5, label='residual')
 				ax3.set_ylabel("Amp (DN)")
 				ax3.set_xlabel("Column number")
-				plt.legend()
+				#plt.legend()
 				plt.savefig(save_to_image_path + \
 					"defringeflat_{}_start_row_{}_reconstruct_profile.png".\
-					format(filename,k))#, bbox_inches='tight')
+					format(filename,k), bbox_inches='tight')
 				plt.close()
 			except RuntimeError:
-				print("CANNOT GENERATE THE PLOT defringeflat"+\
-					"_{}_start_row_{}_reconstruct_profile.png"\
+				print("CANNOT GENERATE THE PLOT defringeflat\
+					_{}_start_row_{}_reconstruct_profile.png"\
 					.format(filename,k))
 				pass
 
@@ -247,7 +265,7 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 			plt.legend()
 			plt.savefig(save_to_image_path + \
 				"defringeflat_{}_start_row_{}_reconstruct_image.png".\
-				format(filename,k))#, bbox_inches='tight')
+				format(filename,k), bbox_inches='tight')
 			plt.close()
 
 			# middle residual comparison plot
@@ -256,44 +274,45 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 				format(k,k+wbin)
 				, fontsize=14)
 			ax1 = fig.add_subplot(3,1,1)
-			ax1.plot(flat_patch[int(wbin/2),:],'k-',alpha=0.5,
+			ax1.plot(flat_patch[wbin//2,:],'k-',alpha=0.5,
 				label='original flat row {}'.format(k+wbin/2))
 			ax1.set_ylabel("Amp (DN)")
 			plt.legend()
 			ax2 = fig.add_subplot(3,1,2, sharex=ax1)
-			ax2.plot(flat_patch[int(wbin/2),:]-\
-				reconstruct_image[int(wbin/2),:],'k-',
+			ax2.plot(flat_patch[wbin//2,:]-\
+				reconstruct_image[wbin//2,:],'k-',
 				alpha=0.5, label='defringe flat row {}'.format(wbin/2))
 			ax2.set_ylabel("Amp (DN)")
 			plt.legend()
 			ax3 = fig.add_subplot(3,1,3, sharex=ax1)
-			ax3.plot(reconstruct_image[int(wbin/2),:],'k-',alpha=0.5,
+			ax3.plot(reconstruct_image[wbin//2,:],'k-',alpha=0.5,
 				label='difference')
 			ax3.set_ylabel("Amp (DN)")
 			ax3.set_xlabel("Column number")
 			plt.legend()
 			plt.savefig(save_to_image_path + \
 				"defringeflat_{}_start_row_{}_defringe_middle_profile.png".\
-				format(filename,k))#, bbox_inches='tight')
+				format(filename,k), bbox_inches='tight')
 			plt.close()
 
 	# final diagnostic plot
-	fig = plt.figure(figsize=(8,8))
-	fig.suptitle("defringe flat",fontsize=14)
-	gs = gridspec.GridSpec(2, 1, height_ratios=[6, 1]) 
-	ax0 = plt.subplot(gs[0])
-	norm = ImageNormalize(defringe_data, interval=ZScaleInterval())
-	ax0.imshow(defringe_data, cmap='gray', norm=norm, origin='lower')
-	ax0.set_ylabel("Row number")
-	ax1 = plt.subplot(gs[1],sharex=ax0)
-	ax1.plot(defringe_data[60,:],'k-',
-		alpha=0.5, label='60th row profile')
-	ax1.set_ylabel("Amp (DN)")
-	ax1.set_xlabel("Column number")
-	plt.legend()
-	plt.savefig(save_to_image_path + "defringeflat_{}_0_defringe_flat.png"\
-		.format(filename))#, bbox_inches='tight')
-	plt.close()
+	if diagnostic is True:
+		fig = plt.figure(figsize=(8,8))
+		fig.suptitle("defringe flat",fontsize=14)
+		gs = gridspec.GridSpec(2, 1, height_ratios=[6, 1]) 
+		ax0 = plt.subplot(gs[0])
+		norm = ImageNormalize(defringe_data, interval=ZScaleInterval())
+		ax0.imshow(defringe_data, cmap='gray', norm=norm, origin='lower')
+		ax0.set_ylabel("Row number")
+		ax1 = plt.subplot(gs[1],sharex=ax0)
+		ax1.plot(defringe_data[60,:],'k-',
+			alpha=0.5, label='60th row profile')
+		ax1.set_ylabel("Amp (DN)")
+		ax1.set_xlabel("Column number")
+		plt.legend()
+		plt.savefig(save_to_image_path + "defringeflat_{}_0_defringe_flat.png"\
+			.format(filename), bbox_inches='tight')
+		plt.close()
 
 	hdu = fits.PrimaryHDU(data=defringe_data)
 	hdu.header = flat[0].header
@@ -344,7 +363,7 @@ def defringeflatAll(data_folder_path, wbin=10, start_col=10,
 
 	Examples
 	--------
-	>>> import nirspec_pip as nsp
+	>>> import nirspec_fmp as nsp
 	>>> nsp.defringeflatAll(data_folder_path, diagnostic=False)
 
 	"""
@@ -363,7 +382,8 @@ def defringeflatAll(data_folder_path, wbin=10, start_col=10,
 		data = fits.open(file_path, ignore_missing_end=True)
 
 		if ('flat' in str(data[0].header['COMMENT']).lower()) is True:
-			if ('flat lamp off' in str(data[0].header['COMMENT']).lower()) is True: continue # ignore darks
+			if ('flat lamp off' in str(data[0].header['COMMENT']).lower()) is True: continue # dirty fix
+			if ('dark for flat' in str(data[0].header['COMMENT']).lower()) is True: continue # dirty fix
 
 			defringeflat_file = defringeflat(file_path, 
 				wbin=wbin, start_col=start_col, 
@@ -387,4 +407,3 @@ def defringeflatAll(data_folder_path, wbin=10, start_col=10,
 #
 #time2 = time.time()
 #print("total time: {} s".format(time2-time1))
-
