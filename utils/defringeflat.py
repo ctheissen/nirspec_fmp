@@ -319,7 +319,7 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 	return hdu
 
 def defringeflatAll(data_folder_path, wbin=10, start_col=10, 
-	                end_col=980 ,diagnostic=True):
+	                end_col=980 ,diagnostic=True, movefiles=False):
 	"""
 	Perform the defringe flat function and save the 
 	efringed flat files under the data folder and 
@@ -392,6 +392,11 @@ def defringeflatAll(data_folder_path, wbin=10, start_col=10,
 
 			save_name = save_to_path + filename.split('.')[0] + \
 			'_defringe.fits'
+			if movefiles:
+				save_name = data_folder_path + '/' + \
+				filename.split('.')[0] + '_defringe.fits'
+				shutil.move(data_folder_path + '/' + filename,
+					save_to_path + filename)
 			defringeflat_file.writeto(save_name, overwrite=True,
 				output_verify='ignore')
 

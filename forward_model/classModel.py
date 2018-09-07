@@ -9,20 +9,20 @@ import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import nirspec_fmp as nsp
 
-def _constructModelName(teff, logg, feh, en, order, path=None):
-    """
-    Return the full name of the BT-Settl model.
-    """
-    if path is None:
-        path  = '/Users/dinohsu/projects/Models/models/btsettl08/' + \
-        'NIRSPEC-O' + str(order) + '-RAW/'
-    else:
-        path  = path + '/NIRSPEC-O' + str(order) + '-RAW/'
-    full_name = path + 'btsettl08_t'+ str(teff) + '_g' + \
-    '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + \
-    '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
-    
-    return full_name
+#def _constructModelName(teff, logg, feh, en, order, path=None):
+#    """
+#    Return the full name of the BT-Settl model.
+#    """
+#    if path is None:
+#        path  = '/Users/dinohsu/projects/Models/models/btsettl08/' + \
+#        'NIRSPEC-O' + str(order) + '-RAW/'
+#    else:
+#        path  = path + '/NIRSPEC-O' + str(order) + '-RAW/'
+#    full_name = path + 'btsettl08_t'+ str(teff) + '_g' + \
+#    '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + \
+#    '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+#    
+#    return full_name
 
 class Model():
     """
