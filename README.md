@@ -14,6 +14,7 @@ Dependencies:
 * scipy
 * matplotlib
 * pandas
+* wavelets (for defringeflat)
 
 Download the nispec_fmp and the forked and modified version of the NSDRP to your computer.
 
@@ -40,6 +41,12 @@ $ python ~/path/to/NIRSPEC-Data-Reduction-Pipeline/nsdrp.py rawData/ reducedData
 ```
 
 , where the directory rawData/ is the path to the raw data is, and reducedData/ is the path where you want to store the reduce data.
+
+You can also perform the command line code run_nsdrp.py to add keywords, defringe flats, and reduce the data all at once:
+
+```
+$ python ~/path_to_nirspec_fmp/utils/run_nsdrp.py -f raw_data/
+```
 
 <!---*## Dark Subtraction:
 You can also optionally subtract the dark frames using subtractDark.py before running the NSDRP. This may be put into the NSDRP in the future.---> 

@@ -61,7 +61,7 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 	#save_to_path = 'defringeflat/allflat/'
 
 
-	print(flat_file)
+	#print(flat_file)
 
 	data = fits.open(flat_file, ignore_missing_end=True)
 
@@ -163,7 +163,7 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980,
 		# Add in something for the edges/masked out data in the reconstructed image
 		defringe_data[k:k+wbin,:][baddata] = flat[0].data[k:k+wbin,:][baddata]
 
-		print("{} row starting {} is done".format(filename,k))
+		#print("{} row starting {} is done".format(filename,k))
 
 		# diagnostic plots
 		if diagnostic is True:

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 import warnings
 warnings.filterwarnings("ignore")
-import splat
-import splat.model as spmd
 import numpy as np
 from astropy.io import fits, ascii
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import nirspec_fmp as nsp
+#import splat
+#import splat.model as spmd
 
 #def _constructModelName(teff, logg, feh, en, order, path=None):
 #    """
