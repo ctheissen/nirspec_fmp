@@ -591,13 +591,11 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	save_to_path       = kwargs.get('save_to_path', None)
 	data_path          = kwargs.get('data_path', None)
 	length1            = kwargs.get('length1', 1024) # length of the input array
- 
 	# calculation the necessary parameters
 	pixel_range_start  = kwargs.get('pixel_range_start',0)
 	pixel_range_end    = kwargs.get('pixel_range_end',-1)
 	pixel              = np.delete(np.arange(length1),data.mask)+1
 	pixel              = pixel[pixel_range_start:pixel_range_end]
-
 	spec_range         = len(pixel) - width # window range coverage for xcorr
 	width_range        = np.arange(0, spec_range, step_size)
 	width_range_center = width_range + width/2
@@ -1076,8 +1074,11 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	ax1.set_ylabel('Norm Flux')
 	ax1.set_xlabel('Wavelength (\AA)')
 	
-	newrange1 = np.where( (model3.wave >= 23000)  & (model3.wave <= 23050) )
-	newrange2 = np.where( (new_wave_sol >= 23000) & (new_wave_sol <= 23050) )
+	## Expand to more orders
+	#newrange1 = np.where( (model3.wave >= 23000)  & (model3.wave <= 23050) )
+	#newrange2 = np.where( (new_wave_sol >= 23000) & (new_wave_sol <= 23050) )
+	newrange1 = np.where( (model3.wave >= new_wave_sol[250])  & (model3.wave <= new_wave_sol[400]) )
+	newrange2 = np.where( (new_wave_sol >= new_wave_sol[250]) & (new_wave_sol <= new_wave_sol[400]) )
 	ax2.plot(model3.wave[newrange1], model3.flux[newrange1], color='red', linestyle='-', 
 		     label='model', alpha=0.5, linewidth=1)
 	ax2.plot(new_wave_sol[newrange2], data.flux[newrange2], color='black', linestyle='-', 
@@ -1165,11 +1166,11 @@ def run_wave_cal(data_name, data_path, order_list,
 	window_step   = 5
 	xcorr_step    = 0.05
 	niter         = 15
-	outlier_rej   = 3
+	outlier_rej   = 2.5
 	airmass       = '1.5'
 	pwv           = '0.5'
 
-	defringe_list = [35, 61, 62, 63, 64, 65, 66]
+	defringe_list = [61, 62, 63, 64, 65, 66]
 	applymask     = False # if True: apply a simple mask
 	##################################
 
@@ -1214,8 +1215,8 @@ def run_wave_cal(data_name, data_path, order_list,
 			xcorr_range = 5
 
 		data     = nsp.Spectrum(name=data_name, order=order, path=data_path, applymask=applymask)
-		length1  = len(data.wave) # preserve the length of the array
-
+		length1  = len(data.oriWave) # preserve the length of the array
+		print("flux len",len(data.flux))
 		# the telluric standard model
 		wavelow  = data.wave[0]  - 300
 		wavehigh = data.wave[-1] + 300
@@ -1229,7 +1230,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		# this is a test for O63 to reduce the fringing effects
 		if order == 32:
 			pixel_range_start = 10
-			pixel_range_end   = -60
+			pixel_range_end   = 20 #-60
 
 		elif order == 33 or order == 34 \
 		or order == 36:
@@ -1241,8 +1242,8 @@ def run_wave_cal(data_name, data_path, order_list,
 			pixel_range_end   = -10
 
 		elif order == 37 or order == 38:
-			pixel_range_start = 50
-			pixel_range_end   = -20
+			pixel_range_start = 0 #50
+			pixel_range_end   = -1 #-20
 
 		elif order == 55:
 			pixel_range_start = 0
@@ -1309,12 +1310,14 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		if not data.applymask:
 			pixel_range_start += 15
-			pixel_range_end   += -30
+			pixel_range_end   += -25
+		print("pixel range", pixel_range_start, pixel_range_end)
 
 		# select the pixel for wavelength calibration
 		data.flux  = data.flux[pixel_range_start:pixel_range_end]
 		data.wave  = data.wave[pixel_range_start:pixel_range_end]
 		data.noise = data.noise[pixel_range_start:pixel_range_end]
+		print("flux len",len(data.flux))
 		
 		# defringe
 		if order in defringe_list:
@@ -1431,7 +1434,7 @@ def run_wave_cal(data_name, data_path, order_list,
 			telluric_new2_no_fringe = copy.deepcopy(telluric_new2)
 			telluric_new2.flux += fringe
 
-		print("vbroad: ",lsf, " km/s")
+		#print("vbroad: ",lsf, " km/s")
 
 		residual_telluric_wavesol = nsp.residual(telluric_new,telluric_new2)
 		

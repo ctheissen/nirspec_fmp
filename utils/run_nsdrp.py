@@ -1,9 +1,9 @@
-# rountine for reducing the NIRSPEC data
-# using the modified NSDRP
+## rountine for reducing the NIRSPEC data using the modified NSDRP
+## Check KOA keywords --> defringe --> reduce data
 
 import nirspec_fmp as nsp
 from astropy.io import fits
-import os
+import oss
 import warnings
 from subprocess import call
 import subprocess
@@ -17,26 +17,33 @@ FULL_PATH  = os.path.realpath(__file__)
 BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
 BASE = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
 
-parser = argparse.ArgumentParser(description="Reduce the private data using NIRSPEC-Data-Reduction-Pipeline",\
-	usage="run_nsdrp input_dir output_dir")
+parser = argparse.ArgumentParser(description="Reduce the NIRSPEC data using NIRSPEC-Data-Reduction-Pipeline",\
+	usage="run_nsdrp.py -f input_dir (output_dir)")
 
-parser.add_argument("-f","--files",\
-	dest="files",default=None,help="input_dir",nargs="+",required=True)
+#parser.add_argument("-f","--files",
+#    dest="files",default=None,help="input_dir",nargs="+",required=True)
+
+parser.add_argument("files",metavar='f',type=str,
+    default=None, help="input_dir (output_dir)",nargs="+")
+
 
 args = parser.parse_args()
-datadir = args.files
+datadir  = args.files
 
 if len(datadir) is 1:
-    #save_to_path = datadir[0] + '/reduced'
-    save_to_path = 'reduced'
+    save_to_path = datadir[0] + '/reduced'
+    #save_to_path = 'reduced'
     datadir.append(save_to_path)
+else:
+    save_to_path = datadir[1]
+#datadir.append(datadir2)
 
 originalpath = os.getcwd()
 path = originalpath + '/' + datadir[0] + '/'
 
 ## store the fits file names
 mylist = glob.glob1(path,'*.fits')
-
+"""
 print("Checking the keyword formats...")
 for filename in mylist:
     #print(filename)
@@ -62,7 +69,7 @@ nsp.defringeflatAll(datadir[0], wbin=10, start_col=10, end_col=980 ,diagnostic=F
 
 defringe_list = glob.glob1(path,'*defringe.fits')
 originalflat_list = glob.glob1(path+'defringeflat_diagnostic/','*.fits')
-
+"""
 ## reduce the data using NSDRP
 print("Start reducing the data by the NSDRP...")
 os.system("python" + " " + BASE + "nsdrp.py"\

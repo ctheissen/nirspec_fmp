@@ -1435,7 +1435,7 @@ def run_wave_cal(data_name ,data_path ,order_list ,
 		ax3.legend(fontsize=15,
 			loc='lower center', bbox_to_anchor=(0.5, -1.4))
 		fig.savefig("telluric_comparison_{}_O{}_2.png".format(data_name,order),
-			dpi=512, bbox_inches='tight')
+			dpi=600, bbox_inches='tight')
 		plt.close()
 
 		os.chdir(original_path)

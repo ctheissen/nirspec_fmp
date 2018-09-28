@@ -45,7 +45,7 @@ $ python ~/path/to/NIRSPEC-Data-Reduction-Pipeline/nsdrp.py rawData/ reducedData
 You can also perform the command line code run_nsdrp.py to add keywords, defringe flats, and reduce the data all at once:
 
 ```
-$ python ~/path_to_nirspec_fmp/utils/run_nsdrp.py -f rawData/
+$ python ~/path/to/nirspec_fmp/utils/run_nsdrp.py -f rawData/
 ```
 
 <!---*## Dark Subtraction:

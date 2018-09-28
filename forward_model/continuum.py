@@ -12,7 +12,7 @@ import splat
 import copy
 
 
-def continuum(data, mdl, deg=5, prop=False):
+def continuum(data, mdl, deg=10, prop=False, tell=False):
     
     """
     This function returns a continuum corrected model.
@@ -57,6 +57,8 @@ def continuum(data, mdl, deg=5, prop=False):
 
     if prop:
         return mdl, np.polyval(pcont, mdl.wave)
+    elif tell:
+        return mdl, pcont
     else:
         return mdl
 
