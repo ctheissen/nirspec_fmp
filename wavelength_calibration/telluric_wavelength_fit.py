@@ -1154,7 +1154,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	#return new_wave_sol, p0, std, stdV
 
 def run_wave_cal(data_name, data_path, order_list,
-	             save_to_path, test=False, save=False):
+	             save_to_path, test=False, save=False, telluric_mcmc=False):
 	"""
 	Run the telluric wavelength calibration.
 	"""

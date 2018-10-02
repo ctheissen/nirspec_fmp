@@ -40,6 +40,9 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	# read in a model
 	model = nsp.Model(teff=teff, logg=logg, feh=z, order=order)
 	
+	# wavelength offset
+	model.wave += wave_offset
+	
 	# apply vsini
 	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
@@ -59,7 +62,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	#model.flux *= (1+amp*np.sin(freq*(model.wave-phase)))
 
 	# wavelength offset
-	model.wave += wave_offset
+	#model.wave += wave_offset
 	
 	# integral resampling
 	if data is not None:
@@ -144,13 +147,15 @@ def convolveTelluric(lsf,telluric_data,alpha=1):
 	Return a convolved telluric transmission model given a telluric data and lsf.
 	"""
 	# get a telluric standard model
-	wavelow = telluric_data.wave[0] - 50
-	wavehigh = telluric_data.wave[-1] + 50
-	telluric_model = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
+	wavelow               = telluric_data.wave[0]  - 50
+	wavehigh              = telluric_data.wave[-1] + 50
+	telluric_model        = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
 	telluric_model.flux **= alpha
 	# lsf
-	telluric_model.flux = apmdl.rotation_broaden.broaden(wave=telluric_model.wave, 
-		flux=telluric_model.flux, vbroad=lsf, rotate=False, gaussian=True)
+	#telluric_model.flux = apmdl.rotation_broaden.broaden(wave=telluric_model.wave, 
+	#	flux=telluric_model.flux, vbroad=lsf, rotate=False, gaussian=True)
+	telluric_model.flux = nsp.broaden(wave=telluric_model.wave, flux=telluric_model.flux, 
+		vbroad=lsf, rotate=False, gaussian=True)
 	# resample
 	telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave, 
 		yh=telluric_model.flux, xl=telluric_data.wave))
@@ -289,7 +294,7 @@ def getAlpha(telluric_data,lsf,continuum=True,test=False,save_path=None):
 
 	data = copy.deepcopy(telluric_data)
 	if continuum is True:
-		data = nsp.continuumTelluric(data=data)
+		data = nsp.continuumTelluric(data=data, order=data.order)
 
 	for i in test_alpha:
 		telluric_model = nsp.convolveTelluric(lsf,data,
@@ -362,7 +367,7 @@ def getFringeFrequecy(tell_data, test=False):
 	tell_sp  = copy.deepcopy(tell_data)
 
 	## continuum correction
-	tell_sp  = nsp.continuumTelluric(data=tell_sp)
+	tell_sp  = nsp.continuumTelluric(data=tell_sp, order=tell_sp.order)
 
 	## get a telluric model
 	lsf      = nsp.getLSF(tell_sp)
@@ -381,7 +386,8 @@ def getFringeFrequecy(tell_data, test=False):
 	pgram_x = np.array(pgram_x, float)
 	pgram_y = np.array(pgram_y, float)
 
-	f = np.linspace(0.01,10,100000)
+	#f = np.linspace(0.01,10,100000)
+	f = np.linspace(1.0,10,100000)
 
 	## Lomb Scargle Periodogram
 	pgram = signal.lombscargle(pgram_x, pgram_y, f)
@@ -605,6 +611,9 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 
 	print(lsf_mcmc, alpha_mcmc, A_mcmc, B_mcmc)
 
+	if '_' in tell_sp.name:
+		tell_data_name = tell_sp.name.split('_')[0]
+
 	## triangular plots
 	plt.rc('font', family='sans-serif')
 	fig = corner.corner(triangle_samples, 
@@ -670,9 +679,9 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 			hdulist[0].header['LSF']   = lsf_mcmc[0]
 			hdulist[0].header['ALPHA'] = alpha_mcmc[0]
 			try:
-				hdulist.writeto(save_name,overwrite=True)
+				hdulist.writeto(data_path,overwrite=True)
 			except FileNotFoundError:
-				hdulist.writeto(save_name)
+				hdulist.writeto(data_path)
 
 def initModelFit(data, model, **kwargs):
 	"""
