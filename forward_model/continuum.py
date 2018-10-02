@@ -7,7 +7,6 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
 import nirspec_fmp as nsp
-import apogee_tools.forward_model as apmdl
 import splat
 import copy
 
@@ -205,7 +204,7 @@ def continuumTelluric(data, model=None, order=None):
             return flux/linear
 
         model2      = copy.deepcopy(model)
-        model2.flux = apmdl.rotation_broaden.broaden(wave=model2.wave, 
+        model2.flux = nsp.broaden(wave=model2.wave, 
             flux=model2.flux, vbroad=4.8, 
             rotate=False, gaussian=True)
         model2.flux = np.array(splat.integralResample(xh=model2.wave, 

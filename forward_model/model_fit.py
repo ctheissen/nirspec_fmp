@@ -5,12 +5,9 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from astropy.io import fits
 import nirspec_fmp as nsp
-import apogee_tools as ap
-import apogee_tools.forward_model as apmdl
 import emcee
 import corner
 import splat
-
 import copy
 import time
 import os
@@ -42,20 +39,19 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	
 	# wavelength offset
 	model.wave += wave_offset
-	
+
 	# apply vsini
-	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
+	model.flux = nsp.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
 	
 	# apply rv (including the barycentric correction)
-	#model.wave = apmdl.rv_function.rvShift(model.wave, rv=rv)
 	model.wave = rvShift(model.wave, rv=rv)
 	
 	# apply telluric
 	if tell is True:
 		model = nsp.applyTelluric(model=model, alpha=alpha, airmass='1.5')
 	# NIRSPEC LSF
-	model.flux = apmdl.rotation_broaden.broaden(wave=model.wave, 
+	model.flux = nsp.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
 
 	# add a fringe pattern to the model
@@ -152,8 +148,6 @@ def convolveTelluric(lsf,telluric_data,alpha=1):
 	telluric_model        = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
 	telluric_model.flux **= alpha
 	# lsf
-	#telluric_model.flux = apmdl.rotation_broaden.broaden(wave=telluric_model.wave, 
-	#	flux=telluric_model.flux, vbroad=lsf, rotate=False, gaussian=True)
 	telluric_model.flux = nsp.broaden(wave=telluric_model.wave, flux=telluric_model.flux, 
 		vbroad=lsf, rotate=False, gaussian=True)
 	# resample
