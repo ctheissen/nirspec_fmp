@@ -3,7 +3,7 @@
 
 import nirspec_fmp as nsp
 from astropy.io import fits
-import oss
+import os
 import warnings
 from subprocess import call
 import subprocess
@@ -18,7 +18,7 @@ BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
 BASE = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
 
 parser = argparse.ArgumentParser(description="Reduce the NIRSPEC data using NIRSPEC-Data-Reduction-Pipeline",\
-	usage="run_nsdrp.py -f input_dir (output_dir)")
+	usage="run_nsdrp.py input_dir (output_dir)")
 
 #parser.add_argument("-f","--files",
 #    dest="files",default=None,help="input_dir",nargs="+",required=True)
@@ -43,7 +43,7 @@ path = originalpath + '/' + datadir[0] + '/'
 
 ## store the fits file names
 mylist = glob.glob1(path,'*.fits')
-"""
+
 print("Checking the keyword formats...")
 for filename in mylist:
     #print(filename)
@@ -69,7 +69,7 @@ nsp.defringeflatAll(datadir[0], wbin=10, start_col=10, end_col=980 ,diagnostic=F
 
 defringe_list = glob.glob1(path,'*defringe.fits')
 originalflat_list = glob.glob1(path+'defringeflat_diagnostic/','*.fits')
-"""
+
 ## reduce the data using NSDRP
 print("Start reducing the data by the NSDRP...")
 os.system("python" + " " + BASE + "nsdrp.py"\
@@ -84,5 +84,7 @@ for defringeflatfile in defringe_list:
 for originalflat in originalflat_list:    
     shutil.move(path+'defringeflat_diagnostic/'+originalflat, 
         path+originalflat)
+## remove the intermediate products
+os.system("rm *.npy")
 
 print("The NIRSPEC data are reduced successfully by using NSDRP.")

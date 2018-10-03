@@ -988,9 +988,9 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		ax2.plot(width_range_center2,nsp.waveSolution(width_range_center2,
 			     popt2[0], popt2[1], popt2[2], popt2[3], popt2[4], popt2[5], popt2[6],
 			     popt2[7], order=order),'r.',
-			     label=r"fitted wavelength function with outlier rejection, STD = {} $\displaystyle \AA $ ({} km/s)".format(\
+			     label=r"fitted wavelength function with outlier rejection, STD = {} $\AA$ ({} km/s)".format(\
 			     std,np.round_(std/np.average(new_wave_sol)*299792.458,decimals=3)), alpha=0.5)
-		ax2.set_ylabel(r"$\displaystyle\Delta \lambda (\displaystyle \AA)$")
+		ax2.set_ylabel("\Delta$ $\lambda$ ($\AA$)")
 		ax2.set_xlim(0, length1)
 		ax2.legend()
 		# plot the residual

@@ -117,7 +117,6 @@ def broaden(wave, flux, vbroad, rotate=False, gaussian=True):
 		kern = lsf_rotate(vres, vbroad)
  
 	elif gaussian: 
-		#x    = np.arange(np.ceil(20.*vbroad/vres)+1)
 		if np.ceil(20.*vbroad/vres) % 2 == 0:
 			x    = np.arange(np.ceil(20.*vbroad/vres)+1)
 		else:

@@ -15,8 +15,8 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
     if modelset == 'btsettl08':
         path = BASE + '/../libraries/btsettl08/NIRSPEC-O%s-RAW/'%order
 
-    elif modelset == 'pheonixaces' :
-        path = BASE + '/../libraries/pheonixaces/NIRSPEC-O%s-RAW/'%order
+    elif modelset == 'phoenixaces' :
+        path = BASE + '/../libraries/phoenixaces/NIRSPEC-O%s-RAW/'%order
 
 
     def bilinear_interpolation(x, y, points):
@@ -43,12 +43,6 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
         if not x1 <= x <= x2 or not y1 <= y <= y2:
             raise ValueError('(x, y) not within the rectangle')
 
-        #return (q11 * (x2 - x) * (y2 - y) +
-        #        q21 * (x - x1) * (y2 - y) +
-        #        q12 * (x2 - x) * (y - y1) +
-        #        q22 * (x - x1) * (y - y1)
-        #       ) / ((x2 - x1) * (y2 - y1) + 0.0)
-
         return 10**((q11 * (x2 - x) * (y2 - y) +
                 q21 * (x - x1) * (y2 - y) +
                 q12 * (x2 - x) * (y - y1) +
@@ -62,7 +56,8 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
         if modelset == 'btsettl08':
             filename = 'btsettl08_t'+ str(int(temp.data[0])) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
         if modelset == 'phoenixaces':
-            filename = 'phoenixaces_t'+ str(int(temp.data[0])) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+            filename = 'phoenixaces_t{0:03d}'.format(int(temp.data[0])) + '_g{0:.2f}'.format(float(logg)) + '_z-{0:.2f}'.format(float(feh)) + '_en{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+
         Tab = Table.read(path+filename, format='ascii.tab', names=['wave', 'flux'])
 
         if wave: 
@@ -82,7 +77,6 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
         Gridfile = BASE + '/../libraries/btsettl08/btsettl08_gridparams.csv'
     elif modelset == 'phoenixaces':
         Gridfile = BASE + '/../libraries/phoenixaces/phoenixaces_gridparams.csv'
-    #T1 = Table.read('/Users/ctheissen/Google Drive/Research/Modeling/BTSettl_Model_Photometry_Fixed.fits')
     T1 = Table.read(Gridfile)
 
     # Check if the model already exists (grid point)
@@ -91,31 +85,20 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
         waves2 = GetModel(T1['Temp'][np.where( (T1['Temp'] == Teff) & (T1['Logg'] == Logg))], T1['Logg'][np.where((T1['Temp'] == Teff) & (T1['Logg'] == Logg))], wave=True)
         return waves2, flux2
 
-    x1 = np.floor(Teff/100.)*100
-    x2 = np.ceil(Teff/100.)*100
+    x1     = np.floor(Teff/100.)*100
+    x2     = np.ceil(Teff/100.)*100
     y1, y2 = findlogg(Logg)
 
-    #print(x1, x2, y1, y2)
+    # Get the nearest models to the gridpoint (Temp)
+    x1 = T1['Temp'][np.where(T1['Temp'] <= x1)][-1]
+    x2 = T1['Temp'][np.where(T1['Temp'] >= x2)][0]
 
     # Check if the gridpoint exists within the model ranges
     for x in [x1, x2]:
-        for y in [y1,y2]:
+        for y in [y1, y2]:
             if (x, y) not in zip(T1['Temp'], T1['Logg']):
                 print('No Model', x, y)
                 return 1
-
-    """
-    # Check that they each have the same wavelength array
-    wave1 = GetModel(T1['Temp'][np.where( (T1['Temp'] == x1) & (T1['Logg'] == y1))], T1['Logg'][np.where((T1['Temp'] == x1) & (T1['Logg'] == y1))], wave=True)
-    wave2 = GetModel(T1['Temp'][np.where( (T1['Temp'] == x1) & (T1['Logg'] == y2))], T1['Logg'][np.where((T1['Temp'] == x1) & (T1['Logg'] == y2))], wave=True)
-    wave3 = GetModel(T1['Temp'][np.where( (T1['Temp'] == x2) & (T1['Logg'] == y1))], T1['Logg'][np.where((T1['Temp'] == x2) & (T1['Logg'] == y1))], wave=True)
-    wave4 = GetModel(T1['Temp'][np.where( (T1['Temp'] == x2) & (T1['Logg'] == y2))], T1['Logg'][np.where((T1['Temp'] == x2) & (T1['Logg'] == y2))], wave=True)
-    
-    # Check 1
-    if np.sum(wave1 == wave2) == len(wave1) or np.sum(wave1 == wave3) == len(wave1) and
-       np.sum(wave1 == wave3) == len(wave1) or np.sum(wave1 == wave4) == len(wave1) and
-       np.sum(wave2 == wave3) == len(wave2) or np.sum(wave2 == wave4) == len(wave2): continue
-    """
     
     # Get the four points
     Points =  [ [np.log10(T1['Temp'][np.where( (T1['Temp'] == x1) & (T1['Logg'] == y1))]), T1['Logg'][np.where((T1['Temp'] == x1) & (T1['Logg'] == y1))], np.log10(GetModel(T1['Temp'][np.where( (T1['Temp'] == x1) & (T1['Logg'] == y1))], T1['Logg'][np.where((T1['Temp'] == x1) & (T1['Logg'] == y1))], modelset=modelset))],
@@ -124,7 +107,7 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
                 [np.log10(T1['Temp'][np.where( (T1['Temp'] == x2) & (T1['Logg'] == y2))]), T1['Logg'][np.where((T1['Temp'] == x2) & (T1['Logg'] == y2))], np.log10(GetModel(T1['Temp'][np.where( (T1['Temp'] == x2) & (T1['Logg'] == y2))], T1['Logg'][np.where((T1['Temp'] == x2) & (T1['Logg'] == y2))], modelset=modelset))],
               ]
 
-    waves2 = GetModel(T1['Temp'][np.where( (T1['Temp'] == x1) & (T1['Logg'] == y1))], T1['Logg'][np.where((T1['Temp'] == x1) & (T1['Logg'] == y1))], wave=True)
+    waves2 = GetModel(T1['Temp'][np.where( (T1['Temp'] == x1) & (T1['Logg'] == y1))], T1['Logg'][np.where((T1['Temp'] == x1) & (T1['Logg'] == y1))], wave=True, modelset=modelset)
 
     return waves2, bilinear_interpolation(np.log10(Teff), Logg, Points)
 
