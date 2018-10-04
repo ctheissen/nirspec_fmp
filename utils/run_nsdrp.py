@@ -12,7 +12,7 @@ import glob
 import shutil
 warnings.filterwarnings("ignore")
 
-## Assume the NSDRP is under the same folder of the nirspec_fmp
+## Assume the NSDRP is under the same folder as the nirspec_fmp
 FULL_PATH  = os.path.realpath(__file__)
 BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
 BASE = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
