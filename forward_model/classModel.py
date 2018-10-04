@@ -71,10 +71,11 @@ class Model():
         self.order = kwargs.get('order')
 
         if self.order != None:
-            self.teff  = kwargs.get('teff')
-            self.logg  = kwargs.get('logg')
-            self.feh   = kwargs.get('feh')
-            self.en    = kwargs.get('en')
+            self.teff = kwargs.get('teff', 3000.)
+            self.logg = kwargs.get('logg', 5.)
+            self.feh = kwargs.get('feh', 0)
+            self.en = kwargs.get('en', 0)
+            self.modelset = kwargs.get('modelset', 'btsettl08')
             if self.teff == None:
                 self.teff = 2500
             if self.logg == None:
@@ -98,12 +99,11 @@ class Model():
             #self.flux = sp.flux.value
 
             wave, flux = nsp.forward_model.InterpolateModel.InterpModel(self.teff, self.logg,
-                modelset='btsettl08', order=self.order)
+                modelset=self.modelset, order=self.order)
             self.wave = wave * 10000 #convert to Angstrom
             self.flux = flux
 
         else:
-            #print('Return a self-defined model.')
             self.wave   = kwargs.get('wave', [])
             self.flux   = kwargs.get('flux', [])
         
