@@ -339,7 +339,6 @@ class Spectrum():
 			self.noise = np.delete(self.oriNoise, list(self.mask))
 
 		elif method == 'wavelength':
-			import splat
 			self_supers = copy.deepcopy(self)
 			g = interpolate.interp1d(self.wave, self.flux)
 			sp_supers = copy.deepcopy(sp)
@@ -395,7 +394,7 @@ class Spectrum():
 				#a.flux = a.flux[np.where(condition)]
 				#a.wave = a.wave[np.where(condition)]
 				## resampling the telluric model
-				#b.flux = np.array(splat.integralResample(xh=b.wave, 
+				#b.flux = np.array(nsp.integralResample(xh=b.wave, 
 				#	yh=b.flux, xl=a.wave))
 				
 				return np.inner(a.oriFlux, b.oriFlux)/\
@@ -430,7 +429,7 @@ class Spectrum():
 			self.oriWave = self.oriWave[np.where(condition)]
 			self.oriNoise = self.oriNoise[np.where(condition)]
 			sp_supers.oriNoise = sp_supers.oriNoise[np.where(condition)]
-			sp_supers.oriFlux = np.array(splat.integralResample(xh=sp_supers.oriWave, 
+			sp_supers.oriFlux = np.array(nsp.integralResample(xh=sp_supers.oriWave, 
 				yh=sp_supers.oriFlux, xl=self.oriWave))
 
 			w1 = 1/self.oriNoise**2
@@ -450,7 +449,7 @@ class Spectrum():
 
 		return self
 
-	def updateWaveSol(self, tell_sp):
+	def updateWaveSol(self, tell_sp, length1=1024):
 		"""
 		Return a new wavelength solution given a wavelength 
 		calibrated telluric spectrum.
@@ -469,12 +468,10 @@ class Spectrum():
 		c3    = tell_sp.header['c3']
 		c4    = tell_sp.header['c4']
 
-		self.wave = np.delete(nsp.waveSolution(np.arange(1024)+1,
-			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4
-			,order=self.order), list(self.mask))
-		self.oriWave = nsp.waveSolution(np.arange(1024)+1,
-			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4
-			,order=self.order)
+		self.wave = np.delete(nsp.waveSolution(np.arange(length1)+1,
+			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=self.order), list(self.mask))
+		self.oriWave = nsp.waveSolution(np.arange(length1)+1,
+			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=self.order)
 
 		return self
 

@@ -10,7 +10,7 @@ import time
 import copy
 #os.environ["OMP_NUM_THREADS"] = "1"
 
-def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True):
+def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True):
 	"""
 	MCMC run for the science spectra. See the parameters in the makeModel function.
 
@@ -29,6 +29,9 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 
 	Optional Parameters
 	-------------------
+
+	limits 		:	dic
+					mcmc limits with the same format as the input priors
 
 	ndim 		:	int
 					mcmc dimension
@@ -83,6 +86,9 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	else:
 		save_to_path = '.'
 
+	if limits is None:
+		limits = priors
+
 	data          = copy.deepcopy(sci_data)
 	tell_sp       = copy.deepcopy(tell_data)
 	data.updateWaveSol(tell_sp)
@@ -117,6 +123,7 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	file_log.write("ndim {} \n".format(ndim))
 	file_log.write("nwalkers {} \n".format(nwalkers))
 	file_log.write("step {} \n".format(step))
+	file_log.write("burn {} \n".format(burn))
 	file_log.write("pixel_start {} \n".format(pixel_start))
 	file_log.write("pixel_end {} \n".format(pixel_end))
 	file_log.write("barycorr {} \n".format(barycorr))
@@ -150,20 +157,20 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 
 		return -0.5 * (chisquare + np.sum(np.log(2*np.pi*data.noise**2)))
 
-	def lnprior(theta):
+	def lnprior(theta, limits=limits):
 		"""
 		Specifies a flat prior
 		"""
 		## Parameters for theta
 		teff, logg, vsini, rv, alpha, A, B = theta
 
-		limits =  { 'teff_min':2400,  'teff_max':2800,
-					'logg_min':3.5,  'logg_max':5.5,
-					'vsini_min':0.0,  'vsini_max':100.0,
-					'rv_min':0.0,    'rv_max':200.0,
-					'alpha_min':0.0,  'alpha_max':2.0,
-					'A_min':-1.0,     'A_max':1.0,
-					'B_min':-0.6,     'B_max':0.6 		}
+		#limits =  { 'teff_min':2400,  'teff_max':2800,
+		#			'logg_min':3.5,  'logg_max':5.5,
+		#			'vsini_min':0.0,  'vsini_max':100.0,
+		#			'rv_min':-200.0,    'rv_max':200.0,
+		#			'alpha_min':0.0,  'alpha_max':2.0,
+		#			'A_min':-1.0,     'A_max':1.0,
+		#			'B_min':-0.6,     'B_max':0.6 		}
 					#'lsf_min':4.5,    'lsf_max':6.5      }
 					#'freq_min':0.0,   'freq_max':10.0,
 					#'amp_min':0.0,    'amp_max':2.5,
@@ -277,8 +284,8 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	file_log.write("vsini_mcmc {} km/s\n".format(str(vsini_mcmc)))
 	file_log.write("rv_mcmc {} km/s\n".format(str(rv_mcmc)))
 	file_log.write("alpha_mcmc {}\n".format(str(alpha_mcmc)))
-	file_log.write("B_mcmc {}\n".format(str(B_mcmc)))
 	file_log.write("A_mcmc {}\n".format(str(A_mcmc)))
+	file_log.write("B_mcmc {}\n".format(str(B_mcmc)))
 	#file_log.write("lsf_mcmc {}\n".format(str(lsf_mcmc)))
 	#file_log.write("C_mcmc {}\n".format(str(C_mcmc)))
 	#file_log.write("freq_mcmc {}\n".format(str(freq_mcmc)))
@@ -288,7 +295,7 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 
 	print(teff_mcmc, logg_mcmc, vsini_mcmc, rv_mcmc, alpha_mcmc, A_mcmc, B_mcmc)
 
-	triangle_samples[:,2] += barycorr
+	triangle_samples[:,3] += barycorr
 
 	## triangular plots
 	plt.rc('font', family='sans-serif')
@@ -299,8 +306,8 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 		vsini_mcmc[0], 
 		rv_mcmc[0]+barycorr, 
 		alpha_mcmc[0],
-		B_mcmc[0],
-		A_mcmc[0]],
+		A_mcmc[0],
+		B_mcmc[0]],
 		#lsf_mcmc[0]],
 		#C_mcmc[0]],
 		#freq_mcmc[0],
@@ -313,8 +320,6 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	if plot_show:
 		plt.show()
 	plt.close()
-
-	import splat
 
 	teff  = teff_mcmc[0]
 	logg  = logg_mcmc[0]
@@ -349,7 +354,7 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	model.wave        += B
 	
 	# integral resampling
-	model.flux   = np.array(splat.integralResample(xh=model.wave, yh=model.flux, xl=data.wave))
+	model.flux   = np.array(nsp.integralResample(xh=model.wave, yh=model.flux, xl=data.wave))
 	model.wave   = data.wave
 
 	# contunuum correction
@@ -362,7 +367,7 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	model_notell.wave += B
 	
 	# integral resampling
-	model_notell.flux  = np.array(splat.integralResample(xh=model_notell.wave, yh=model_notell.flux, xl=data.wave))
+	model_notell.flux  = np.array(nsp.integralResample(xh=model_notell.wave, yh=model_notell.flux, xl=data.wave))
 	model_notell.wave  = data.wave
 	model_notell.flux *= cont_factor
 
@@ -377,17 +382,17 @@ def run_mcmc(sci_data, tell_data, priors, ndim=7, nwalkers=50, step=500, burn=40
 	plt.figure(figsize=(16,6))
 	plt.rc('font', family='sans-serif')
 	plt.tick_params(labelsize=15)
-	plt.plot(model.wave, model.flux, color='C0', linestyle='-', label='model',alpha=0.5)
+	plt.plot(model.wave, model.flux, color='C3', linestyle='-', label='model',alpha=0.8)
 	plt.plot(model_notell.wave,model_notell.flux, color='C1', linestyle='-', label='model no telluric',alpha=0.5)
 	plt.plot(data.wave,data.flux,'k-',
 		label='data',alpha=0.5)
 	plt.plot(data.wave,data.flux-model.flux,'k-',alpha=0.8)
-	plt.fill_between(data.wave,-data.noise,data.noise,facecolor='C0')
+	plt.fill_between(data.wave,-data.noise,data.noise,facecolor='C0',alpha=0.5)
 	plt.axhline(y=0,color='k',linestyle='-',linewidth=0.5)
-	plt.ylim(-4,21)
+	plt.ylim(-np.max(np.append(np.abs(data.noise),np.abs(data.flux-model.flux)))*1.2,np.max(data.flux)*1.2)
 	plt.ylabel("Flux ($cnts/s$)",fontsize=15)
 	plt.xlabel("$\lambda$ ($\AA$)",fontsize=15)
-	plt.figtext(0.89,0.85,'J0720-0846',
+	plt.figtext(0.89,0.85,str(data.header['OBJECT'])+' '+data.name+' O'+str(data.order),
 		color='k',
 		horizontalalignment='right',
 		verticalalignment='center',

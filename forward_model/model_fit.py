@@ -7,7 +7,6 @@ from astropy.io import fits
 import nirspec_fmp as nsp
 import emcee
 import corner
-import splat
 import copy
 import time
 import os
@@ -63,7 +62,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	
 	# integral resampling
 	if data is not None:
-		model.flux = np.array(splat.integralResample(xh=model.wave, 
+		model.flux = np.array(nsp.integralResample(xh=model.wave, 
 			yh=model.flux, xl=data.wave))
 		model.wave = data.wave
 		# contunuum correction
@@ -122,14 +121,14 @@ def applyTelluric(model, alpha=1, airmass='1.5'):
 	#if len(model.wave) > len(telluric_model.wave):
 	#	print("The model has a higher resolution ({}) than the telluric model ({})."\
 	#		.format(len(model.wave),len(telluric_model.wave)))
-	#	model.flux = np.array(splat.integralResample(xh=model.wave, 
+	#	model.flux = np.array(nsp.integralResample(xh=model.wave, 
 	#		yh=model.flux, xl=telluric_model.wave))
 	#	model.wave = telluric_model.wave
 	#	model.flux *= telluric_model.flux
 
 	#elif len(model.wave) < len(telluric_model.wave):
 	## This should be always true
-	telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave, 
+	telluric_model.flux = np.array(nsp.integralResample(xh=telluric_model.wave, 
 		yh=telluric_model.flux, xl=model.wave))
 	telluric_model.wave = model.wave
 	model.flux *= telluric_model.flux
@@ -152,7 +151,7 @@ def convolveTelluric(lsf,telluric_data,alpha=1):
 	telluric_model.flux = nsp.broaden(wave=telluric_model.wave, flux=telluric_model.flux, 
 		vbroad=lsf, rotate=False, gaussian=True)
 	# resample
-	telluric_model.flux = np.array(splat.integralResample(xh=telluric_model.wave, 
+	telluric_model.flux = np.array(nsp.integralResample(xh=telluric_model.wave, 
 		yh=telluric_model.flux, xl=telluric_data.wave))
 	telluric_model.wave = telluric_data.wave
 	return telluric_model
@@ -397,15 +396,62 @@ def getFringeFrequecy(tell_data, test=False):
 
 	return f[np.argmax(pgram)]
 
-def initModelFit(data, model, **kwargs):
+def initModelFit(sci_data, lsf, modelset='btsettl08'):
 	"""
-	Use the Nelder-Mead "Amoeba" algorithm to obtain the fitted Parameters
-	for the forward modeling initialization stage. 
-	"""
+	Conduct simple chisquare fit to obtain the initial parameters
+	for the forward modeling MCMC.
 
-	return best_params, chisquare
+	The function would calculate the chisquare for teff, logg, vini, rv, and alpha.
 
-def run_mcmc(**kwargs):
+	Parameters
+	----------
+	data 				:	spectrum object
+							input science data
+
+	lsf 				:	float
+							line spread function for the NIRSPEC
+
+	Returns
+	-------
+	best_params_dic 	:	dic
+							a dictionary that stores the best parameters for 
+							teff, logg, vsini, rv, and alpha
+
+	chisquare 			:	int
+							minimum chisquare
+
 	"""
-	MCMC routine for the forward modeling.
-	"""
+	data            = copy.deepcopy(sci_data)
+
+	## set up the parameter grid for chisquare computation
+	teff_array      = np.arange(1200,3001,100)
+	logg_array      = np.arange(3.5,5.51,0.5)
+	vsini_array     = np.arange(10,101,10)
+	rv_array        = np.arange(-200,201,50)
+	alpha_array     = np.arange(0.5,2.01,0.5)
+	chisquare_array = np.empty(len(teff_array)*len(logg_array)*len(vsini_array)*len(rv_array)*len(alpha_array))\
+	.reshape(len(teff_array),len(logg_array),len(vsini_array),len(rv_array),len(alpha_array))
+
+	time1 = time.time()
+	for i, teff in enumerate(teff_array):
+		for j, logg in enumerate(logg_array):
+			for k, vsini in enumerate(vsini_array):
+				for l, rv in enumerate(rv_array):
+					for m, alpha in enumerate(alpha_array):
+						model = nsp.makeModel(teff, logg, 0.0, vsini, rv, alpha, 0, 0,
+							lsf=lsf, order=data.order, data=data, modelset=modelset)
+						chisquare_array[i,j,k,l,m] = nsp.chisquare(data, model)
+	time2 = time.time()
+	print("total time:",time2-time1)
+
+	ind = np.unravel_index(np.argmin(chisquare_array, axis=None), chisquare_array.shape)
+	print("ind ",ind)
+	chisquare       = chisquare_array[ind]
+
+	best_params_dic = {'teff':teff_array[ind[0]], 'logg':logg_array[ind[1]], 
+	'vsini':vsini_array[ind[2]], 'rv':rv_array[ind[3]], 'alpha':alpha_array[ind[4]]}
+
+	print(best_params_dic, chisquare)
+
+	return best_params_dic , chisquare
+

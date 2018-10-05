@@ -10,7 +10,6 @@ from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
 import time
 import nirspec_fmp as nsp
-import splat
 
 FULL_PATH  = os.path.realpath(__file__)
 BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
@@ -153,7 +152,7 @@ def xcorrTelluric(data, model, shift, start_pixel, width, lsf):
 	model2.flux = nsp.broaden(wave=model2.wave, flux=model2.flux, vbroad=lsf, rotate=False, gaussian=True)
 
 	# resampling the telluric model
-	model2.flux = np.array(splat.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave[start_pixel:start_pixel+width]))
+	model2.flux = np.array(nsp.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave[start_pixel:start_pixel+width]))
 	model2.wave = data.wave[start_pixel:start_pixel+width]
 
 	d = data.flux[start_pixel:start_pixel+width]
@@ -629,7 +628,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		flux=model2.flux, vbroad=vbroad, rotate=False, gaussian=True)
 	modelCC = copy.deepcopy(model) # Use this for final CC
 	# model resample and LSF broadening
-	model2.flux = np.array(splat.integralResample(xh=model2.wave, 
+	model2.flux = np.array(nsp.integralResample(xh=model2.wave, 
 		yh=model2.flux, xl=data.wave))
 	model2.wave = data.wave
 
@@ -946,7 +945,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		model3      = copy.deepcopy(model)
 		model3.flux = nsp.broaden(wave=model3.wave, flux=model3.flux, vbroad=vbroad, rotate=False, gaussian=True)
 		# model resample and LSF broadening
-		model3.flux = np.array(splat.integralResample(xh=model3.wave, 
+		model3.flux = np.array(nsp.integralResample(xh=model3.wave, 
 			                                          yh=model3.flux, xl=data3.wave))
 		model3.wave = data3.wave
 		
@@ -1397,7 +1396,7 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		# resampling the telluric model
 		#telluric = copy.deepcopy(model)
-		#telluric.flux = np.array(splat.integralResample(xh=telluric.wave, 
+		#telluric.flux = np.array(nsp.integralResample(xh=telluric.wave, 
 		#	yh=telluric.flux, xl=data.wave))
 		#telluric.wave = data.wave
 		# compute the LSF average broadening of the instrument (km/s)
