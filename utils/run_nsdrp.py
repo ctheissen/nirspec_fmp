@@ -20,12 +20,12 @@ BASE = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
 parser = argparse.ArgumentParser(description="Reduce the NIRSPEC data using NIRSPEC-Data-Reduction-Pipeline",\
 	usage="run_nsdrp.py input_dir (output_dir)")
 
-#parser.add_argument("-f","--files",
-#    dest="files",default=None,help="input_dir",nargs="+",required=True)
-
 parser.add_argument("files",metavar='f',type=str,
     default=None, help="input_dir (output_dir)",nargs="+")
 
+parser.add_argument("--nodefringe", 
+    help="not apply the defringe algorithm", 
+    action='store_true')
 
 args = parser.parse_args()
 datadir  = args.files
@@ -64,26 +64,28 @@ for filename in mylist:
     fits.writeto(file_path, data, header, overwrite=True, output_verify='ignore')
 
 ## defringe flat
-print("Defringing flat files...")
-nsp.defringeflatAll(datadir[0], wbin=10, start_col=10, end_col=980 ,diagnostic=False, movefiles=True)
+if args.nodefringe is True:
+    pass
+else:
+    print("Defringing flat files...")
+    nsp.defringeflatAll(datadir[0], wbin=10, start_col=10, end_col=980 ,diagnostic=False, movefiles=True)
 
-defringe_list = glob.glob1(path,'*defringe.fits')
-originalflat_list = glob.glob1(path+'defringeflat_diagnostic/','*.fits')
+    defringe_list = glob.glob1(path,'*defringe.fits')
+    originalflat_list = glob.glob1(path+'defringeflat_diagnostic/','*.fits')
 
 ## reduce the data using NSDRP
 print("Start reducing the data by the NSDRP...")
-os.system("python" + " " + BASE + "nsdrp.py"\
-	+ " " + datadir[0] + " " + datadir[1] + " " \
-	+ "-oh_filename" + " " + BASE + "/ir_ohlines.dat\
-	 -spatial_jump_override -debug")
+os.system("python" + " " + BASE + "nsdrp.py" + " " + datadir[0] + " " + datadir[1] + " " \
+	+ "-oh_filename" + " " + BASE + "/ir_ohlines.dat -spatial_jump_override -debug -dgn")
 
 ## move the original flat files back
-for defringeflatfile in defringe_list:
-    shutil.move(path+defringeflatfile, 
-        path+'defringeflat_diagnostic/'+defringeflatfile)
-for originalflat in originalflat_list:    
-    shutil.move(path+'defringeflat_diagnostic/'+originalflat, 
-        path+originalflat)
+if args.nodefringe is True:
+    pass
+else:
+    for defringeflatfile in defringe_list:
+        shutil.move(path+defringeflatfile, path+'defringeflat_diagnostic/'+defringeflatfile)
+    for originalflat in originalflat_list:    
+        shutil.move(path+'defringeflat_diagnostic/'+originalflat, path+originalflat)
 ## remove the intermediate products
 os.system("rm *.npy")
 
