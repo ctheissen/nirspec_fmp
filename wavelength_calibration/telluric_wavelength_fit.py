@@ -817,7 +817,9 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		#	abs(original_fit[5:-5] - best_shift_array[5:-5]) < m*fit_sigma)]
 		#best_shift_array2 = best_shift_array2[np.where(\
 		#	abs(original_fit[5:-5] - best_shift_array[5:-5]) < m*fit_sigma)]
-		
+		#if order == 60 and k is 1:
+		#	print("use outlier rejection factor of 1 for order 60 in the first iteration")
+		#	m = 1
 		width_range_center2 = width_range_center[np.where \
 		                                         (abs(original_fit - best_shift_array) < m*fit_sigma)]
 		
@@ -1043,7 +1045,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	########## FINAL X-CORR
 	# Calculate the cross correlation
-	minCC, maxCC, stepCC = -0.6, 0.6, 0.01
+	minCC, maxCC, stepCC = -0.8, 0.8, 0.01
 	drAng = np.arange(minCC, maxCC, stepCC)
 	cc    = np.zeros(len(drAng))
 
@@ -1114,7 +1116,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	CC_Shifts2  = np.array(CC_Shifts)[np.where(abs(np.array(CC_Shifts)) != maxCC)]
 	#PixelSteps2 = np.concatenate([PixelSteps2, np.arange(len(datawave)-range1, len(datawave), step)])
 	#CC_Shifts2  = np.concatenate([CC_Shifts2, np.zeros(len(PixelSteps2) - len(PixelSteps))])
-	print("pixelsteps2: ",PixelSteps2)
 	popt, pcov = curve_fit(waveSolutionFn1(order), PixelSteps2, CC_Shifts2, p0 = [0,0,0,0,0,0,0,0])
 	#print(popt)
 	wfit0 += popt[0]
@@ -1355,23 +1356,18 @@ def run_wave_cal(data_name, data_path, order_list,
 		elif order == 55 or order == 56:
 			xcorr_range = 5
 		elif order == 58:
-			xcorr_range = 2
+			xcorr_range = 5
+			outlier_rej = 2
 		elif order == 59:
 			xcorr_range = 1.5
+		elif order == 60:
+			xcorr_range = 5
+			outlier_rej = 2.5
 		elif order == 61:
 			xcorr_range = 5
 		elif order == 62:
 			xcorr_range = 2
-		elif order == 63:
-			xcorr_range = 5
-			outlier_rej = 2
-		elif order == 64:
-			xcorr_range = 5
-			outlier_rej = 2
-		elif order == 65:
-			xcorr_range = 5
-			outlier_rej = 2
-		elif order == 66:
+		elif order == 63 or order == 63 or order == 65 or order == 66:
 			xcorr_range = 5
 			outlier_rej = 2
 		else:
@@ -1413,11 +1409,11 @@ def run_wave_cal(data_name, data_path, order_list,
 			pixel_range_end   = 600
 	
 		elif order == 58:
-			pixel_range_start = 20
+			pixel_range_start = 0
 			pixel_range_end   = -1
-			for i in range(len(data.flux)):
-				if data.flux[i] > 1.0:
-					data.flux[i] = 1.0
+			#for i in range(len(data.flux)):
+			#	if data.flux[i] > 1.0:
+			#		data.flux[i] = 1.0
 		elif order == 59:
 			pixel_range_start = 0
 			pixel_range_end   = -1
@@ -1473,7 +1469,7 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		if not data.applymask:
 		#	pixel_range_start += 15
-			pixel_range_end   += -30
+			pixel_range_end   += -25
 
 		# select the pixel for wavelength calibration
 		#data.flux  = data.flux[pixel_range_start:pixel_range_end]

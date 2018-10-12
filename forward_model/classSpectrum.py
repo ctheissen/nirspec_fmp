@@ -205,7 +205,7 @@ class Spectrum():
 
 		"""
 		#pixel = np.delete(np.arange(1024)+1,list(self.mask))
-		pixel = np.arange(1024)+1
+		pixel = np.arange(1024)
 		## create the output mask array 0=good; 1=bad
 		if self.applymask:
 			mask = np.zeros((1024,),dtype=int)
