@@ -204,7 +204,7 @@ class Spectrum():
 
 
 		"""
-		#pixel = np.delete(np.arange(1024)+1,list(self.mask))
+		#pixel = np.delete(np.arange(1024),list(self.mask))
 		pixel = np.arange(1024)
 		## create the output mask array 0=good; 1=bad
 		if self.applymask:
@@ -468,9 +468,9 @@ class Spectrum():
 		c3    = tell_sp.header['c3']
 		c4    = tell_sp.header['c4']
 
-		self.wave = np.delete(nsp.waveSolution(np.arange(length1)+1,
+		self.wave = np.delete(nsp.waveSolution(np.arange(length1),
 			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=self.order), list(self.mask))
-		self.oriWave = nsp.waveSolution(np.arange(length1)+1,
+		self.oriWave = nsp.waveSolution(np.arange(length1),
 			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=self.order)
 
 		return self
