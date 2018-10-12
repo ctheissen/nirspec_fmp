@@ -10,6 +10,7 @@ from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
 import time
 import nirspec_fmp as nsp
+import splat
 
 FULL_PATH  = os.path.realpath(__file__)
 BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
@@ -142,8 +143,8 @@ def xcorrTelluric(data, model, shift, start_pixel, width, lsf):
 
 	# select a range of wavelength to compute x-correlation value
 	# the model has the range within that window
-	model_low   = data.wave[start_pixel]-100
-	model_high  = data.wave[start_pixel+width]+100
+	model_low   = data.wave[start_pixel-width]-100
+	model_high  = data.wave[start_pixel+width+1]+100
 	condition   = np.where( (model2.wave < model_high) & (model2.wave > model_low) )
 	model2.wave = model2.wave[condition]
 	model2.flux = model2.flux[condition]
@@ -152,10 +153,10 @@ def xcorrTelluric(data, model, shift, start_pixel, width, lsf):
 	model2.flux = nsp.broaden(wave=model2.wave, flux=model2.flux, vbroad=lsf, rotate=False, gaussian=True)
 
 	# resampling the telluric model
-	model2.flux = np.array(nsp.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave[start_pixel:start_pixel+width]))
-	model2.wave = data.wave[start_pixel:start_pixel+width]
+	model2.flux = np.array(splat.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave[start_pixel-width:start_pixel+width+1]))
+	model2.wave = data.wave[start_pixel-width:start_pixel+width+1]
 
-	d = data.flux[start_pixel:start_pixel+width]
+	d = data.flux[start_pixel-width:start_pixel+width+1]
 	##the model is selected in the pixel range in the beginning
 	#m = model2.flux[start_pixel:start_pixel+width]
 	m = model2.flux
@@ -187,7 +188,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 	pixel_range_start = kwargs.get('pixel_range_start',0)
 	pixel_range_end   = kwargs.get('pixel_range_end',-1)
 	length1           = kwargs.get('length1',1024)
-	pixel             = np.delete(np.arange(length1),data.mask)#+1
+	pixel             = np.delete(np.arange(length1),data.mask)+1
 	pixel             = pixel[pixel_range_start:pixel_range_end]
 
 	xcorr_list        = [] # save the xcorr values
@@ -209,14 +210,13 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 
 	#print("xcorr list:",xcorr_list)
 	best_shift    = np.arange(-delta_wave_range, delta_wave_range, step)[np.argmax(xcorr_list)]
-	central_pixel = start_pixel + window_width/2.
 
 	# parameters setup for plotting
 	#plt.rc('text', usetex=True)
 	#plt.rc('font', family='sans-serif')
 	linewidth = 0.5
 
-	pixel = np.delete(np.arange(length1),data.mask)#+1
+	pixel = np.delete(np.arange(length1),data.mask)+1
 	pixel = pixel[pixel_range_start:pixel_range_end]
 
 	if test:
@@ -578,7 +578,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# set up the initial parameters
 	#spec_range = kwargs.get('spec_range',900)
 	#order = kwargs.get('order', None)
-	width              = kwargs.get('window_width', 40)
+	width              = kwargs.get('window_width', 20)
 	step_size          = kwargs.get('window_step', 5)
 	delta_wave_range   = kwargs.get('xcorr_range', 10)
 	step               = kwargs.get('xcorr_step', 0.05)
@@ -592,11 +592,17 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# calculation the necessary parameters
 	pixel_range_start  = kwargs.get('pixel_range_start',0)
 	pixel_range_end    = kwargs.get('pixel_range_end',-1)
-	pixel              = np.delete(np.arange(length1),data.mask)#+1
+	pixel              = np.delete(np.arange(length1),data.mask)+1
 	pixel              = pixel[pixel_range_start:pixel_range_end]
-	spec_range         = len(pixel) - width # window range coverage for xcorr
-	width_range        = np.arange(pixel_range_start, spec_range+pixel_range_start, step_size)
-	width_range_center = width_range + width/2
+	spec_range         = len(pixel) - 2*width # window range coverage for xcorr
+	#width_range        = np.arange(pixel_range_start, spec_range+pixel_range_start, step_size)
+	width_range_center = np.arange(pixel_range_start+width, spec_range+pixel_range_start+width, step_size)
+	#width_range_center = width_range + width//2 + 1
+	print("pixel_range_start",pixel_range_start,"pixel_range_end",pixel_range_end)
+	print("width",width)
+	print("pixel ",pixel)
+	print("len(pixel)",len(pixel))
+	print("width_range_center",width_range_center)
 
 	# increase the telluric model strength for N3
 	if order == 63 or order == 64 or order == 65 or order == 66:
@@ -627,7 +633,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		                      rotate=False, gaussian=True)
 	modelCC     = copy.deepcopy(model2) # Use this for final CC
 	# model resample and LSF broadening
-	model2.flux = np.array(nsp.integralResample(xh=model2.wave, 
+	model2.flux = np.array(splat.integralResample(xh=model2.wave, 
 		                                          yh=model2.flux, xl=data.wave))
 	model2.wave = data.wave
 
@@ -680,7 +686,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 		# calcutate the delta wavelentgh
 		best_shift_list  = []
-		for counter, j in enumerate(width_range):
+		for counter, j in enumerate(width_range_center):
 			testname = "loop{}".format(k)
 			if i is 0:
 				time2 = time.time()
@@ -886,8 +892,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 						                                   popt1_ori, popt2_ori, popt3_ori,
 						                                   popt4_ori, popt5_ori, popt6_ori,
 						                                   popt7_ori, order=order) - best_shift_array
-					residual2           = residual2[np.where\
-					(abs(original_fit - best_shift_array) < m*fit_sigma)]
+					residual2           = residual2[np.where(abs(original_fit - best_shift_array) < m*fit_sigma)]
 					break
 
 
@@ -942,7 +947,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		model3      = copy.deepcopy(model)
 		model3.flux = nsp.broaden(wave=model3.wave, flux=model3.flux, vbroad=vbroad, rotate=False, gaussian=True)
 		# model resample and LSF broadening
-		model3.flux = np.array(nsp.integralResample(xh=model3.wave, 
+		model3.flux = np.array(splat.integralResample(xh=model3.wave, 
 			                                          yh=model3.flux, xl=data3.wave))
 		model3.wave = data3.wave
 
@@ -956,7 +961,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		
 		ax1.xaxis.tick_top()
 		#ax1.plot(data.wave, data.flux, color='black',linestyle='-', label='telluric data',alpha=0.5,linewidth=0.8)
-		ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
+		ax1.plot(new_wave_sol, data.flux[pixel-1], color='black', linestyle='-', 
 			     label='corrected telluric data', alpha=1, linewidth=0.5)
 		ax1.plot(model3.wave, model3.flux, 'r-' , label='telluric model', alpha=0.7, lw=0.5)
 		#ax1.plot(model2.wave, model2.flux, 'r-' ,label='telluric model',alpha=0.5)
@@ -1061,11 +1066,11 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 		cc         = np.zeros(len(drAng))
 		for i, Angshift in enumerate(drAng):
-			#newFlux = np.array(nsp.integralResample(xh=modelwave+Angshift, yh=modelflux, 
+			#newFlux = np.array(splat.integralResample(xh=modelwave+Angshift, yh=modelflux, 
 			#                                          xl=datawave[j:j+range1]))
 			'''
 			if PixelSteps[j] > len(datawave)-range1:
-				newFlux = np.array(nsp.integralResample(xh=modelwave+Angshift, yh=modelflux, 
+				newFlux = np.array(splat.integralResample(xh=modelwave+Angshift, yh=modelflux, 
 				                                          xl=datawave[PixelSteps[j]:]))
 				#d = dataflux[j:j+range1]
 				d = dataflux[PixelSteps[j]:]
@@ -1073,14 +1078,14 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			if PixelSteps[j] < window:
 				continue
 				#newWindow = len(data2.wave)-window
-				#newFlux   = np.array(nsp.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
+				#newFlux   = np.array(splat.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
 				#                                            xl=new_wave_sol[PixelSteps[j]-newWindow:PixelSteps[j]+newWindow+1]))
 				#d = dataflux[j:j+range1]
 				#d = data2.flux[PixelSteps[j]-newWindow:PixelSteps[j]+newWindow]
 
 			elif PixelSteps[j] > len(data2.wave)-window:
 				newWindow = len(data2.wave)-window
-				newFlux   = np.array(nsp.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
+				newFlux   = np.array(splat.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
 				                                            xl=new_wave_sol[PixelSteps[j]-newWindow:PixelSteps[j]+newWindow+1]))
 				#d = dataflux[j:j+range1]
 				#d = data2.flux[PixelSteps[j]-newWindow:PixelSteps[j]+newWindow+1]
@@ -1089,12 +1094,12 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 			else:
 				'''
-				newFlux = np.array(nsp.integralResample(xh=modelwave+Angshift, yh=modelflux, 
+				newFlux = np.array(splat.integralResample(xh=modelwave+Angshift, yh=modelflux, 
 				                                          xl=datawave[PixelSteps[j]:PixelSteps[j]+range1]))
 				#d = data2.flux[j:j+range1]
 				d = data2.flux[PixelSteps[j]:PixelSteps[j]+range1]
 				'''
-				newFlux = np.array(nsp.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
+				newFlux = np.array(splat.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
 				                                          xl=new_wave_sol[PixelSteps[j]-window:PixelSteps[j]+window+1]))
 				#d = data2.flux[j:j+range1]
 				#d = data2.flux[PixelSteps[j]-window:PixelSteps[j]+window+1]
@@ -1134,7 +1139,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	range123 = np.where( (data2.wave >= 23000)  & (data2.wave <= 23050) )
 	for i, Angshift in enumerate(drAng):
 		
-		newFlux = np.array(nsp.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
+		newFlux = np.array(splat.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
 			                                          xl=new_wave_sol[range123]))
 
 		d = data2.flux[range123]
@@ -1160,7 +1165,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	CC_Shifts  = []
 	for j in range(int(len(data2.flux))-200):
 		for i, Angshift in enumerate(drAng):
-			newFlux = np.array(nsp.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
+			newFlux = np.array(splat.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
 			                                          xl=new_wave_sol[j:j+200]))
 			d = data2.flux[j:j+200]
 			##the model is selected in the pixel range in the beginning
@@ -1183,7 +1188,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	for j in range(1000):
 		for i, Angshift in enumerate(drAng):
 			lowpoint, highpoint = lowpoints[j], highpoints[j]
-			newFlux = np.array(nsp.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
+			newFlux = np.array(splat.integralResample(xh=modelCC.wave+Angshift, yh=modelCC.flux, 
 			                                          xl=new_wave_sol[lowpoint:highpoint]))
 			d = data2.flux[lowpoint:highpoint]
 			##the model is selected in the pixel range in the beginning
@@ -1209,10 +1214,10 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	ax1.plot(model3.wave, model3.flux, color='red', linestyle='-', 
 		     label='model', alpha=0.5, linewidth=0.5)
-	ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
+	ax1.plot(new_wave_sol, data.flux[pixel-1], color='black', linestyle='-', 
 		     label="new wavelength solution", alpha=0.5, linewidth=0.5)
 	# Ang shift
-	ax1.plot(new_wave_solN, data.flux[pixel], color='blue', linestyle='-', 
+	ax1.plot(new_wave_solN, data.flux[pixel-1], color='blue', linestyle='-', 
 		     label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
 	ax1.legend()
 	ax1.minorticks_on()
@@ -1224,10 +1229,10 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	newrange3 = np.where( (new_wave_solN >= 23000) & (new_wave_solN <= 23050) )
 	ax2.plot(model3.wave[newrange1], model3.flux[newrange1], color='red', linestyle='-', 
 		     label='model', alpha=0.5, linewidth=0.5)
-	ax2.plot(new_wave_sol[newrange2], data.flux[pixel][newrange2], color='black', linestyle='-', 
+	ax2.plot(new_wave_sol[newrange2], data.flux[pixel-1][newrange2], color='black', linestyle='-', 
 		     label="new wavelength solution", alpha=0.5, linewidth=0.5)
 	# Ang shift
-	ax2.plot(new_wave_solN[newrange3], data.flux[pixel][newrange3], color='blue', 
+	ax2.plot(new_wave_solN[newrange3], data.flux[pixel-1][newrange3], color='blue', 
 		     linestyle='-', label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
 	ax2.minorticks_on()
 	ax2.set_ylabel('Norm Flux')
@@ -1314,7 +1319,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 def run_wave_cal(data_name, data_path, order_list,
 	             save_to_path, test=False, save=False,
-	             window_width=40, window_step=5):
+	             window_width=20, window_step=5):
 	"""
 	Run the telluric wavelength calibration.
 	"""
@@ -1544,7 +1549,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		data.noise = data.noise[pixel_range_start:pixel_range_end]
 		
 		# plotting
-		pixel       = np.delete(np.arange(length1),data.mask)#+1
+		pixel       = np.delete(np.arange(length1),data.mask)+1
 		pixel       = pixel[pixel_range_start:pixel_range_end]
 		linewidth   = 0.5
 		stdWaveSol  = np.std(residual)
@@ -1561,7 +1566,7 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		# resampling the telluric model
 		#telluric = copy.deepcopy(model)
-		#telluric.flux = np.array(nsp.integralResample(xh=telluric.wave, 
+		#telluric.flux = np.array(splat.integralResample(xh=telluric.wave, 
 		#	yh=telluric.flux, xl=data.wave))
 		#telluric.wave = data.wave
 		# compute the LSF average broadening of the instrument (km/s)
