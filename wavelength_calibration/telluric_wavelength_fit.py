@@ -187,7 +187,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 	pixel_range_start = kwargs.get('pixel_range_start',0)
 	pixel_range_end   = kwargs.get('pixel_range_end',-1)
 	length1           = kwargs.get('length1',1024)
-	pixel             = np.delete(np.arange(length1),data.mask)#+1
+	pixel             = np.delete(np.arange(length1),data.mask)
 	pixel             = pixel[pixel_range_start:pixel_range_end]
 
 	xcorr_list        = [] # save the xcorr values
@@ -216,7 +216,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 	#plt.rc('font', family='sans-serif')
 	linewidth = 0.5
 
-	pixel = np.delete(np.arange(length1),data.mask)#+1
+	pixel = np.delete(np.arange(length1),data.mask)
 	pixel = pixel[pixel_range_start:pixel_range_end]
 
 	if test:
@@ -592,7 +592,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# calculation the necessary parameters
 	pixel_range_start  = kwargs.get('pixel_range_start',0)
 	pixel_range_end    = kwargs.get('pixel_range_end',-1)
-	pixel              = np.delete(np.arange(length1),data.mask)#+1
+	pixel              = np.delete(np.arange(length1), data.mask)
 	pixel              = pixel[pixel_range_start:pixel_range_end]
 	spec_range         = len(pixel) - width # window range coverage for xcorr
 	width_range        = np.arange(pixel_range_start, spec_range+pixel_range_start, step_size)
@@ -1045,7 +1045,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	########## FINAL X-CORR
 	# Calculate the cross correlation
-	minCC, maxCC, stepCC = -0.8, 0.8, 0.01
+	minCC, maxCC, stepCC = -0.6, 0.6, 0.01
 	drAng = np.arange(minCC, maxCC, stepCC)
 	cc    = np.zeros(len(drAng))
 
@@ -1053,7 +1053,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	range1     = 100
 	window     = 50
 	CC_Shifts  = []
-	PixelSteps = range(0, len(data2.wave), step)
+	#PixelSteps = range(0, len(data2.wave), step)
+	PixelSteps = range(pixel_range_start, len(pixel)+pixel_range_start, step) # fix index issue
 	CC_Shifts  = np.zeros(len(PixelSteps))
 	for j in range(len(PixelSteps)):
 		#print(j, PixelSteps[j])
@@ -1220,9 +1221,12 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	ax1.set_ylabel('Norm Flux')
 	ax1.set_xlabel('Wavelength ($\AA$)')
 	
-	newrange1 = np.where( (model3.wave >= 23000)  & (model3.wave <= 23050) )
-	newrange2 = np.where( (new_wave_sol >= 23000) & (new_wave_sol <= 23050) )
-	newrange3 = np.where( (new_wave_solN >= 23000) & (new_wave_solN <= 23050) )
+	#newrange1 = np.where( (model3.wave >= 23000)  & (model3.wave <= 23050) )
+	#newrange2 = np.where( (new_wave_sol >= 23000) & (new_wave_sol <= 23050) )
+	#newrange3 = np.where( (new_wave_solN >= 23000) & (new_wave_solN <= 23050) )
+	newrange1 = np.where( (model3.wave >= new_wave_solN[250])  & (model3.wave <= new_wave_solN[400]) )
+	newrange2 = np.where( (new_wave_sol >= new_wave_solN[250]) & (new_wave_sol <= new_wave_solN[400]) )
+	newrange3 = np.where( (new_wave_solN >= new_wave_solN[250]) & (new_wave_solN <= new_wave_solN[400]) )
 	ax2.plot(model3.wave[newrange1], model3.flux[newrange1], color='red', linestyle='-', 
 		     label='model', alpha=0.5, linewidth=0.5)
 	ax2.plot(new_wave_sol[newrange2], data.flux[pixel][newrange2], color='black', linestyle='-', 
@@ -1315,7 +1319,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 def run_wave_cal(data_name, data_path, order_list,
 	             save_to_path, test=False, save=False,
-	             window_width=40, window_step=5):
+	             window_width=40, window_step=5, mask_custom=[]):
 	"""
 	Run the telluric wavelength calibration.
 	"""
@@ -1331,7 +1335,7 @@ def run_wave_cal(data_name, data_path, order_list,
 	airmass       = '1.5'
 	pwv           = '0.5'
 
-	defringe_list = [] #[35, 61, 62, 63, 64, 65, 66]
+	defringe_list = [62] #[35, 61, 62, 63, 64, 65, 66]
 	applymask     = False # if True: apply a simple mask
 	##################################
 
@@ -1359,14 +1363,17 @@ def run_wave_cal(data_name, data_path, order_list,
 			xcorr_range = 5
 			outlier_rej = 2
 		elif order == 59:
-			xcorr_range = 1.5
+			xcorr_range = 5
+			outlier_rej = 2
 		elif order == 60:
 			xcorr_range = 5
 			outlier_rej = 2.5
 		elif order == 61:
 			xcorr_range = 5
+			outlier_rej = 2
 		elif order == 62:
-			xcorr_range = 2
+			xcorr_range = 5
+			outlier_rej = 2
 		elif order == 63 or order == 63 or order == 65 or order == 66:
 			xcorr_range = 5
 			outlier_rej = 2
@@ -1374,7 +1381,11 @@ def run_wave_cal(data_name, data_path, order_list,
 			xcorr_range = 5
 
 		data     = nsp.Spectrum(name=data_name, order=order, path=data_path, applymask=applymask)
-		length1  = len(data.wave) # preserve the length of the array
+		## add a self-defined mask
+		## custom mask is not done in the wavelegnth calibration; don't use it!
+		#data.mask = list(set().union(data.mask, mask_custom))
+		#data.mask_custom(custom_mask=mask_custom)
+		length1  = len(data.oriWave) # preserve the length of the array
 
 		# the telluric standard model
 		wavelow  = data.wave[0]  - 200
@@ -1406,7 +1417,7 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		elif order == 55:
 			pixel_range_start = 0
-			pixel_range_end   = 600
+			pixel_range_end   = -90 #-20
 	
 		elif order == 58:
 			pixel_range_start = 0
@@ -1417,23 +1428,23 @@ def run_wave_cal(data_name, data_path, order_list,
 		elif order == 59:
 			pixel_range_start = 0
 			pixel_range_end   = -1
-			for i in range(len(data.flux)):
-				if data.flux[i] > 1.05:
-					data.flux[i] = 1.05
+			#for i in range(len(data.flux)):
+			#	if data.flux[i] > 1.05:
+			#		data.flux[i] = 1.05
 					
 		elif order == 61:
-			for i in range(len(data.flux)):
-				if data.flux[i] > 1.0:
-					data.flux[i] = 1.0
+			#for i in range(len(data.flux)):
+			#	if data.flux[i] > 1.0:
+			#		data.flux[i] = 1.0
 			pixel_range_start = 5
 			pixel_range_end   = -5
 
 		elif order == 62:
-			for i in range(len(data.flux)):
-				if data.flux[i] > 1.0:
-					data.flux[i] = 1.0
-			pixel_range_start = 20
-			pixel_range_end   = -20
+			#for i in range(len(data.flux)):
+			#	if data.flux[i] > 1.0:
+			#		data.flux[i] = 1.0
+			pixel_range_start = 0
+			pixel_range_end   = -1
 
 		elif order == 63:
 			#for i in range(len(data.flux)):
@@ -1479,8 +1490,6 @@ def run_wave_cal(data_name, data_path, order_list,
 		# defringe
 		if order in defringe_list:
 			data, fringe = nsp.fringeTelluric(data)
-		#else:
-		#	fringe = 0
 
 		#lsf0 = nsp.getLSF(data,continuum=False,test=True)
 		#print("initial fitted LSF: ",lsf0)
@@ -1508,6 +1517,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		file_log.write("outlier_rej {} \n".format(outlier_rej))
 		file_log.write("pixel range start {} \n".format(pixel_range_start))
 		file_log.write("pixel range end {} \n".format(pixel_range_end))
+		file_log.write("mask_custom {} \n".format(mask_custom))
 		file_log.close()
 
 		data_path2 = data_path + '/' + data_name + '_' + str(order) + '_all.fits'
@@ -1532,6 +1542,7 @@ def run_wave_cal(data_name, data_path, order_list,
 								  length1 = length1)
 
 		time2 = time.time()
+		print("Total X correlation time: {} min".format((time2-time1)/60))
 
 		# convert the flux back to the original data
 		data       = data1
@@ -1540,7 +1551,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		data.noise = data.noise[pixel_range_start:pixel_range_end]
 		
 		# plotting
-		pixel       = np.delete(np.arange(length1),data.mask)#+1
+		pixel       = np.delete(np.arange(length1),data.mask)
 		pixel       = pixel[pixel_range_start:pixel_range_end]
 		linewidth   = 0.5
 		stdWaveSol  = np.std(residual)
@@ -1588,7 +1599,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		if order in defringe_list:
 			# add back the fringe
 			telluric_new2_no_fringe = copy.deepcopy(telluric_new2)
-			telluric_new2.flux += fringe
+			telluric_new2.flux += fringe[pixel_range_start:pixel_range_end]
 
 		print("vbroad: ",lsf, " km/s")
 

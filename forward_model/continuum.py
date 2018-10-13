@@ -131,7 +131,7 @@ def fringeTelluric(data):
     amp0     = np.absolute(np.std(pgram_y))
     p0       = [freq, amp0, 0, 0]
     popt, pcov = curve_fit(sineFit, pgram_x, pgram_y, p0=p0,
-        maxfev=10000)
+        maxfev=100000)
 
     #data.wave = pgram_x
     #data.flux = np.delete(data.flux[10:-10],
@@ -223,19 +223,27 @@ def continuumTelluric(data, model=None, order=None):
 
     elif data.order == 55:
         popt, pcov  = curve_fit(_continuumFit, data.wave, data.flux)
-        data.flux   = data.flux/_continuumFit(data.wave, *popt)
-        data.noise  = data.noise/_continuumFit(data.wave, *popt)
-        data.flux  /= np.max(data.flux)
-        data.noise /= np.max(data.flux)
-        data.flux  /= 0.93
-        data.noise /= 0.93
-        if not data.applymask:
+        if data.applymask:
+            data.flux   = data.flux/_continuumFit(data.wave, *popt)
+            data.noise  = data.noise/_continuumFit(data.wave, *popt)
+        
+            factor      = np.max(data.flux)
+            data.flux  /= factor
+            data.noise /= factor
+            data.flux  /= 0.93
+            data.noise /= 0.93
+
+        elif not data.applymask:
             data2.flux   = data2.flux/_continuumFit(data2.wave, *popt)
             data2.noise  = data2.noise/_continuumFit(data2.wave, *popt)
-            data2.flux  /= np.max(data.flux)
-            data2.noise /= np.max(data.flux)
+
+            factor       = np.max(data2.flux)
+            data2.flux   = data2.flux/factor
+            data2.noise  = data2.noise/factor
+
             data2.flux  /= 0.93
             data2.noise /= 0.93
+            
             data         = data2
 
     elif data.order == 56:

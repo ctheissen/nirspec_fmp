@@ -98,6 +98,20 @@ class Spectrum():
 			self.sky   = np.delete(self.sky, list(self.mask))
 			self.mask  = self.mask[0]
 
+	def mask_custom(self, custom_mask):
+		"""
+		Mask the pixels by a self-defined list.
+		"""
+		## combine the list and remove the duplicates
+		self.mask  =  list(set().union(self.mask, custom_mask))
+
+		self.wave  = np.delete(self.oriWave, list(self.mask))
+		self.flux  = np.delete(self.oriFlux, list(self.mask))
+		self.noise = np.delete(self.oriNoise, list(self.mask))
+
+		return self
+
+
 	def maskBySigmas(self, sigma=2):
 		"""
 		Mask the outlier data points by sigmas.
