@@ -178,7 +178,10 @@ def continuumTelluric(data, model=None, order=None):
 
     if not data.applymask:
         data2 = copy.deepcopy(data)
-        data.maskBySigmas()
+        data.maskBySigmas(sigma=1.5)
+        #plt.plot(data.wave,data.flux)
+        #plt.show()
+        #plt.close()
 
     if data.order == 35:
         # O35 has a voigt absorption profile
@@ -186,6 +189,10 @@ def continuumTelluric(data, model=None, order=None):
             data.flux[20:-20],
             p0=[21660,2000,0.1,0.1,0.01,0.1,10000,1000],
             maxfev=10000)
+        #plt.plot(data.wave,data.flux,'k-',alpha=0.5)
+        #plt.plot(data.wave,voigt_profile(data.wave,*popt),'r-',alpha=0.5)
+        #plt.show()
+        #plt.close()
         const = np.mean(data.flux/voigt_profile(data.wave, *popt))\
         -np.mean(model.flux)
         data.flux  = data.flux/voigt_profile(data.wave, *popt) - const
@@ -243,7 +250,7 @@ def continuumTelluric(data, model=None, order=None):
 
             data2.flux  /= 0.93
             data2.noise /= 0.93
-            
+
             data         = data2
 
     elif data.order == 56:
@@ -277,8 +284,7 @@ def continuumTelluric(data, model=None, order=None):
         wave0 = int(data.wave[np.where(data.flux==np.min(data.flux))])
         popt, pcov = curve_fit(voigt_profile,
             data.wave, data.flux,
-            p0=[12820,2000,0.1,0.1,0.01,0.1,10000,1000]
-            ,maxfev=10000)
+            p0=[12820,2000,0.1,0.1,0.01,0.1,10000,1000],maxfev=10000)
             #p0=[wave0,2000,0.1,0.1,0.01,0.1,10000,1000],
             #maxfev=10000)        
         data.flux  /= voigt_profile(data.wave, *popt)
@@ -288,7 +294,7 @@ def continuumTelluric(data, model=None, order=None):
             data2.noise /= voigt_profile(data2.wave, *popt)
             data         = data2
 
-
+    ## this is not true in general!!
     elif data.order == 65:
         # O65 is best mateched by a gaussian absorption feature
         popt, pcov  = curve_fit(gaus_absorption_only,

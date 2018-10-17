@@ -194,7 +194,7 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 
 	if model2 is None:
 		model2 = model
-
+	#if start_pixel < 400: delta_wave_range = 2
 	# select the range of the pixel shift to compute the max xcorr
 	for i in np.arange(-delta_wave_range, delta_wave_range, step):
 		# propagate the best pixel shift
@@ -450,6 +450,9 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 			pass
 		
 		except TypeError:
+			pass
+
+		except ValueError: #NaNs
 			pass
 		
 	if test:
@@ -857,7 +860,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			popt2, pcov2  = curve_fit(waveSolutionFn0(order),
 				                      width_range_center2[10:-10], best_shift_array2[10:-10], p1)
 			popt2         = np.append(popt2, [0,0])
-
+			#if i==0: m=1.2
 			for num_fit in range(8):
 				## re-fit for five times after the second outlier rejection
 				## the residual fit in the first iteration is the most important part
@@ -1301,8 +1304,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			hdulist[0].header['POPT7']	= popt2[7]
 			hdulist[0].header['STD']    = str(np.std\
 				(residual2)/np.average(new_wave_sol)*299792.458) + 'km/s'
-			hdulist[0].data             = nsp.waveSolution(np.arange(length1)+1,
-				wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4,order=order)
+			hdulist[0].data             = nsp.waveSolution(np.arange(length1),
+				wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=order)
 			try:
 				hdulist.writeto(save_name,overwrite=True)
 			except FileNotFoundError:
@@ -1356,7 +1359,8 @@ def run_wave_cal(data_name, data_path, order_list,
 		elif order == 36:
 			xcorr_range = 2
 		elif order == 37 or order == 38:
-			xcorr_range  = 4
+			xcorr_range = 5
+			outlier_rej = 2
 		elif order == 55 or order == 56:
 			xcorr_range = 5
 		elif order == 58:

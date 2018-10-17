@@ -18,7 +18,6 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
     elif modelset == 'phoenixaces' :
         path = BASE + '/../libraries/phoenixaces/NIRSPEC-O%s-RAW/'%order
 
-
     def bilinear_interpolation(x, y, points):
         '''Interpolate (x,y) from values associated with four points.
 
@@ -51,7 +50,6 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
 
 
     def GetModel(temp, logg, modelset = 'btsettl08', wave=False):
-
         feh, en = 0.00, 0.00
         if modelset == 'btsettl08':
             filename = 'btsettl08_t'+ str(int(temp.data[0])) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
@@ -60,7 +58,7 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
 
         Tab = Table.read(path+filename, format='ascii.tab', names=['wave', 'flux'])
 
-        if wave: 
+        if wave:
             return Tab['wave']
         else:
             return Tab['flux']
