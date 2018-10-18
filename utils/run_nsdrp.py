@@ -16,6 +16,7 @@ warnings.filterwarnings("ignore")
 FULL_PATH  = os.path.realpath(__file__)
 BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
 BASE = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
+#BASE = BASE.split('nirspec_fmp')[0] + 'NSDRP_before20180925/' #original NSDRP
 
 parser = argparse.ArgumentParser(description="Reduce the NIRSPEC data using NIRSPEC-Data-Reduction-Pipeline",\
 	usage="run_nsdrp.py input_dir (output_dir)")

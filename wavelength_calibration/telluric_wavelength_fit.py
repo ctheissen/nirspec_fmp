@@ -587,6 +587,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	step               = kwargs.get('xcorr_step', 0.05)
 	niter              = kwargs.get('niter', 15)
 	outlier_rej        = kwargs.get('outlier_rej', 3)
+	applymask          = kwargs.get('applymask', False) # apply a simple outlier rejection mask
 	test               = kwargs.get('test', False) # output the xcorr plots
 	save               = kwargs.get('save', False) # save the new wavelength solution
 	save_to_path       = kwargs.get('save_to_path', None)
@@ -961,8 +962,12 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		
 		ax1.xaxis.tick_top()
 		#ax1.plot(data.wave, data.flux, color='black',linestyle='-', label='telluric data',alpha=0.5,linewidth=0.8)
-		ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
-			     label='corrected telluric data', alpha=1, linewidth=0.5)
+		if not applymask:
+			ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
+				label='corrected telluric data', alpha=1, linewidth=0.5)
+		else:
+			ax1.plot(new_wave_sol, data.flux[pixel_range_start:pixel_range_end], color='black', linestyle='-', 
+				label='corrected telluric data', alpha=1, linewidth=0.5)
 		ax1.plot(model3.wave, model3.flux, 'r-' , label='telluric model', alpha=0.7, lw=0.5)
 		#ax1.plot(model2.wave, model2.flux, 'r-' ,label='telluric model',alpha=0.5)
 		ax1.set_xlabel("Wavelength ($\AA$)")
@@ -1214,11 +1219,18 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	ax1.plot(model3.wave, model3.flux, color='red', linestyle='-', 
 		     label='model', alpha=0.5, linewidth=0.5)
-	ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
-		     label="new wavelength solution", alpha=0.5, linewidth=0.5)
-	# Ang shift
-	ax1.plot(new_wave_solN, data.flux[pixel], color='blue', linestyle='-', 
-		     label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
+	if not applymask:
+		ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
+			label="new wavelength solution", alpha=0.5, linewidth=0.5)
+		# Ang shift
+		ax1.plot(new_wave_solN, data.flux[pixel], color='blue', linestyle='-', 
+			label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
+	else:
+		ax1.plot(new_wave_sol, data.flux[pixel_range_start:pixel_range_end], color='black', linestyle='-', 
+			label="new wavelength solution", alpha=0.5, linewidth=0.5)
+		# Ang shift
+		ax1.plot(new_wave_solN, data.flux[pixel_range_start:pixel_range_end], color='blue', linestyle='-', 
+			label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
 	ax1.legend()
 	ax1.minorticks_on()
 	ax1.set_ylabel('Norm Flux')
@@ -1230,13 +1242,22 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	newrange1 = np.where( (model3.wave >= new_wave_solN[250])  & (model3.wave <= new_wave_solN[400]) )
 	newrange2 = np.where( (new_wave_sol >= new_wave_solN[250]) & (new_wave_sol <= new_wave_solN[400]) )
 	newrange3 = np.where( (new_wave_solN >= new_wave_solN[250]) & (new_wave_solN <= new_wave_solN[400]) )
-	ax2.plot(model3.wave[newrange1], model3.flux[newrange1], color='red', linestyle='-', 
-		     label='model', alpha=0.5, linewidth=0.5)
-	ax2.plot(new_wave_sol[newrange2], data.flux[pixel][newrange2], color='black', linestyle='-', 
-		     label="new wavelength solution", alpha=0.5, linewidth=0.5)
-	# Ang shift
-	ax2.plot(new_wave_solN[newrange3], data.flux[pixel][newrange3], color='blue', 
-		     linestyle='-', label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
+	if not applymask:
+		ax2.plot(model3.wave[newrange1], model3.flux[newrange1], color='red', linestyle='-', 
+		     	label='model', alpha=0.5, linewidth=0.5)
+		ax2.plot(new_wave_sol[newrange2], data.flux[pixel][newrange2], color='black', linestyle='-', 
+		     	label="new wavelength solution", alpha=0.5, linewidth=0.5)
+		# Ang shift
+		ax2.plot(new_wave_solN[newrange3], data.flux[pixel][newrange3], color='blue', 
+		     	linestyle='-', label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
+	else:
+		ax2.plot(model3.wave[newrange1], model3.flux[newrange1], color='red', linestyle='-', 
+		     	label='model', alpha=0.5, linewidth=0.5)
+		ax2.plot(new_wave_sol[newrange2], data.flux[pixel_range_start:pixel_range_end][newrange2], color='black', linestyle='-', 
+		     	label="new wavelength solution", alpha=0.5, linewidth=0.5)
+		# Ang shift
+		ax2.plot(new_wave_solN[newrange3], data.flux[pixel_range_start:pixel_range_end][newrange3], color='blue', 
+		     	linestyle='-', label="new wavelength solution + shift", alpha=0.5, linewidth=0.5)
 	ax2.minorticks_on()
 	ax2.set_ylabel('Norm Flux')
 	ax2.set_xlabel('Wavelength ($\AA$)')
@@ -1322,7 +1343,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 def run_wave_cal(data_name, data_path, order_list,
 	             save_to_path, test=False, save=False,
-	             window_width=40, window_step=5, mask_custom=[]):
+	             window_width=40, window_step=5, mask_custom=[], applymask=False):
 	"""
 	Run the telluric wavelength calibration.
 	"""
@@ -1339,7 +1360,7 @@ def run_wave_cal(data_name, data_path, order_list,
 	pwv           = '0.5'
 
 	defringe_list = [62] #[35, 61, 62, 63, 64, 65, 66]
-	applymask     = False # if True: apply a simple mask
+	applymask     = applymask # if True: apply a simple mask
 	##################################
 
 	original_path = os.getcwd()
@@ -1371,7 +1392,7 @@ def run_wave_cal(data_name, data_path, order_list,
 			outlier_rej = 2
 		elif order == 60:
 			xcorr_range = 5
-			outlier_rej = 2.5
+			outlier_rej = 3 #2.5
 		elif order == 61:
 			xcorr_range = 5
 			outlier_rej = 2
@@ -1543,7 +1564,8 @@ def run_wave_cal(data_name, data_path, order_list,
 								  pixel_range_end=pixel_range_end, 
 								  save_to_path=save_to_path_fits,
 								  data_path=data_path2,
-								  length1 = length1)
+								  length1 = length1,
+								  applymask=applymask)
 
 		time2 = time.time()
 		print("Total X correlation time: {} min".format((time2-time1)/60))

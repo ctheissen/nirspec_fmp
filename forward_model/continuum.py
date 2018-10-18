@@ -281,10 +281,10 @@ def continuumTelluric(data, model=None, order=None):
             data        = data2
 
     elif data.order == 59:
-        wave0 = int(data.wave[np.where(data.flux==np.min(data.flux))])
+        #wave0 = int(data.wave[np.where(data.flux==np.min(data.flux))])
         popt, pcov = curve_fit(voigt_profile,
             data.wave, data.flux,
-            p0=[12820,2000,0.1,0.1,0.01,0.1,10000,1000],maxfev=10000)
+            p0=[12820,2000,0.1,0.1,0.01,0.1,10000,1000],maxfev=100000)
             #p0=[wave0,2000,0.1,0.1,0.01,0.1,10000,1000],
             #maxfev=10000)        
         data.flux  /= voigt_profile(data.wave, *popt)
@@ -293,12 +293,15 @@ def continuumTelluric(data, model=None, order=None):
             data2.flux  /= voigt_profile(data2.wave, *popt)
             data2.noise /= voigt_profile(data2.wave, *popt)
             data         = data2
+        #plt.plot(data.wave,data.flux)
+        #plt.show()
+        #plt.close()
 
     ## this is not true in general!!
     elif data.order == 65:
         # O65 is best mateched by a gaussian absorption feature
         popt, pcov  = curve_fit(gaus_absorption_only,
-            data.wave,data.flux, p0=[11660,50,2000,2000],maxfev=10000)
+            data.wave,data.flux, p0=[11660,50,2000,2000],maxfev=100000)
         const       = np.mean(data.flux/gaus_absorption_only(data.wave, 
             *popt)) - np.mean(model.flux)
         data.flux   = data.flux/gaus_absorption_only(data.wave, *popt) - const
