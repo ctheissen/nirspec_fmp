@@ -6,8 +6,8 @@ from astropy.io import fits, ascii
 import matplotlib.pyplot as plt
 from matplotlib.ticker import AutoMinorLocator
 import nirspec_fmp as nsp
-import splat
-import splat.model as spmd
+#import splat
+#import splat.model as spmd
 
 #def _constructModelName(teff, logg, feh, en, order, path=None):
 #    """
@@ -93,15 +93,15 @@ class Model():
             #self.flux  = model[1][:]
             
             ## load the splat.interpolation BTSETTL model
-            instrument = "NIRSPEC-O{}-RAW".format(self.order)
-            sp = spmd.getModel(instrument=str(instrument),teff=self.teff,logg=self.logg,z=self.feh)
-            self.wave = sp.wave.value*10000 #convert to Angstrom
-            self.flux = sp.flux.value
+            #instrument = "NIRSPEC-O{}-RAW".format(self.order)
+            #sp = spmd.getModel(instrument=str(instrument),teff=self.teff,logg=self.logg,z=self.feh)
+            #self.wave = sp.wave.value*10000 #convert to Angstrom
+            #self.flux = sp.flux.value
 
-            #wave, flux = nsp.forward_model.InterpolateModel.InterpModel(self.teff, self.logg,
-            #    modelset=self.modelset, order=self.order)
-            #self.wave = wave * 10000 #convert to Angstrom
-            #self.flux = flux
+            wave, flux = nsp.forward_model.InterpolateModel.InterpModel(self.teff, self.logg,
+                modelset=self.modelset, order=self.order)
+            self.wave = wave * 10000 #convert to Angstrom
+            self.flux = flux
 
         else:
             self.wave   = kwargs.get('wave', [])
