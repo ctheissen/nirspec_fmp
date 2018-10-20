@@ -385,7 +385,7 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	plt.figure(figsize=(16,6))
 	plt.rc('font', family='sans-serif')
 	plt.tick_params(labelsize=15)
-	plt.plot(model.wave, model.flux, color='C0', linestyle='-', label='model',alpha=0.8)
+	plt.plot(model.wave, model.flux, color='C3', linestyle='-', label='model',alpha=0.8)
 	plt.plot(model_notell.wave,model_notell.flux, color='C1', linestyle='-', label='model no telluric',alpha=0.5)
 	plt.plot(data.wave,data.flux,'k-',
 		label='data',alpha=0.5)
@@ -665,7 +665,7 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 	model.flux         += A_mcmc[0]
 
 	plt.figure(figsize=(20,8))
-	plt.plot(model.wave, model.flux, c='C0', ls='-', alpha=0.5)
+	plt.plot(model.wave, model.flux, c='C3', ls='-', alpha=0.5)
 	plt.plot(model.wave, np.polyval(pcont, model.wave) + A_mcmc[0], c='C1', ls='-', alpha=0.5)
 	plt.plot(data.wave, data.flux, 'k-', alpha=0.5)
 	plt.plot(data.wave, data.flux-(model.flux+A_mcmc[0]),'k-', alpha=0.5)
