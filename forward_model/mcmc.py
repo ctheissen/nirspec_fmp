@@ -10,7 +10,7 @@ import time
 import copy
 #os.environ["OMP_NUM_THREADS"] = "1"
 
-def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True):
+def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True, custom_mask=[]):
 	"""
 	MCMC run for the science spectra. See the parameters in the makeModel function.
 
@@ -92,6 +92,8 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	data          = copy.deepcopy(sci_data)
 	tell_sp       = copy.deepcopy(tell_data)
 	data.updateWaveSol(tell_sp)
+	## apply a custom mask
+	data.mask_custom(custom_mask=custom_mask)
 
 	### mask the end pixels
 	data.wave     = data.wave[pixel_start:pixel_end]
@@ -119,6 +121,7 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	file_log.write("data_name {} \n".format(data.name))
 	file_log.write("tell_name {} \n".format(tell_sp.name))
 	file_log.write("order {} \n".format(data.order))
+	file_log.write("custom_mask {} \n".format(custom_mask))
 	file_log.write("priors {} \n".format(priors))
 	file_log.write("ndim {} \n".format(ndim))
 	file_log.write("nwalkers {} \n".format(nwalkers))
@@ -382,7 +385,7 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	plt.figure(figsize=(16,6))
 	plt.rc('font', family='sans-serif')
 	plt.tick_params(labelsize=15)
-	plt.plot(model.wave, model.flux, color='C3', linestyle='-', label='model',alpha=0.8)
+	plt.plot(model.wave, model.flux, color='C0', linestyle='-', label='model',alpha=0.8)
 	plt.plot(model_notell.wave,model_notell.flux, color='C1', linestyle='-', label='model no telluric',alpha=0.5)
 	plt.plot(data.wave,data.flux,'k-',
 		label='data',alpha=0.5)
@@ -662,8 +665,8 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 	model.flux         += A_mcmc[0]
 
 	plt.figure(figsize=(20,8))
-	plt.plot(model.wave, model.flux, 'r-', alpha=0.5)
-	plt.plot(model.wave, np.polyval(pcont, model.wave) + A_mcmc[0], c='crimson', alpha=0.5)
+	plt.plot(model.wave, model.flux, c='C0', ls='-', alpha=0.5)
+	plt.plot(model.wave, np.polyval(pcont, model.wave) + A_mcmc[0], c='C1', ls='-', alpha=0.5)
 	plt.plot(data.wave, data.flux, 'k-', alpha=0.5)
 	plt.plot(data.wave, data.flux-(model.flux+A_mcmc[0]),'k-', alpha=0.5)
 	plt.figtext(0.89,0.86,"{} O{}".format(tell_data_name, order),

@@ -151,11 +151,12 @@ def xcorrTelluric(data, model, shift, start_pixel, width, lsf):
 	## LSF of the intrument
 	model2.flux = nsp.broaden(wave=model2.wave, flux=model2.flux, vbroad=lsf, rotate=False, gaussian=True)
 
-	# resampling the telluric model
-	model2.flux = np.array(nsp.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave[start_pixel:start_pixel+width]))
-	model2.wave = data.wave[start_pixel:start_pixel+width]
+	# resampling the telluric model 
+	# Note that +1 means the total xcorr values should be computed as -width/2 + center + width/2
+	model2.flux = np.array(nsp.integralResample(xh=model2.wave, yh=model2.flux, xl=data.wave[start_pixel:start_pixel+width+1]))
+	model2.wave = data.wave[start_pixel:start_pixel+width+1]
 
-	d = data.flux[start_pixel:start_pixel+width]
+	d = data.flux[start_pixel:start_pixel+width+1]
 	##the model is selected in the pixel range in the beginning
 	#m = model2.flux[start_pixel:start_pixel+width]
 	m = model2.flux
@@ -215,9 +216,6 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 	#plt.rc('text', usetex=True)
 	#plt.rc('font', family='sans-serif')
 	linewidth = 0.5
-
-	pixel = np.delete(np.arange(length1),data.mask)
-	pixel = pixel[pixel_range_start:pixel_range_end]
 
 	if test:
 		fig = plt.figure(figsize=(12,8))
@@ -785,11 +783,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			popt, pcov = curve_fit(waveSolutionFn1(order), width_range_center, 
 				                   np.asarray(best_shift_list), p0)
 
-		#popt, pcov = curve_fit(lambda pixel, wfit0, wfit1, wfit2, wfit3, wfit4, 
-		#	wfit5, c3, c4: nsp.waveSolution(pixel, wfit0, wfit1, wfit2, wfit3, 
-		#		wfit4, wfit5, c3, c4,order=order), width_range_center, 
-		#	np.asarray(best_shift_list),p0)
-
 		# outlier rejection
 		best_shift_array = np.asarray(best_shift_list)
 		
@@ -1335,11 +1328,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	std  = np.std(residual2)
 	stdV = np.std(residual2)/np.average(new_wave_sol)*299792.458
-	#return new_wave_sol, p0, np.std(residual2), np.std(residual2)/np.average(new_wave_sol)*299792.458
+
 	return new_wave_sol, p0, width_range_center2, residual2, best_shift_list
-	#return new_wave_sol, p0, std, stdV
-
-
 
 def run_wave_cal(data_name, data_path, order_list,
 	             save_to_path, test=False, save=False,
@@ -1418,9 +1408,10 @@ def run_wave_cal(data_name, data_path, order_list,
 		model    = nsp.getTelluric(wavelow=wavelow, wavehigh=wavehigh, airmass=airmass, pwv=pwv)
 
 		# continuum correction for the data
-		data     = nsp.continuumTelluric(data=data, model=model,order=order)
-
 		data1    = copy.deepcopy(data)
+		data     = nsp.continuumTelluric(data=data, model=model)
+
+		#data1    = copy.deepcopy(data)
 
 		# this is a test for O63 to reduce the fringing effects
 		if order == 32:
@@ -1572,6 +1563,7 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		# convert the flux back to the original data
 		data       = data1
+		data       = nsp.continuumTelluric(data=data, model=model)
 		data.flux  = data.flux[pixel_range_start:pixel_range_end]
 		data.wave  = data.wave[pixel_range_start:pixel_range_end]
 		data.noise = data.noise[pixel_range_start:pixel_range_end]
@@ -1607,13 +1599,13 @@ def run_wave_cal(data_name, data_path, order_list,
 		telluric_new.wave = new_wave_sol
 		telluric_new.flux = data.flux
 		# get an estimate for lsf and telluric alpha
-		lsf   = nsp.getLSF(telluric_new)#, continuum=False)
+		lsf   = nsp.getLSF(telluric_new, continuum=False)
 		#lsf   = nsp.getLSF2(telluric_new)#, continuum=False)
 		alpha = nsp.getAlpha(telluric_new, lsf, continuum=False)
 		print("LSF = {} km/s; alpha = {}".format(lsf, alpha))
 
 		# make a telluric model for the input data
-		telluric = nsp.convolveTelluric(vbroad,data,alpha=alpha)
+		telluric = nsp.convolveTelluric(vbroad,data, alpha=alpha)
 		residual_telluric_data = nsp.residual(data,telluric)
 		# add the final LSF and alpha to the txt file
 		file_log = open("input_params_for_cal.txt","a")

@@ -273,7 +273,7 @@ def getLSF(telluric_data, alpha=1.0, continuum=True,test=False,save_path=None):
 	lsf = min(lsf_list)[1]
 
 	if telluric_data.order == 61 or telluric_data.order == 62 \
-	or telluric_data.order == 63 or telluric_data.order == 64:
+	or telluric_data.order == 63: #or telluric_data.order == 64:
 		lsf = 5.5
 		print("The LSF is obtained from orders 60 and 65 (5.5 km/s).")
 

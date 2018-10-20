@@ -219,13 +219,13 @@ class Spectrum():
 
 		"""
 		#pixel = np.delete(np.arange(1024),list(self.mask))
-		pixel = np.arange(1024)
+		pixel = np.arange(len(self.oriWave))
 		## create the output mask array 0=good; 1=bad
 		if self.applymask:
-			mask = np.zeros((1024,),dtype=int)
+			mask = np.zeros((len(self.oriWave),),dtype=int)
 			np.put(mask,self.mask.tolist(),int(1))
 		else:
-			mask = np.zeros((1024,),dtype=int)
+			mask = np.zeros((len(self.oriWave),),dtype=int)
 
 		if method == 'fits':
 			#fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
