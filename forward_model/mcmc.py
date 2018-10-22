@@ -8,9 +8,10 @@ import os
 import sys
 import time
 import copy
+from astropy.io import fits
 #os.environ["OMP_NUM_THREADS"] = "1"
 
-def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True, custom_mask=[]):
+def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True, custom_mask=[], lsf=None):
 	"""
 	MCMC run for the science spectra. See the parameters in the makeModel function.
 
@@ -108,9 +109,11 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	barycorr      = nsp.barycorr(data.header).value
 	print("barycorr:",barycorr)
 
-	wave_shift    = 84.3 - barycorr
-	lsf           = nsp.getLSF(tell_sp,alpha=alpha_tell, test=True, save_path=save_to_path)
-	print("LSF: ", lsf)
+	if lsf is None:
+		lsf           = nsp.getLSF(tell_sp,alpha=alpha_tell, test=True, save_path=save_to_path)
+		print("LSF: ", lsf)
+	else:
+		print("Use input lsf:", lsf)
 
 	# log file
 	log_path = save_to_path + '/mcmc_parameters.txt'
@@ -295,6 +298,19 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	#file_log.write("amp_mcmc {}\n".format(str(amp_mcmc)))
 	#file_log.write("phase_mcmc {}\n".format(str(phase_mcmc)))
 	file_log.close()
+
+	# log file
+	log_path2 = save_to_path + '/mcmc_result.txt'
+
+	file_log2 = open(log_path2,"w+")
+	file_log2.write("teff_mcmc {}\n".format(str(teff_mcmc[0])))
+	file_log2.write("logg_mcmc {}\n".format(str(logg_mcmc[0])))
+	file_log2.write("vsini_mcmc {}\n".format(str(vsini_mcmc[0])))
+	file_log2.write("rv_mcmc {}\n".format(str(rv_mcmc[0])))
+	file_log2.write("alpha_mcmc {}\n".format(str(alpha_mcmc[0])))
+	file_log2.write("A_mcmc {}\n".format(str(A_mcmc[0])))
+	file_log2.write("B_mcmc {}\n".format(str(B_mcmc[0])))
+	file_log2.close()
 
 	print(teff_mcmc, logg_mcmc, vsini_mcmc, rv_mcmc, alpha_mcmc, A_mcmc, B_mcmc)
 
@@ -615,7 +631,7 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 	plt.minorticks_on()
 	plt.xlabel('nstep')
 	plt.savefig(save_to_path+'/walker.png', dpi=300, bbox_inches='tight')
-	plt.show()
+	#plt.show()
 	plt.close()
 
 	# create array triangle plots
@@ -655,7 +671,7 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 		label_kwargs={"fontsize": 20})
 	plt.minorticks_on()
 	fig.savefig(save_to_path+'/triangle.png', dpi=300, bbox_inches='tight')
-	plt.show()
+	#plt.show()
 	plt.close()
 
 	data2               = copy.deepcopy(data)
@@ -699,7 +715,7 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 	plt.ylabel('Flux (counts/s)',fontsize=15)
 	plt.xlabel('Wavelength ($\AA$)',fontsize=15)
 	plt.savefig(save_to_path+'/telluric_spectrum.png',dpi=300, bbox_inches='tight')
-	plt.show()
+	#plt.show()
 	plt.close()
 
 	if save is True:
@@ -708,7 +724,10 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 			hdulist[0].header['LSF']   = lsf_mcmc[0]
 			hdulist[0].header['ALPHA'] = alpha_mcmc[0]
 			try:
-				hdulist.writeto(data_path,overwrite=True)
+				hdulist.writeto(data_path, overwrite=True)
 			except FileNotFoundError:
 				hdulist.writeto(data_path)
+
+	return lsf_mcmc[0]
+#def run_mcmc_wrapper():
 

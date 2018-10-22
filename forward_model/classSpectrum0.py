@@ -98,20 +98,6 @@ class Spectrum():
 			self.sky   = np.delete(self.sky, list(self.mask))
 			self.mask  = self.mask[0]
 
-	def mask_custom(self, custom_mask):
-		"""
-		Mask the pixels by a self-defined list.
-		"""
-		## combine the list and remove the duplicates
-		self.mask  =  list(set().union(self.mask, custom_mask))
-
-		self.wave  = np.delete(self.oriWave, list(self.mask))
-		self.flux  = np.delete(self.oriFlux, list(self.mask))
-		self.noise = np.delete(self.oriNoise, list(self.mask))
-
-		return self
-
-
 	def maskBySigmas(self, sigma=2):
 		"""
 		Mask the outlier data points by sigmas.
@@ -218,14 +204,14 @@ class Spectrum():
 
 
 		"""
-		#pixel = np.delete(np.arange(1024),list(self.mask))
-		pixel = np.arange(len(self.oriWave))
+		#pixel = np.delete(np.arange(1024)+1,list(self.mask))
+		pixel = np.arange(1024)+1
 		## create the output mask array 0=good; 1=bad
 		if self.applymask:
-			mask = np.zeros((len(self.oriWave),),dtype=int)
+			mask = np.zeros((1024,),dtype=int)
 			np.put(mask,self.mask.tolist(),int(1))
 		else:
-			mask = np.zeros((len(self.oriWave),),dtype=int)
+			mask = np.zeros((1024,),dtype=int)
 
 		if method == 'fits':
 			#fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
@@ -482,9 +468,9 @@ class Spectrum():
 		c3    = tell_sp.header['c3']
 		c4    = tell_sp.header['c4']
 
-		self.wave = np.delete(nsp.waveSolution(np.arange(length1),
+		self.wave = np.delete(nsp.waveSolution(np.arange(length1)+1,
 			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=self.order), list(self.mask))
-		self.oriWave = nsp.waveSolution(np.arange(length1),
+		self.oriWave = nsp.waveSolution(np.arange(length1)+1,
 			wfit0,wfit1,wfit2,wfit3,wfit4,wfit5,c3,c4, order=self.order)
 
 		return self
