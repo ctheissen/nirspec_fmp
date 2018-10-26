@@ -1132,7 +1132,7 @@ def run_wave_cal(data_name, data_path, order_list,
 	airmass       = '1.5'
 	pwv           = '0.5'
 
-	defringe_list = [62] #[35, 61, 62, 63, 64, 65, 66]
+	defringe_list = [33,62] #[35, 61, 62, 63, 64, 65, 66]
 	applymask     = applymask # if True: apply a simple mask
 	##################################
 
