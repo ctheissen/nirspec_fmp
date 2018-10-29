@@ -12,5 +12,9 @@ from .wavelength_calibration.residual import residual
 from .utils.stats import chisquare
 from .utils.addKeyword import addKeyword
 from .utils.listTarget import makeTargetList
-from .utils.defringeflat import defringeflat, defringeflatAll
+try:
+	from .utils.defringeflat import defringeflat, defringeflatAll
+except ImportError:
+	print("There is an import error for the wavelet package.")
+	pass
 #from .utils.subtractDark import subtractDark
