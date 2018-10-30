@@ -15,6 +15,6 @@ from .utils.listTarget import makeTargetList
 try:
 	from .utils.defringeflat import defringeflat, defringeflatAll
 except ImportError:
-	print("There is an import error for the wavelet package.")
+	print("There is an import error for the wavelets package.")
 	pass
 #from .utils.subtractDark import subtractDark
