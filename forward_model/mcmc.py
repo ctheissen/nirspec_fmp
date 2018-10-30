@@ -264,7 +264,7 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 		for j in range(nwalkers):
 			ax.plot(np.arange(1,int(step+1)), sampler_chain[j,:,i],'k',alpha=0.2)
 			ax.set_ylabel(ylabels[i])
-	#fig.align_labels()
+	fig.align_labels()
 	plt.minorticks_on()
 	plt.xlabel('nstep')
 	plt.savefig(save_to_path+'/walker.png', dpi=300, bbox_inches='tight')
@@ -702,7 +702,7 @@ def run_mcmc2(sci_data, tell_data, priors, limits=None, ndim=8, nwalkers=50, ste
 		for j in range(nwalkers):
 			ax.plot(np.arange(1,int(step+1)), sampler_chain[j,:,i],'k',alpha=0.2)
 			ax.set_ylabel(ylabels[i])
-	#fig.align_labels()
+	fig.align_labels()
 	plt.minorticks_on()
 	plt.xlabel('nstep')
 	plt.savefig(save_to_path+'/walker.png', dpi=300, bbox_inches='tight')
@@ -1067,7 +1067,7 @@ def telluric_mcmc(tell_sp, nwalkers=30, step=400, burn=300, priors=None, moves=2
 		for j in range(nwalkers):
 			ax.plot(np.arange(1,int(step+1)), sampler_chain[j,:,i],'k',alpha=0.2)
 		ax.set_ylabel(ylabels[i])
-	#fig.align_labels()
+	fig.align_labels()
 	plt.minorticks_on()
 	plt.xlabel('nstep')
 	plt.savefig(save_to_path+'/walker.png', dpi=300, bbox_inches='tight')
