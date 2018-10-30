@@ -9,11 +9,11 @@ Authors:
 
 ## Code Setup:
 Dependencies:
-* astropy
-* numpy
-* scipy
-* matplotlib
-* pandas
+* astropy 3.0.4
+* numpy 1.12.1
+* scipy 0.19.0
+* matplotlib 2.2.3
+* pandas 0.20.1
 * wavelets (for defringeflat)
 
 Download the nispec_fmp and the forked and modified version of the NSDRP to your computer.
