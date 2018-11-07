@@ -196,9 +196,8 @@ def pixelWaveShift(data, model, start_pixel, window_width=40, delta_wave_range=2
 	pixel_range_start = kwargs.get('pixel_range_start', 0)
 	pixel_range_end   = kwargs.get('pixel_range_end', -1)
 	length1           = kwargs.get('length1', 1024)
-	pixel             = kwargs.get('pixel', np.delete(np.arange(length1), data.mask))
-	#pixel             = np.delete(np.arange(length1), data.mask)
-	#pixel             = pixel[pixel_range_start:pixel_range_end]
+	pixel             = np.delete(np.arange(length1), data.mask)
+	pixel             = pixel[pixel_range_start:pixel_range_end]
 
 	xcorr_list        = [] # save the xcorr values
 
@@ -603,7 +602,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	niter              = kwargs.get('niter', 15)
 	outlier_rej        = kwargs.get('outlier_rej', 3)
 	applymask          = kwargs.get('applymask', False) # apply a simple outlier rejection mask
-	mask_custom        = kwargs.get('mask_custom', False) # apply a simple outlier rejection mask
 	test               = kwargs.get('test', False) # output the xcorr plots
 	save               = kwargs.get('save', False) # save the new wavelength solution
 	save_to_path       = kwargs.get('save_to_path', None)
@@ -612,7 +610,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# calculation the necessary parameters
 	pixel_range_start  = kwargs.get('pixel_range_start',0)
 	pixel_range_end    = kwargs.get('pixel_range_end',-1)
-	pixel0             = np.arange(length1)
+	pixel0             = np.delete(np.arange(length1), data.mask)
 	pixel              = pixel0[pixel_range_start:pixel_range_end]
 
 	# increase the telluric model strength for N3
@@ -640,25 +638,13 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 
 	data2       = copy.deepcopy(data)
 	model2      = copy.deepcopy(model)
-
-	# apply the custom mask
-	#plt.figure()
-	#plt.plot(data2.wave, data2.flux, lw=0.5, alpha=0.5, c='b')
-	if applymask:
-		pixel0      = np.delete(pixel0, mask_custom)
-		data2.wave  = np.delete(data.wave, mask_custom)
-		data2.flux  = np.delete(data.flux, mask_custom)
-	#plt.plot(data2.wave, data2.flux, lw=0.5, alpha=0.5, c='r')
-	#plt.show()
-	#sys.exit()
-
 	model2.flux = nsp.broaden(wave=model2.wave, flux=model2.flux, vbroad=vbroad, 
 		                      rotate=False, gaussian=True)
 	modelCC     = copy.deepcopy(model2) # Use this for final CC
 	# model resample and LSF broadening
 	model2.flux = np.array(nsp.integralResample(xh=model2.wave, 
-		                                        yh=model2.flux, xl=data2.wave))
-	model2.wave = data2.wave
+		                                        yh=model2.flux, xl=data.wave))
+	model2.wave = data.wave
 
 	#plt.plot(model.wave, model.flux, 'r-', alpha=0.5)
 	#plt.plot(data.wave, data.flux, 'k-', alpha=0.5)
@@ -688,9 +674,9 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		elif i == 2: # Change the width for the second iteration
 			width     = 100
 			step_size = 10
-		#elif i == 3: # Change the width for the second iteration
-		#	width     = 100
-		#	step_size = 5
+		elif i == 3: # Change the width for the second iteration
+			width     = 100
+			step_size = 5
 		#elif i == 6: # Change the width for the last few iterations
 		#	width     = 40
 		#	step_size = 5
@@ -698,15 +684,15 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		#	width     = 50
 		#	step_size = 10
 		else: # Change the width for the middle few iterations
-			width     = 80
-			step_size = 10
+			width     = 60
+			step_size = 5
 
 		if include_ends:
-			endwidth            = 40
+			endwidth            = 30
 			spec_range          = len(pixel) # window range coverage for xcorr
 			#print(spec_range-endwidth//2)
 
-			x1 = np.arange(pixel_range_start, width//2-endwidth//2, step_size)
+			x1 = np.arange(pixel_range_start, width//2, step_size)
 			x2 = np.arange(pixel_range_start, spec_range+pixel_range_start-width, step_size)
 			x3 = np.arange(x2[-1]+width//2, spec_range-endwidth//2, step_size)
 
@@ -777,7 +763,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 					                            counter=counter, step=step,
 					                            pixel_range_start=pixel_range_start,
 					                            pixel_range_end=pixel_range_end,
-					                            lsf=vbroad, length1=length1, pixel=pixel0)
+					                            lsf=vbroad, length1=length1)
 				time3 = time.time()
 				if test is True:
 					print("xcorr time: {} s".format(round(time3-time2, 4)))
@@ -791,7 +777,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 													counter=counter, step=step,
 													pixel_range_start=pixel_range_start,
 													pixel_range_end=pixel_range_end,
-													lsf=vbroad, length1=length1, pixel=pixel0)
+													lsf=vbroad, length1=length1)
 					time3 = time.time()
 					if test is True:
 						print("xcorr time: {} s".format(round(time3-time2, 4)))
@@ -803,7 +789,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 													counter=counter, step=step,
 													pixel_range_start=pixel_range_start,
 													pixel_range_end=pixel_range_end,
-													lsf=vbroad, length1=length1, pixel=pixel0)
+													lsf=vbroad, length1=length1)
 					time3 = time.time()
 					if test is True:
 						print("xcorr time: {} s".format(round(time3-time2, 4)))
@@ -819,7 +805,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 											    counter=counter, step=step,
 												pixel_range_start=pixel_range_start,
 												pixel_range_end=pixel_range_end,
-												lsf=vbroad, length1=length1, pixel=pixel0)
+												lsf=vbroad, length1=length1)
 				time3 = time.time()
 				if test is True:
 					print("xcorr time: {} s".format(round(time3-time2, 4)))
@@ -920,10 +906,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 				                                   popt4_ori, popt5_ori, popt6_ori, popt7_ori, 
 				                                   order=order) - best_shift_array
 			residual2           = residual2[np.where(abs(original_fit - best_shift_array) < m*fit_sigma)]
-
-         
-			variance2           = ((residual2 ** 2).sum()) / (len(residual2) - 1)
-			RMSE2               = np.sqrt(variance2)
 			break
 
 		elif len(width_range_center2) < len(width_range_centers[mask1])*0.4 and i != 0:
@@ -938,9 +920,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 				                                   order=order) - best_shift_array
 			residual2           = residual2[np.where \
 			                                (abs(original_fit - best_shift_array) < m*fit_sigma)]
-
-			variance2           = ((residual2 ** 2).sum()) / (len(residual2) - 1)
-			RMSE2               = np.sqrt(variance2)
 			break
 
 		# fit the wavelength again after the outlier rejections
@@ -1059,15 +1038,11 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		#ax1.set_title("Telluric Spectra Region for Cross-Correlation:{} Iteration".format(k))
 		ax1.get_xaxis().get_major_formatter().set_scientific(False)
 		ax1.legend(frameon=False)
-
 		residual1 = nsp.waveSolution(width_range_centers[mask1], *popt, 
 			                         order=order) - best_shift_array
 		residual2 = nsp.waveSolution(width_range_center2, *popt2, 
 			                         order=order) - best_shift_array2
-		variance2 = ((residual2 ** 2).sum()) / (len(residual2) - 1)
-		RMSE2     = np.sqrt(variance2)
-		std       = round(np.std(residual2), 4)	
-
+		std = round(np.std(residual2), 4)		
 		ax2.plot(width_range_centers, best_shift_list, 'k.', label="delta wavelength")
 		ax2.plot(width_range_center2, best_shift_array2, 'b.',
 			     label="delta wavelength with outlier rejection")
@@ -1075,10 +1050,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		#	popt[0],popt[1],popt[2],popt[3],popt[4],popt[5],popt[6],popt[7],
 		#	order=order),'g.',label="fitted wavelength function".format(np.std(residual1)),alpha=0.5)
 		ax2.plot(width_range_center2, nsp.waveSolution(width_range_center2, *popt2, order=order), 'r-',
-			     label="fitted wavelength function with outlier rejection, STD = {} $\AA$ ({} km/s), RMS = {} $\AA$ ({} km/s)".format(\
-			     np.round_(std, decimals=3), np.round_(std/np.average(new_wave_sol)*299792.458, decimals=3),
-			     np.round_(RMSE2, decimals=3), np.round_(RMSE2/np.average(new_wave_sol)*299792.458, decimals=3)),
-			     alpha=0.5)
+			     label="fitted wavelength function with outlier rejection, STD = {} $\AA$ ({} km/s)".format(\
+			     std, np.round_(std/np.average(new_wave_sol)*299792.458, decimals=3)), alpha=0.5)
 		ax2.axhline(-delta_wave_range, c='r', ls=':')
 		ax2.axhline(delta_wave_range, c='r', ls=':')
 		ax2.set_ylabel(r"$\Delta$ $\lambda$ ($\AA$)")
@@ -1086,7 +1059,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		ax2.legend(frameon=False)
 		# plot the residual
 		plt.setp(ax2.get_xticklabels(), visible=False)
-
 		yticks = ax3.yaxis.get_major_ticks()
 		yticks[-1].label1.set_visible(False)
 		#ax3.plot(width_range_centers,residual1,'g.',alpha=0.5)
@@ -1096,11 +1068,9 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		ax3.set_xlabel('Pixel')
 		ax3.set_xlim(pixel[0], pixel[-1])
 		#ax3.legend(loc=9, bbox_to_anchor=(0.5, -0.5))
-
 		ax1.minorticks_on()
 		ax2.minorticks_on()
 		ax3.minorticks_on()
-
 		plt.subplots_adjust(hspace=.0)
 		plt.savefig("pixel_to_delta_wavelength_loop_{}.png".format(i+1),
 					bbox_inches='tight')
@@ -1111,9 +1081,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			print("Plot time:",format(round(time6-time5, 4)))
 		
 		if data2.header['FITSTD']>fit_sigma and i+1 > 4:
-			print("Wavelength solution converges in {} loops, with STD: {} Angstrom ({} km/s)".format(i+1,
+			print("Wavelength solution converges in {} loops, with STD {} Angstrom ({} km/s)".format(i+1,
 				  np.std(residualprevious), np.std(residualprevious)/np.average(new_wave_sol)*299792.458))
-			print("RMS: {} Angstrom ({} km/s)".format(RMSEprevious, RMSEprevious/np.average(new_wave_sol)*299792.458))
 			print("Total calculation time: {} min".format(round((time6-time0)/60., 4)))
 			break
 
@@ -1121,9 +1090,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			print("The iteration stops because the selected points for fitting",
 				  len(width_range_center2),"are smaller than 2/5 of the total points",
 				  len(width_range_centers[mask1]))
-			print("Wavelength solution converges in {} loops, with STD: {} Angstrom ({} km/s)".format(i+1,
+			print("Wavelength solution converges in {} loops, with STD {} Angstrom ({} km/s)".format(i+1,
 				  np.std(residualprevious), np.std(residualprevious)/np.average(new_wave_sol)*299792.458))
-			print("RMS: {} Angstrom ({} km/s)".format(RMSEprevious, RMSEprevious/np.average(new_wave_sol)*299792.458))
 			print("Total calculation time: {} min".format(round((time6-time0)/60., 4)))
 			break
 
@@ -1132,7 +1100,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			residualprevious            = residual2 
 			width_range_center_previous = width_range_center2
 			previousModel				= model3
-			RMSEprevious                = RMSE2
 
 
 	if save is True:
@@ -1163,7 +1130,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			hdulist[0].header['POPT7']	  = popt2[7]
 			hdulist[0].header['STD']      = str(np.std\
 				                               (residualprevious)/np.average(new_wave_sol)*299792.458) + 'km/s'
-			hdulist[0].header['RMS']      = str(RMSEprevious/np.average(new_wave_sol)*299792.458) + 'km/s'
 			hdulist[0].data               = nsp.waveSolution(np.arange(length1),
 				                                             wfit0, wfit1, wfit2, wfit3, 
 				                                             wfit4, wfit5, c3, c4, order=order)
@@ -1244,7 +1210,11 @@ def run_wave_cal(data_name, data_path, order_list,
 		else:
 			xcorr_range = 5
 
-		data     = nsp.Spectrum(name=data_name, order=order, path=data_path)
+		data     = nsp.Spectrum(name=data_name, order=order, path=data_path, applymask=applymask)
+		## add a self-defined mask
+		## custom mask is not done in the wavelegnth calibration; don't use it!
+		#data.mask = list(set().union(data.mask, mask_custom))
+		#data.mask_custom(custom_mask=mask_custom)
 		length1  = len(data.oriWave) # preserve the length of the array
 
 		# the telluric standard model
@@ -1256,9 +1226,6 @@ def run_wave_cal(data_name, data_path, order_list,
 		data1    = copy.deepcopy(data)
 		data     = nsp.continuumTelluric(data=data, model=model)
 		data     = nsp.continuumTelluric(data=data, model=model)
-
-		#print(np.where(data.flux < 0.25))
-		#sys.exit
 
 		#data1    = copy.deepcopy(data)
 
@@ -1405,8 +1372,7 @@ def run_wave_cal(data_name, data_path, order_list,
 								  save_to_path=save_to_path_fits,
 								  data_path=data_path2,
 								  length1 = length1,
-								  applymask=applymask,
-								  mask_custom=mask_custom)
+								  applymask=applymask)
 
 		time2 = time.time()
 		print("Total X correlation time: {} min".format((time2-time1)/60))
@@ -1424,9 +1390,6 @@ def run_wave_cal(data_name, data_path, order_list,
 		linewidth   = 0.5
 		stdWaveSol  = np.std(residual)
 		stdWaveSolV = np.std(residual)/np.average(new_wave_sol)*299792.458
-		variance2   = ((residual ** 2).sum()) / (len(residual) - 1)
-		rmsWaveSol  = np.sqrt(variance2)
-		rmsWaveSolV = np.sqrt(variance2)/np.average(new_wave_sol)*299792.458
 		
 		# add the summary to the txt file
 		file_log = open("input_params_for_cal.txt","a")
@@ -1434,8 +1397,6 @@ def run_wave_cal(data_name, data_path, order_list,
 		file_log.write("wave_sol_params {}\n".format(str(p0)))
 		file_log.write("std {} Angstrom\n".format(stdWaveSol))
 		file_log.write("std_vel {} km/s\n".format(stdWaveSolV))
-		file_log.write("rms {} Angstrom\n".format(rmsWaveSol))
-		file_log.write("rms_vel {} km/s\n".format(rmsWaveSolV))
 		file_log.write("comp_time {} min\n".format(round((time2-time1)/60.,4)))
 		file_log.close()
 
