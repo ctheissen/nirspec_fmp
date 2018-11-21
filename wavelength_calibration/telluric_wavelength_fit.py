@@ -1227,20 +1227,20 @@ def run_wave_cal(data_name, data_path, order_list,
 			xcorr_range = 5
 			outlier_rej = 2
 		elif order == 59:
-			xcorr_range = 5
-			outlier_rej = 2
+			xcorr_range = 15
+			outlier_rej = 3
 		elif order == 60:
 			xcorr_range = 5
 			outlier_rej = 3 #2.5
 		elif order == 61:
-			xcorr_range = 5
-			outlier_rej = 2
+			xcorr_range = 10  #5
+			outlier_rej = 3   #2
 		elif order == 62:
-			xcorr_range = 5
-			outlier_rej = 2
+			xcorr_range = 10  #5
+			outlier_rej = 3   #2
 		elif order == 63 or order == 63 or order == 65 or order == 66:
-			xcorr_range = 5
-			outlier_rej = 2
+			xcorr_range = 15
+			outlier_rej = 3
 		else:
 			xcorr_range = 5
 
