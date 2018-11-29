@@ -33,7 +33,9 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	lsf      = kwargs.get('lsf', 6.0)   # instrumental LSF
 	tell     = kwargs.get('tell', True) # apply telluric
 	data     = kwargs.get('data', None) # for continuum correction and resampling
-
+	
+	if data is not None:
+		order = data.order
 	# read in a model
 	model    = nsp.Model(teff=teff, logg=logg, feh=z, order=order, modelset=modelset)
 	

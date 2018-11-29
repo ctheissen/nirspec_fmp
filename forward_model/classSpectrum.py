@@ -346,8 +346,11 @@ class Spectrum():
 			self.stdFlux = np.std(self.oriFlux)
 			self.smoothFlux = self.oriFlux
 			## set the outliers as the flux below 
-			self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
-			self.mask = np.where(self.smoothFlux <= 0)
+			if self.applymask:
+				self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
+				self.mask = np.where(self.smoothFlux <= 0)
+			else:
+				self.mask = []
 			self.wave  = np.delete(self.oriWave, list(self.mask))
 			self.flux  = np.delete(self.oriFlux, list(self.mask))
 			self.noise = np.delete(self.oriNoise, list(self.mask))

@@ -431,7 +431,8 @@ def defringeflatAll(data_folder_path, wbin=10, start_col=10,
 
 		data = fits.open(file_path, ignore_missing_end=True)
 
-		if ('flat' in str(data[0].header['COMMENT']).lower()) is True:
+		if ('flat' in str(data[0].header['COMMENT']).lower()) is True or \
+		('flatlamp' in str(data[0].header['IMAGETYP']).lower()) is True:
 			if ('flat lamp off' in str(data[0].header['COMMENT']).lower()) is True: continue # dirty fix
 			if ('dark for flat' in str(data[0].header['COMMENT']).lower()) is True: continue # dirty fix
 

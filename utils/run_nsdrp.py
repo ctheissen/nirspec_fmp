@@ -69,7 +69,7 @@ if args.nodefringe is True:
     pass
 else:
     print("Defringing flat files...")
-    nsp.defringeflatAll(datadir[0], wbin=10, start_col=10, end_col=980 ,diagnostic=False, movefiles=True)
+    nsp.defringeflatAll(datadir[0], wbin=10, start_col=10, end_col=980, diagnostic=False, movefiles=True)
 
     defringe_list = glob.glob1(path,'*defringe.fits')
     originalflat_list = glob.glob1(path+'defringeflat_diagnostic/','*.fits')
@@ -88,6 +88,6 @@ else:
     for originalflat in originalflat_list:    
         shutil.move(path+'defringeflat_diagnostic/'+originalflat, path+originalflat)
 ## remove the intermediate products
-os.system("rm *.npy")
+#os.system("rm *.npy")
 
 print("The NIRSPEC data are reduced successfully by using NSDRP.")

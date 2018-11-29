@@ -1217,7 +1217,7 @@ def run_wave_cal(data_name, data_path, order_list,
 			outlier_rej = 2
 			#applymask   = True
 		elif order == 36:
-			xcorr_range = 2
+			xcorr_range = 10
 		elif order == 37 or order == 38:
 			xcorr_range = 5
 			outlier_rej = 2
@@ -1242,7 +1242,7 @@ def run_wave_cal(data_name, data_path, order_list,
 			xcorr_range = 15
 			outlier_rej = 3
 		else:
-			xcorr_range = 5
+			xcorr_range = 15
 
 		data     = nsp.Spectrum(name=data_name, order=order, path=data_path)
 		length1  = len(data.oriWave) # preserve the length of the array
