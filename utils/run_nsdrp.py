@@ -22,7 +22,7 @@ parser = argparse.ArgumentParser(description="Reduce the NIRSPEC data using NIRS
 	usage="run_nsdrp.py input_dir (output_dir)")
 
 parser.add_argument("files",metavar='f',type=str,
-    default=None, help="input_dir (output_dir)",nargs="+")
+    default=None, help="input_dir (output_dir)", nargs="+")
 
 parser.add_argument("--nodefringe", 
     help="not apply the defringe algorithm", 

@@ -60,8 +60,8 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
     else:
         return mdl
 
-def _continuumFit(wave, a, b, c):
-    return a*wave**2 + b*wave + c
+def _continuumFit(wave, c0, c1, c2, c3):
+    return c0 + c1*wave + c2*wave**2 + c3*wave**3
 
 def linear_fit(x,a,b):
     return a*x + b

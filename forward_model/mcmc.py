@@ -11,7 +11,7 @@ import sys
 import time
 import copy
 from astropy.io import fits
-os.environ["OMP_NUM_THREADS"] = "1"
+#os.environ["OMP_NUM_THREADS"] = "1"
 
 def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step=500, burn=400, moves=2.0, pixel_start=10, pixel_end=-30, alpha_tell=1.0, modelset='btsettl08', save_to_path=None, plot_show=True, custom_mask=[], lsf=None):
 	"""
@@ -1129,13 +1129,13 @@ def run_mcmc3(sci_data, tell_data, priors, limits=None, ndim=8, nwalkers=50, ste
 						priors['N_min']     + (priors['N_max']      - priors['N_min'])     * np.random.uniform()]) for i in range(nwalkers)]
 
 	#os.environ["OMP_NUM_THREADS"] = "1"
-	#from multiprocessing import Pool
-	#with Pool() as pool:
-	#sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves, pool=pool)
-	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves)#, pool=pool)#, threads=15)
-	time1 = time.time()
-	sampler.run_mcmc(pos, step, progress=True)
-	time2 = time.time()
+	from multiprocessing import Pool
+	with Pool() as pool:
+		sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves, pool=pool)
+		#sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves)#, threads=15)
+		time1 = time.time()
+		sampler.run_mcmc(pos, step, progress=True)
+		time2 = time.time()
 
 	#pool.close()
 
