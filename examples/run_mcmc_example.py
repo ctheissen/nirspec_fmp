@@ -44,7 +44,7 @@ sci_data_name2         = 'feb16s0081'
 modelset               = 'btsettl08'
 BASE                   = '/Users/dinohsu/projects/nirspec_fmp/nirspec_fmp/forward_model/'
 data_BASE              = '/Volumes/LaCie/nirspec/data_all/'
-output_BASE            = '/Users/dinohsu/nirspec/analysis/'
+save_BASE              = '/Users/dinohsu/nirspec/analysis/'
 
 ## priors
 priors                 =  { 'teff_min':1290,  'teff_max':1310,
@@ -221,6 +221,7 @@ for date_obs in data_dic.keys():
 
 		custom_mask2 = np.append(custom_mask2,np.array(custom_mask))
 		custom_mask2.sort()
+		custom_mask2 = custom_mask2.tolist()
 		print('masking pixels: ',custom_mask2)
 
 		log_path = save_to_path2 + '/mcmc_parameters.txt'
