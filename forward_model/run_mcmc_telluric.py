@@ -13,6 +13,8 @@ import sys
 import time
 import copy
 import argparse
+import warnings
+warnings.filterwarnings("ignore")
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for telluric files",\
 	usage="run_mcmc_telluric.py order date_obs tell_data_name tell_path save_to_path")

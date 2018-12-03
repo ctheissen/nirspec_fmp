@@ -26,7 +26,7 @@ data_dic = {
 source                 = 'J1106+2754'
 order                  = 33
 ndim, nwalkers, step   = 8, 50, 600
-burn                   = 500
+burn                   = 500 # mcmc sampler chain burn
 moves                  = 2.0
 ndim2, nwalkers2, step2= 8, 50, 500
 burn2                  = 400
@@ -34,13 +34,14 @@ applymask              = False
 pixel_start, pixel_end = 10, -40
 alpha_tell             = 1.0 # telluric alpha for LSF
 plot_show              = False
-custom_mask            = [427,428]
-outlier_rejection      = 3
+custom_mask            = [427,428]#[183,190,195,649,650,652,655,656,820,821,824,825,827,828,829,831,832,834]
+outlier_rejection      = 2.2 #5
 
 ## coadd
 coadd                  = True
 sci_data_name2         = 'feb16s0081'
 
+modelset               = 'btsettl08'
 BASE                   = '/Users/dinohsu/projects/nirspec_fmp/nirspec_fmp/forward_model/'
 data_BASE              = '/Volumes/LaCie/nirspec/data_all/'
 output_BASE            = '/Users/dinohsu/nirspec/analysis/'
@@ -62,7 +63,6 @@ teff_max_limit 		   = 1300
 save_catalougue        = False
 catalougue_path        = '/Users/dinohsu/nirspec/catalogues/NIRSPEC_RV_measurements.xlsx'
 
-
 #########################################
 
 for date_obs in data_dic.keys():
@@ -73,14 +73,14 @@ for date_obs in data_dic.keys():
 
 		data_path      = data_BASE + date_obs + '/reduced/fits/all'
 
-		tell_path      = output_BASE + source + '/' \
+		tell_path      = save_BASE + source + '/' \
 		+ date_obs +'/telluric_wave_cal/' + tell_data_name + '/O' + str(order)
 		
-		save_to_path   = output_BASE + source + '/' \
+		save_to_path   = save_BASE + source + '/' \
 		+ date_obs + '/mcmc/' + sci_data_name + '/O' + str(order) + '/{}_{}_{}'.format(ndim, nwalkers, step)
 
 		if coadd:
-			save_to_path   = output_BASE + source + '/' \
+			save_to_path   = save_BASE + source + '/' \
 			+ date_obs + '/mcmc/' + sci_data_name + '+' + sci_data_name2 + '/O' + str(order) + '/{}_{}_{}'.format(ndim, nwalkers, step)
 
 		save_to_path0  = save_to_path + '/telluric_mcmc'
@@ -149,9 +149,28 @@ for date_obs in data_dic.keys():
 		file_log.write("lsf {} \n".format(lsf))
 		file_log.close()
 
-		os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf))
+		if applymask:
+			if coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim)+" -nwalkers "+str(nwalkers)+" -step "+str(step)+" -burn "+str(burn)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)+" -applymask "+str(applymask)\
+					+" -coadd "+str(coadd)+" -coadd_sp_name "+sci_data_name2)
+			elif not coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim)+" -nwalkers "+str(nwalkers)+" -step "+str(step)+" -burn "+str(burn)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)+" -applymask "+str(applymask))
+		elif not applymask:
+			if coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim)+" -nwalkers "+str(nwalkers)+" -step "+str(step)+" -burn "+str(burn)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)\
+					+" -coadd "+str(coadd)+" -coadd_sp_name "+sci_data_name2)
+			elif not coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim)+" -nwalkers "+str(nwalkers)+" -step "+str(step)+" -burn "+str(burn)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end))
 
-
+		
 
 		df = pd.read_csv(save_to_path1+'/mcmc_result.txt', sep=' ', header=None)
 		barycorr = nsp.barycorr(data.header).value
@@ -202,7 +221,7 @@ for date_obs in data_dic.keys():
 
 		custom_mask2 = np.append(custom_mask2,np.array(custom_mask))
 		custom_mask2.sort()
-		print(custom_mask2)
+		print('masking pixels: ',custom_mask2)
 
 		log_path = save_to_path2 + '/mcmc_parameters.txt'
 		file_log = open(log_path,"w+")
@@ -224,8 +243,27 @@ for date_obs in data_dic.keys():
 		file_log.close()
 
 		## Final MCMC
-		os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)+ " -final_mcmc")
-
+		if applymask:
+			if coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim2)+" -nwalkers "+str(nwalkers2)+" -step "+str(step2)+" -burn "+str(burn2)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)+" -applymask "+str(applymask)\
+					+" -coadd "+str(coadd)+" -coadd_sp_name "+sci_data_name2+" -final_mcmc")
+			elif not coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim2)+" -nwalkers "+str(nwalkers2)+" -step "+str(step2)+" -burn "+str(burn2)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)+" -applymask "+str(applymask)+" -final_mcmc")
+		elif not applymask:
+			if coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim2)+" -nwalkers "+str(nwalkers2)+" -step "+str(step2)+" -burn "+str(burn2)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)\
+					+" -coadd "+str(coadd)+" -coadd_sp_name "+sci_data_name2+" -final_mcmc")
+			elif not coadd:
+				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
+					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim2)+" -nwalkers "+str(nwalkers2)+" -step "+str(step2)+" -burn "+str(burn2)+" -moves "\
+					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end)+" -final_mcmc")
+		
 		if save_catalougue:
 		## save the result as the excel file
 			df2   = pd.read_csv(save_to_path2+'/mcmc_result.txt', sep=' ', header=None)

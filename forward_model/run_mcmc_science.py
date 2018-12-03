@@ -16,6 +16,8 @@ import copy
 import argparse
 import json
 import ast
+import warnings
+warnings.filterwarnings("ignore")
 
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for science files",
@@ -47,9 +49,6 @@ parser.add_argument("save_to_path",type=str,
 
 parser.add_argument("lsf",type=float,
     default=None, help="line spread function", nargs="+")
-
-parser.add_argument("-custom_mask",metavar='--ma',type=list,
-    default=[], help="custom_mask")
 
 parser.add_argument("-outlier_rejection",metavar='--rej',type=float,
     default=3.0, help="outlier rejection based on the multiple of standard deviation of the residual; default 3.0")
@@ -116,7 +115,6 @@ pixel_start, pixel_end = int(args.pixel_start), int(args.pixel_end)
 #alpha_tell             = float(args.alpha_tell[0])
 plot_show              = args.plot_show
 coadd                  = args.coadd
-custom_mask            = list(args.custom_mask)
 outlier_rejection      = float(args.outlier_rejection)
 modelset               = str(args.modelset)
 final_mcmc             = args.final_mcmc
@@ -139,7 +137,7 @@ tell_sp     = nsp.Spectrum(name=tell_data_name2, order=data.order, path=tell_pat
 data.updateWaveSol(tell_sp)
 
 if coadd:
-	#sci_data_name2 = str(args.coadd_sp_name[0])
+	sci_data_name2 = str(args.coadd_sp_name)
 	if not os.path.exists(save_to_path):
 		os.makedirs(save_to_path)
 	data1       = copy.deepcopy(data)
@@ -231,6 +229,25 @@ else:
 data          = copy.deepcopy(sci_data)
 tell_sp       = copy.deepcopy(tell_data)
 data.updateWaveSol(tell_sp)
+
+# barycentric corrction
+barycorr      = nsp.barycorr(data.header).value
+#print("barycorr:",barycorr)
+
+## read the input custom mask and priors
+lines          = open(save_to_path+'/mcmc_parameters.txt').read().splitlines()
+custom_mask    = json.loads(lines[5].split('custom_mask')[1])
+priors         = ast.literal_eval(lines[6].split('priors ')[1])
+limits         = { 
+					'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
+					'logg_min':3.5,                             'logg_max':5.0,
+					'vsini_min':0.0,                            'vsini_max':100.0,
+					'rv_min':-200.0,                            'rv_max':200.0,
+					'alpha_min':0.1,                            'alpha_max':2.0,
+					'A_min':-1.0,                               'A_max':1.0,
+					'B_min':-0.6,                               'B_max':0.6,
+					'N_min':0.10,                               'N_max':2.50 				
+				}
 ## apply a custom mask
 data.mask_custom(custom_mask=custom_mask)
 
@@ -247,25 +264,6 @@ data.noise    = data.noise[pixel_start:pixel_end]
 tell_sp.wave  = tell_sp.wave[pixel_start:pixel_end]
 tell_sp.flux  = tell_sp.flux[pixel_start:pixel_end]
 tell_sp.noise = tell_sp.noise[pixel_start:pixel_end]
-
-# barycentric corrction
-barycorr      = nsp.barycorr(data.header).value
-print("barycorr:",barycorr)
-
-## read the input custom mask and priors
-lines          = open(save_to_path+'/mcmc_parameters.txt').read().splitlines()
-custom_mask    = json.loads(lines[5].split('custom_mask')[1])
-priors         = ast.literal_eval(lines[6].split('priors ')[1])
-limits         = { 
-					'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
-					'logg_min':3.5,                             'logg_max':5.0,
-					'vsini_min':0.0,                            'vsini_max':100.0,
-					'rv_min':-200.0,                            'rv_max':200.0,
-					'alpha_min':0.1,                            'alpha_max':2.0,
-					'A_min':-1.0,                               'A_max':1.0,
-					'B_min':-0.6,                               'B_max':0.6,
-					'N_min':0.10,                               'N_max':2.50 				
-				}
 
 #if final_mcmc:
 #	priors, limits         = mcmc_utils.generate_final_priors_and_limits(sp_type=sp_type, barycorr=barycorr, save_to_path1=save_to_path1)
@@ -642,7 +640,7 @@ file_log2.write("rv_mcmc_e {}\n".format(str(max(abs(rv_mcmc[1]), abs(rv_mcmc[2])
 file_log2.write("N_mcmc_e {}\n".format(str(max(abs(N_mcmc[1]), abs(N_mcmc[2])))))
 file_log2.close()
 
-print(teff_mcmc, logg_mcmc, vsini_mcmc, rv_mcmc, alpha_mcmc, A_mcmc, B_mcmc, N_mcmc)
+#print(teff_mcmc, logg_mcmc, vsini_mcmc, rv_mcmc, alpha_mcmc, A_mcmc, B_mcmc, N_mcmc)
 
 triangle_samples[:,3] += barycorr
 

@@ -1,23 +1,29 @@
-####################################################
-# The example to demonstrate the telluric wavelength
-# calibration. The calibrated spectra will be save
-# to the folder "tell_wave_cal" under the path
-# 'data/reduced/fits/all'
-####################################################
-## Import the nirspec_pip package
 import nirspec_fmp as nsp
-import os
 
-## Set up the input paramters
-order_list = [33]
-data_path = os.getcwd() + '/data/reduced/fits/all'
-data_name = 'jan19s0024' # Filename of the telluric standard
-save_to_path = os.getcwd() + \
-'/data/reduced/fits/all/tell_wave_cal/' + data_name
-test = False # Generate the diagnostic plots
-save = True # Save the wavelength calibrated spectra
+#########################################
+## Parameter Setup
+#########################################
 
-## Run the telluric wavelength calibration
-nsp.run_wave_cal(data_name ,data_path ,order_list ,
-	save_to_path, test=test, save=save)
+data_dic           = {
+'20160216':['feb16s0076','feb16s0077','feb16s0078','feb16s0079'],
+}
 
+source             = 'J1106+2754'
+order_list         = [33,34]
+test               = False
+save               = True
+applymask          = True
+
+data_BASE          = '/Volumes/LaCie/nirspec/data_all/'
+save_BASE          = '/Users/dinohsu/nirspec/analysis/'
+
+for date_obs in data_dic.keys():
+	for data_name in data_dic[date_obs]:
+		data_path  = data_BASE + date_obs + '/reduced/fits/all'
+	
+		save_to_path = save_BASE + source +'/'\
+		+ date_obs + '/telluric_wave_cal3/' + data_name
+		print(save_to_path)
+		print("Telluric wavelength calibration on", data_name)
+		nsp.run_wave_cal(data_name ,data_path ,order_list,
+			save_to_path, test=test, save=save, applymask=applymask)
