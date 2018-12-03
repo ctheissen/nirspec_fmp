@@ -1130,12 +1130,12 @@ def run_mcmc3(sci_data, tell_data, priors, limits=None, ndim=8, nwalkers=50, ste
 
 	#os.environ["OMP_NUM_THREADS"] = "1"
 	from multiprocessing import Pool
-	with Pool() as pool:
-		sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves, pool=pool)
-		#sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves)#, threads=15)
-		time1 = time.time()
-		sampler.run_mcmc(pos, step, progress=True)
-		time2 = time.time()
+	#with Pool() as pool:
+	#	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves, pool=pool)
+	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves)#, threads=15)
+	time1 = time.time()
+	sampler.run_mcmc(pos, step, progress=True)
+	time2 = time.time()
 
 	#pool.close()
 
