@@ -204,7 +204,7 @@ for date_obs in data_dic.keys():
 			mcmc_dic['B'], mcmc_dic['A'], lsf=mcmc_dic['lsf'], data=data, order=data.order)
 		pixel = np.delete(np.arange(len(data2.oriWave)),data2.mask)[pixel_start: pixel_end]
 		custom_mask2 = pixel[np.where(np.abs(data2.flux-model.flux[pixel_start: pixel_end]) > outlier_rejection*np.std(data2.flux-model.flux[pixel_start: pixel_end]))]
-		
+		"""
 		plt.figure(figsize=(16,6))
 		plt.plot(np.arange(1024),data.flux,'k-',alpha=0.5)
 		plt.plot(np.arange(1024),model.flux,'r-',alpha=0.5)
@@ -218,11 +218,14 @@ for date_obs in data_dic.keys():
 		plt.savefig(save_to_path2+'/spectrum_mask.png')
 		#plt.show()
 		plt.close()
-
+		"""
 		custom_mask2 = np.append(custom_mask2,np.array(custom_mask))
 		custom_mask2.sort()
 		custom_mask2 = custom_mask2.tolist()
 		print('masking pixels: ',custom_mask2)
+
+		if not os.path.exists(save_to_path2):
+			os.makedirs(save_to_path2)
 
 		log_path = save_to_path2 + '/mcmc_parameters.txt'
 		file_log = open(log_path,"w+")

@@ -213,7 +213,7 @@ def lnprior(theta):
 
 	limits =  { 'lsf_min':1.0  ,  'lsf_max':20.0,
 				'alpha_min':0.3,  'alpha_max':2.0,
-				'A_min':-100.0   ,  'A_max':100.0,
+				'A_min':-500.0   ,  'A_max':500.0,
 				'B_min':-0.5   ,  'B_max':0.5    }
 
 	if  limits['lsf_min']   < lsf  < limits['lsf_max'] \
