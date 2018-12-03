@@ -1,4 +1,3 @@
-ioff()
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,6 +15,7 @@ import copy
 import argparse
 import warnings
 warnings.filterwarnings("ignore")
+plt.ioff()
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for telluric files",\
 	usage="run_mcmc_telluric.py order date_obs tell_data_name tell_path save_to_path")

@@ -1,4 +1,3 @@
-ioff()
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,7 +18,7 @@ import json
 import ast
 import warnings
 warnings.filterwarnings("ignore")
-
+plt.ioff()
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for science files",
 	usage="run_mcmc_science.py order date_obs sci_data_name tell_data_name data_path tell_path save_to_path lsf priors limits")
