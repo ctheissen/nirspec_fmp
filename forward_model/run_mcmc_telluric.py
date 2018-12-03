@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.gridspec as gridspec
 import matplotlib
 matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt.ioff()
+import matplotlib.gridspec as gridspec
 from astropy.io import fits
 import emcee
 #from schwimmbad import MPIPool
@@ -17,7 +18,8 @@ import copy
 import argparse
 import warnings
 warnings.filterwarnings("ignore")
-plt.ioff()
+
+
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for telluric files",\
 	usage="run_mcmc_telluric.py order date_obs tell_data_name tell_path save_to_path")
