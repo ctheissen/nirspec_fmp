@@ -161,7 +161,16 @@ def makeTelluricModel(lsf, alpha, flux_offset, wave_offset0, data=data):
 	data2.wave          = data2.wave + wave_offset0
 	#data2.wave          = data2.wave * (1 + wave_offset1) + wave_offset0
 	telluric_model      = nsp.convolveTelluric(lsf, data2, alpha=alpha)
-	model               = nsp.continuum(data=data2, mdl=telluric_model, deg=2)
+	
+	if data.order == 35:
+		from scipy.optimize import curve_fit
+		popt, pcov = curve_fit(nsp.voigt_profile,data.wave[20:-20], data.flux[20:-20], 
+			p0=[21660,2000,0.1,0.1,0.01,0.1,10000,1000], maxfev=10000)
+		telluric_model.flux *= nsp.voigt_profile(data.wave, *popt)
+		model               = nsp.continuum(data=data2, mdl=telluric_model, deg=2)
+	else:
+		model               = nsp.continuum(data=data2, mdl=telluric_model, deg=2)
+	
 	model.flux         += flux_offset
 
 	return model

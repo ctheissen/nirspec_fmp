@@ -603,7 +603,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	niter              = kwargs.get('niter', 15)
 	outlier_rej        = kwargs.get('outlier_rej', 3)
 	applymask          = kwargs.get('applymask', False) # apply a simple outlier rejection mask
-	mask_custom        = kwargs.get('mask_custom', False) # apply a simple outlier rejection mask
+	mask_custom        = kwargs.get('mask_custom', []) # apply a simple outlier rejection mask
 	test               = kwargs.get('test', False) # output the xcorr plots
 	save               = kwargs.get('save', False) # save the new wavelength solution
 	save_to_path       = kwargs.get('save_to_path', None)
@@ -612,7 +612,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# calculation the necessary parameters
 	pixel_range_start  = kwargs.get('pixel_range_start',0)
 	pixel_range_end    = kwargs.get('pixel_range_end',-1)
-	pixel0             = np.arange(length1)
+	pixel0             = np.delete(np.arange(length1),data.mask)
 	pixel              = pixel0[pixel_range_start:pixel_range_end]
 
 	# increase the telluric model strength for N3
@@ -1244,7 +1244,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		else:
 			xcorr_range = 15
 
-		data     = nsp.Spectrum(name=data_name, order=order, path=data_path)
+		data     = nsp.Spectrum(name=data_name, order=order, path=data_path, applymask=applymask)
 		length1  = len(data.oriWave) # preserve the length of the array
 
 		# the telluric standard model
