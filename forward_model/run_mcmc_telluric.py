@@ -87,6 +87,8 @@ applymask              = args.applymask
 pixel_start, pixel_end = int(args.pixel_start), int(args.pixel_end)
 save                   = args.save
 
+if order == 35: applymask = True
+
 tell_data_name2 = tell_data_name + '_calibrated'
 tell_sp         = nsp.Spectrum(name=tell_data_name2, order=order, path=tell_path, applymask=applymask)
 
@@ -164,10 +166,10 @@ def makeTelluricModel(lsf, alpha, flux_offset, wave_offset0, data=data):
 	
 	if data.order == 35:
 		from scipy.optimize import curve_fit
-		popt, pcov = curve_fit(nsp.voigt_profile,data.wave[20:-20], data.flux[20:-20], 
+		popt, pcov = curve_fit(nsp.voigt_profile,data2.wave[20:-20], data2.flux[20:-20], 
 			p0=[21660,2000,0.1,0.1,0.01,0.1,10000,1000], maxfev=10000)
-		telluric_model.flux *= nsp.voigt_profile(data.wave, *popt)
 		model               = nsp.continuum(data=data2, mdl=telluric_model, deg=2)
+		model.flux         *= nsp.voigt_profile(data2.wave, *popt)
 	else:
 		model               = nsp.continuum(data=data2, mdl=telluric_model, deg=2)
 	
