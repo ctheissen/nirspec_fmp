@@ -202,7 +202,7 @@ def continuumTelluric(data, model=None, order=None):
             data2.noise = data2.noise/voigt_profile(data2.wave, *popt)
             data        = data2
 
-    elif data.order == 38:
+    elif data.order == 38 or data.order == 30:
         # O38 has rich absorption features
         def fit_continuum_O38(x,a,b,**kwargs):
             flux = kwargs.get('flux',data.flux)
