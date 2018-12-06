@@ -138,7 +138,7 @@ pixel       = pixel[pixel_start:pixel_end]
 
 if priors is None:
 	priors =  { 'lsf_min':4.0,  	'lsf_max':10.0,
-				'alpha_min':0.3,  	'alpha_max':2.0,
+				'alpha_min':0.3,  	'alpha_max':4.0,
 				'A_min':-1.0,    	'A_max':1.0,
 				'B_min':-0.5,		'B_max':0.5    	}
 
