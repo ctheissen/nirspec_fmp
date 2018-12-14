@@ -317,6 +317,7 @@ def continuumTelluric(data, model=None, order=None):
         popt, pcov = curve_fit(_continuumFit, data.wave, data.flux)
         const      = np.mean(data.flux/_continuumFit(data.wave, 
             *popt)) - np.mean(model.flux)
+        if data.order == 57: const = 0
         data.flux  = data.flux/_continuumFit(data.wave, *popt) - const
         data.noise = data.noise/_continuumFit(data.wave, *popt)
         if not data.applymask:

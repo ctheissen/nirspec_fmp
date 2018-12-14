@@ -915,16 +915,17 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			print("Number of selected pixel < number of fits parameters (8)")
 			#width_range_center2 = width_range_center
 			#best_shift_array2   = best_shift_array
-			residual2           = nsp.waveSolution(width_range_centers[mask1], 
-												   popt0_ori, popt1_ori, popt2_ori, popt3_ori,
-				                                   popt4_ori, popt5_ori, popt6_ori, popt7_ori, 
-				                                   order=order) - best_shift_array
-			residual2           = residual2[np.where(abs(original_fit - best_shift_array) < m*fit_sigma)]
+			if i != 0:
+				residual2           = nsp.waveSolution(width_range_centers[mask1], 
+													   popt0_ori, popt1_ori, popt2_ori, popt3_ori,
+					                                   popt4_ori, popt5_ori, popt6_ori, popt7_ori, 
+					                                   order=order) - best_shift_array
+				residual2           = residual2[np.where(abs(original_fit - best_shift_array) < m*fit_sigma)]
 
          
-			variance2           = ((residual2 ** 2).sum()) / (len(residual2) - 1)
-			RMSE2               = np.sqrt(variance2)
-			break
+				variance2           = ((residual2 ** 2).sum()) / (len(residual2) - 1)
+				RMSE2               = np.sqrt(variance2)
+				break
 
 		elif len(width_range_center2) < len(width_range_centers[mask1])*0.4 and i != 0:
 			print("The iteration stops because the selected points for fitting",
@@ -1219,10 +1220,12 @@ def run_wave_cal(data_name, data_path, order_list,
 		elif order == 36:
 			xcorr_range = 10
 		elif order == 37 or order == 38:
-			xcorr_range = 5
+			xcorr_range = 4
 			outlier_rej = 2
 		elif order == 55 or order == 56:
 			xcorr_range = 5
+		elif order == 57:
+			xcorr_range = 20
 		elif order == 58:
 			xcorr_range = 5
 			outlier_rej = 2
@@ -1269,7 +1272,7 @@ def run_wave_cal(data_name, data_path, order_list,
 
 		elif order == 33 or order == 34 \
 		or order == 36:
-			pixel_range_start = 0
+			pixel_range_start = 20
 			pixel_range_end   = -1
 
 		elif order == 35:

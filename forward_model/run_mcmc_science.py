@@ -547,8 +547,6 @@ def lnprob(theta, data ,lsf):
 		
 	return lnp + lnlike(theta, data, lsf)
 
-## multiprocessing
-
 pos = [np.array([	priors['teff_min']  + (priors['teff_max']   - priors['teff_min'] ) * np.random.uniform(), 
 					priors['logg_min']  + (priors['logg_max']   - priors['logg_min'] ) * np.random.uniform(), 
 					priors['vsini_min'] + (priors['vsini_max']  - priors['vsini_min']) * np.random.uniform(),
@@ -557,6 +555,8 @@ pos = [np.array([	priors['teff_min']  + (priors['teff_max']   - priors['teff_min
 					priors['A_min']     + (priors['A_max']      - priors['A_min'])     * np.random.uniform(),
 					priors['B_min']     + (priors['B_max']      - priors['B_min'])     * np.random.uniform(),
 					priors['N_min']     + (priors['N_max']      - priors['N_min'])     * np.random.uniform()]) for i in range(nwalkers)]
+
+## multiprocessing
 
 with Pool() as pool:
 	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves, pool=pool)
@@ -725,7 +725,7 @@ fig = plt.figure(figsize=(16,6))
 ax1 = fig.add_subplot(111)
 plt.rc('font', family='sans-serif')
 plt.tick_params(labelsize=15)
-ax1.plot(model.wave, model.flux, color='C3', linestyle='-', label='model',alpha=0.8)
+ax1.plot(model.wave, model.flux, color='C0', linestyle='-', label='model',alpha=0.8) #C3
 ax1.plot(model_notell.wave,model_notell.flux, color='C1', linestyle='-', label='model no telluric',alpha=0.5)
 ax1.plot(data.wave,data.flux,'k-',
 	label='data',alpha=0.5)

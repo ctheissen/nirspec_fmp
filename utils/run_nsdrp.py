@@ -14,9 +14,9 @@ warnings.filterwarnings("ignore")
 
 ## Assume the NSDRP is under the same folder as the nirspec_fmp
 FULL_PATH  = os.path.realpath(__file__)
-BASE = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
-BASE = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
-#BASE = BASE.split('nirspec_fmp')[0] + 'NSDRP_before20180925/' #original NSDRP
+BASE       = os.path.split(os.path.split(os.path.split(FULL_PATH)[0])[0])[0]
+BASE       = BASE.split('nirspec_fmp')[0] + 'NIRSPEC-Data-Reduction-Pipeline/'
+#BASE = BASE.split('nirspec_fmp')[0] + 'nsdrp_20180925/' #original NSDRP
 
 parser = argparse.ArgumentParser(description="Reduce the NIRSPEC data using NIRSPEC-Data-Reduction-Pipeline",\
 	usage="run_nsdrp.py input_dir (output_dir)")
@@ -65,7 +65,7 @@ for filename in mylist:
     fits.writeto(file_path, data, header, overwrite=True, output_verify='ignore')
 
 ## defringe flat
-if args.nodefringe is True:
+if args.nodefringe:
     pass
 else:
     print("Defringing flat files...")
@@ -80,7 +80,7 @@ os.system("python" + " " + BASE + "nsdrp.py" + " " + datadir[0] + " " + datadir[
 	+ "-oh_filename" + " " + BASE + "/ir_ohlines.dat -spatial_jump_override -debug -dgn")
 
 ## move the original flat files back
-if args.nodefringe is True:
+if args.nodefringe:
     pass
 else:
     for defringeflatfile in defringe_list:
