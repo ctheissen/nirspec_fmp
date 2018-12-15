@@ -71,7 +71,7 @@ for date_obs in data_dic.keys():
 
 		print("MCMC for {} on {} order {}".format(sci_data_name, date_obs, order))
 
-		data_path      = data_BASE + date_obs + '/reduced/fits/all'
+		data_path      = data_BASE + date_obs + '/reduced2/fits/all'
 
 		tell_path      = save_BASE + source + '/' \
 		+ date_obs +'/telluric_wave_cal/' + tell_data_name + '/O' + str(order)
@@ -96,7 +96,7 @@ for date_obs in data_dic.keys():
 			data1       = copy.deepcopy(data)
 			data2       = nsp.Spectrum(name=sci_data_name2, order=order, path=data_path, applymask=applymask)
 			data.coadd(data2, method='pixel')
-
+			"""
 			plt.figure(figsize=(16,6))
 			plt.plot(np.arange(1024),data.flux,'k',
 				label='coadd median S/N = {}'.format(np.median(data.flux/data.noise)),alpha=1)
@@ -114,19 +114,24 @@ for date_obs in data_dic.keys():
 			plt.savefig(save_to_path+'/coadd_spectrum.png')
 			#plt.show()
 			plt.close()
-		
+			"""
 		# tell data path
 		tell_data_name2 = tell_data_name + '_calibrated'
 
 		tell_sp     = nsp.Spectrum(name=tell_data_name2, order=data.order, path=tell_path, applymask=applymask)
 
 		data.updateWaveSol(tell_sp)
-
-		os.system("python "+BASE+'run_mcmc_telluric.py'+" "+str(order)+" "+date_obs+" "+tell_data_name+" "+tell_path+" "+save_to_path0)
-
-		with fits.open(tell_sp.path + '/' + tell_sp.name + '_' + str(tell_sp.order) + '_all.fits') as hdulist:
-			lsf        = hdulist[0].header['LSF']
 		
+		try:
+			with fits.open(tell_sp.path + '/' + tell_sp.name + '_' + str(tell_sp.order) + '_all.fits') as hdulist:
+				lsf        = hdulist[0].header['LSF']
+		except:
+			os.system("python "+BASE+'run_mcmc_telluric.py'+" "+str(order)+" "+date_obs+" "+tell_data_name+" "+tell_path+" "+save_to_path0)
+
+			with fits.open(tell_sp.path + '/' + tell_sp.name + '_' + str(tell_sp.order) + '_all.fits') as hdulist:
+				lsf        = hdulist[0].header['LSF']
+				
+
 		if not os.path.exists(save_to_path1):
 			os.makedirs(save_to_path1)
 		
@@ -148,7 +153,7 @@ for date_obs in data_dic.keys():
 		file_log.write("barycorr {} \n".format(barycorr))
 		file_log.write("lsf {} \n".format(lsf))
 		file_log.close()
-
+		
 		if applymask:
 			if coadd:
 				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
@@ -169,9 +174,9 @@ for date_obs in data_dic.keys():
 				os.system("python "+BASE+'run_mcmc_science.py'+" "+str(order)+" "+date_obs+" "+sci_data_name+" "+tell_data_name+" "+data_path+" "+tell_path+" "+save_to_path+" "+str(lsf)\
 					+" -outlier_rejection "+str(outlier_rejection)+" -ndim "+str(ndim)+" -nwalkers "+str(nwalkers)+" -step "+str(step)+" -burn "+str(burn)+" -moves "\
 					+str(moves)+" -pixel_start "+str(pixel_start)+" -pixel_end "+str(pixel_end))
-
 		
-
+		
+		
 		df = pd.read_csv(save_to_path1+'/mcmc_result.txt', sep=' ', header=None)
 		barycorr = nsp.barycorr(data.header).value
 		priors1 =  {'teff_min':max(float(df[1][0])-20,teff_min_limit),   'teff_max':min(float(df[1][0])+20,teff_max_limit),
@@ -196,34 +201,49 @@ for date_obs in data_dic.keys():
 					}
 
 		data2 = copy.deepcopy(data)
+		data2.wave = np.delete(data2.wave,np.array(custom_mask))
+		data2.flux = np.delete(data2.flux,np.array(custom_mask))
 		data2.wave = data2.wave[pixel_start: pixel_end]
 		data2.flux = data2.flux[pixel_start: pixel_end]
 
-		model = nsp.makeModel(mcmc_dic['teff'], mcmc_dic['logg'],0,
+		
+		pixel = np.delete(np.arange(len(data2.oriWave)),np.array(custom_mask))[pixel_start: pixel_end]
+		#pixel = np.delete(pixel,custom_mask)
+
+		model0 = nsp.makeModel(mcmc_dic['teff'], mcmc_dic['logg'],0,
 			mcmc_dic['vsini'], mcmc_dic['rv']-barycorr, mcmc_dic['alpha'], 
 			mcmc_dic['B'], mcmc_dic['A'], lsf=mcmc_dic['lsf'], data=data, order=data.order)
-		pixel = np.delete(np.arange(len(data2.oriWave)),data2.mask)[pixel_start: pixel_end]
-		custom_mask2 = pixel[np.where(np.abs(data2.flux-model.flux[pixel_start: pixel_end]) > outlier_rejection*np.std(data2.flux-model.flux[pixel_start: pixel_end]))]
+
+		model = nsp.makeModel(mcmc_dic['teff'], mcmc_dic['logg'],0,
+			mcmc_dic['vsini'], mcmc_dic['rv']-barycorr, mcmc_dic['alpha'], 
+			mcmc_dic['B'], mcmc_dic['A'], lsf=mcmc_dic['lsf'], data=data2, order=data2.order)
+
+		x = np.where(np.abs(data2.flux-model.flux) >= outlier_rejection*np.std(data2.flux-model.flux))
+		y = np.where(np.abs(data2.flux-model.flux) <= outlier_rejection*np.std(data2.flux-model.flux))
+		y = y[0]
+		
+		custom_mask2 = pixel[x]
+		custom_mask2 = np.append(custom_mask2,np.array(custom_mask))
+		custom_mask2.sort()
+		custom_mask2 = custom_mask2.tolist()
+		print('masking pixels: ',custom_mask2)
 		"""
 		plt.figure(figsize=(16,6))
-		plt.plot(np.arange(1024),data.flux,'k-',alpha=0.5)
-		plt.plot(np.arange(1024),model.flux,'r-',alpha=0.5)
-		plt.plot(pixel[np.where(np.abs(data2.flux-model.flux[pixel_start: pixel_end]) < outlier_rejection*np.std(data2.flux-model.flux[pixel_start: pixel_end]))],
-			data2.flux[np.where(np.abs(data2.flux-model.flux[pixel_start: pixel_end]) < outlier_rejection*np.std(data2.flux-model.flux[pixel_start: pixel_end]))],'b-',alpha=0.5)
+		#plt.plot(np.arange(1024),data.flux,'k-',alpha=0.5)
+		plt.plot(np.arange(1024),model0.flux,'r-',alpha=0.5)
+		plt.plot(pixel[y], data2.flux[y],'b-',alpha=0.5)
 		plt.ylabel('cnt/s')
 		plt.xlabel('pixel')
 		plt.minorticks_on()
 		if not os.path.exists(save_to_path2):
 			os.makedirs(save_to_path2)
 		plt.savefig(save_to_path2+'/spectrum_mask.png')
-		#plt.show()
+		plt.show()
 		plt.close()
-		"""
-		custom_mask2 = np.append(custom_mask2,np.array(custom_mask))
-		custom_mask2.sort()
-		custom_mask2 = custom_mask2.tolist()
-		print('masking pixels: ',custom_mask2)
+		
 
+		sys.exit()
+		"""
 		if not os.path.exists(save_to_path2):
 			os.makedirs(save_to_path2)
 
@@ -245,7 +265,7 @@ for date_obs in data_dic.keys():
 		file_log.write("barycorr {} \n".format(barycorr))
 		file_log.write("lsf {} \n".format(lsf))
 		file_log.close()
-
+		
 		## Final MCMC
 		if applymask:
 			if coadd:
@@ -287,4 +307,5 @@ for date_obs in data_dic.keys():
 
 			rvcat.to_excel(catalougue_path,index=False)
 		
+
 
