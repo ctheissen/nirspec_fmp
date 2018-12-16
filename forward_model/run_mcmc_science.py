@@ -243,7 +243,7 @@ custom_mask    = json.loads(lines[5].split('custom_mask')[1])
 priors         = ast.literal_eval(lines[6].split('priors ')[1])
 limits         = { 
 					'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
-					'logg_min':3.5,                             'logg_max':5.0,
+					'logg_min':3.5,                             'logg_max':5.5,
 					'vsini_min':0.0,                            'vsini_max':100.0,
 					'rv_min':-200.0,                            'rv_max':200.0,
 					'alpha_min':0.1,                            'alpha_max':2.0,
