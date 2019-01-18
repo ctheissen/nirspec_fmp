@@ -251,7 +251,7 @@ limits         = {
 					'logg_min':3.5,                             'logg_max':logg_max,
 					'vsini_min':0.0,                            'vsini_max':100.0,
 					'rv_min':-200.0,                            'rv_max':200.0,
-					'alpha_min':0.1,                            'alpha_max':2.0,
+					'alpha_min':0.1,                            'alpha_max':2.5,
 					'A_min':-1.0,                               'A_max':1.0,
 					'B_min':-0.6,                               'B_max':0.6,
 					'N_min':0.10,                               'N_max':2.50 				
