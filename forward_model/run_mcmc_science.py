@@ -241,9 +241,14 @@ barycorr      = nsp.barycorr(data.header).value
 lines          = open(save_to_path+'/mcmc_parameters.txt').read().splitlines()
 custom_mask    = json.loads(lines[5].split('custom_mask')[1])
 priors         = ast.literal_eval(lines[6].split('priors ')[1])
+
+# no logg 5.5 for teff lower than 900
+if priors['teff_min'] <= 1100: logg_max = 5.0
+else: logg_max = 5.5
+
 limits         = { 
 					'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
-					'logg_min':3.5,                             'logg_max':5.5,
+					'logg_min':3.5,                             'logg_max':logg_max,
 					'vsini_min':0.0,                            'vsini_max':100.0,
 					'rv_min':-200.0,                            'rv_max':200.0,
 					'alpha_min':0.1,                            'alpha_max':2.0,
