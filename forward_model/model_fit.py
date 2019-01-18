@@ -37,6 +37,8 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	if data is not None:
 		order = data.order
 	# read in a model
+	print('teff ',teff,'logg ',logg, 'z', z, 'order', order, 'modelset', modelset)
+	print('teff ',type(teff),'logg ',type(logg), 'z', type(z), 'order', type(order), 'modelset', type(modelset))
 	model    = nsp.Model(teff=teff, logg=logg, feh=z, order=order, modelset=modelset)
 	
 	# wavelength offset

@@ -324,5 +324,5 @@ def continuumTelluric(data, model=None, order=None):
             data2.flux  = data2.flux/_continuumFit(data2.wave, *popt) - const
             data2.noise = data2.noise/_continuumFit(data2.wave, *popt)
             data        = data2
-        
+
     return data

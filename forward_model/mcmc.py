@@ -141,6 +141,7 @@ def run_mcmc(sci_data, tell_data, priors, limits=None, ndim=7, nwalkers=50, step
 	file_log.write("pixel_end {} \n".format(pixel_end))
 	file_log.write("barycorr {} \n".format(barycorr))
 	file_log.write("lsf {} \n".format(lsf))
+	file_log.write("median_SNR {} \n".format(np.median(data.flux/data.noise)))
 	file_log.close()
 
 	def lnlike(theta, data, lsf):
@@ -595,6 +596,7 @@ def run_mcmc2(sci_data, tell_data, priors, limits=None, ndim=8, nwalkers=50, ste
 	file_log.write("pixel_end {} \n".format(pixel_end))
 	file_log.write("barycorr {} \n".format(barycorr))
 	file_log.write("lsf {} \n".format(lsf))
+	file_log.write("median_SNR {} \n".format(np.median(data.flux/data.noise)))
 	file_log.close()
 
 	def lnlike(theta, data):
@@ -1056,6 +1058,7 @@ def run_mcmc3(sci_data, tell_data, priors, limits=None, ndim=8, nwalkers=50, ste
 	file_log.write("pixel_end {} \n".format(pixel_end))
 	file_log.write("barycorr {} \n".format(barycorr))
 	file_log.write("lsf {} \n".format(lsf))
+	file_log.write("median_SNR {} \n".format(np.median(data.flux/data.noise)))
 	file_log.close()
 
 	def lnlike(theta, data, lsf):

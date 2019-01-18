@@ -152,6 +152,7 @@ for date_obs in data_dic.keys():
 		file_log.write("pixel_end {} \n".format(pixel_end))
 		file_log.write("barycorr {} \n".format(barycorr))
 		file_log.write("lsf {} \n".format(lsf))
+		file_log.write("median_SNR {} \n".format(np.median(data.flux/data.noise)))h
 		file_log.close()
 		
 		if applymask:

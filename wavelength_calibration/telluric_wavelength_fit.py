@@ -1258,7 +1258,11 @@ def run_wave_cal(data_name, data_path, order_list,
 		# continuum correction for the data
 		data1    = copy.deepcopy(data)
 		data     = nsp.continuumTelluric(data=data, model=model)
-		data     = nsp.continuumTelluric(data=data, model=model)
+		## constant offset correction
+		const    = np.mean(data.flux) - np.mean(model.flux)
+		data.flux -= const
+
+		#data     = nsp.continuumTelluric(data=data, model=model)
 
 		#print(np.where(data.flux < 0.25))
 		#sys.exit
@@ -1476,6 +1480,10 @@ def run_wave_cal(data_name, data_path, order_list,
 			# add back the fringe
 			telluric_new2_no_fringe = copy.deepcopy(telluric_new2)
 			telluric_new2.flux += fringe[pixel_range_start:pixel_range_end]
+
+		## constant offset correction
+		const    = np.mean(data.flux) - np.mean(telluric_new2.flux)
+		data.flux -= const
 
 		print("vbroad: ",lsf, " km/s")
 
