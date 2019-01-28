@@ -19,8 +19,13 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 
 	Parameters
 	----------
-	params : a dictionary that specifies the parameters such as teff, logg, z.
+	teff   : effective temperature
+	
 	data   : an input science data used for continuum correction
+
+	Optional Parameters
+	-------------------
+	
 
 	Returns
 	-------

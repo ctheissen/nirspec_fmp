@@ -879,7 +879,7 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 		
 		m = outlier_rej # number of sigma for outlier rejection
 		if i == 0:
-			fit_sigma = 0.8
+			fit_sigma = 2#0.8
 			#fit_sigma = np.std(original_fit - best_shift_array)
 			original_fit = nsp.waveSolution(width_range_centers[mask1], *popt, order=order)
 		elif i < 5:
@@ -1227,7 +1227,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		elif order == 57:
 			xcorr_range = 20
 		elif order == 58:
-			xcorr_range = 5
+			xcorr_range = 15
 			outlier_rej = 2
 		elif order == 59:
 			xcorr_range = 15

@@ -256,6 +256,8 @@ limits         = {
 					'B_min':-0.6,                               'B_max':0.6,
 					'N_min':0.10,                               'N_max':2.50 				
 				}
+
+print(limits)
 ## apply a custom mask
 data.mask_custom(custom_mask=custom_mask)
 
