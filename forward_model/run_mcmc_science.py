@@ -270,7 +270,6 @@ elif modelset == 'phoenixaces':
 						'N_min':0.10,                               'N_max':2.50 				
 					}
 
-print(limits)
 ## apply a custom mask
 data.mask_custom(custom_mask=custom_mask)
 
