@@ -70,10 +70,13 @@ def defringeflat(flat_file, wbin=10, start_col=10, end_col=980, clip1=0,
 	bins       = bins[0:-1]
 	index1     = np.where( (bins > np.percentile(data[0].data.flatten(),10)) & 
 		                   (bins < np.percentile(data[0].data.flatten(),30)) )
-	lowval     = bins[index1][np.where(hist[index1] == np.min(hist[index1]))]
+	try:
+		lowval = bins[index1][np.where(hist[index1] == np.min(hist[index1]))]
+		#print(lowval, len(lowval))
+		if len(lowval) >= 2: lowval = np.min(lowval)
+	except:
+		lowval = 0 #if no values for index1    
 
-	#print(lowval, len(lowval))
-	if len(lowval) >= 2: lowval = np.min(lowval)
 	
 	flat = data
 
