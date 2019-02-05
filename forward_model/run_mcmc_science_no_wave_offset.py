@@ -545,7 +545,7 @@ def lnprior(theta, limits=limits):
 	Specifies a flat prior
 	"""
 	## Parameters for theta
-	teff, logg, vsini, rv, alpha, A, B, N = theta
+	teff, logg, vsini, rv, alpha, A, N = theta
 
 	if  limits['teff_min']  < teff  < limits['teff_max'] \
 	and limits['logg_min']  < logg  < limits['logg_max'] \
