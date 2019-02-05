@@ -98,6 +98,11 @@ class Spectrum():
 			self.sky   = np.delete(self.sky, list(self.mask))
 			self.mask  = self.mask[0]
 
+	@property
+	def mask(self):
+		return self.mask
+
+
 	@mask.setter
 	def mask(self, custom_mask):
 		"""
