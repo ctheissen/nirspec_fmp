@@ -104,12 +104,12 @@ class Spectrum():
 
 
 	@mask.setter
-	def mask(self, custom_mask):
+	def mask(self, mask):
 		"""
 		Mask the pixels by a self-defined list.
 		"""
 		## combine the list and remove the duplicates
-		self.mask  =  list(set().union(self.mask, custom_mask))
+		self.mask  =  list(set().union(self.mask, mask))
 
 		self.wave  = np.delete(self.oriWave, list(self.mask))
 		self.flux  = np.delete(self.oriFlux, list(self.mask))
