@@ -98,7 +98,8 @@ class Spectrum():
 			self.sky   = np.delete(self.sky, list(self.mask))
 			self.mask  = self.mask[0]
 
-	def mask_custom(self, custom_mask):
+	@mask.setter
+	def mask(self, custom_mask):
 		"""
 		Mask the pixels by a self-defined list.
 		"""

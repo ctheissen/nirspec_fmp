@@ -22,6 +22,11 @@ import ast
 import warnings
 warnings.filterwarnings("ignore")
 
+##############################################################################################
+## This is the script to make the code multiprocessing, using arcparse to pass the arguments
+## The code is run with 7 parameters, including Teff, logg, RV, vsini, telluric alpha, and 
+## nuisance parameters for flux and noise (no wavelength parameters).
+##############################################################################################
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for science files",
 	usage="run_mcmc_science.py order date_obs sci_data_name tell_data_name data_path tell_path save_to_path lsf priors limits")
@@ -57,7 +62,7 @@ parser.add_argument("-outlier_rejection",metavar='--rej',type=float,
     default=3.0, help="outlier rejection based on the multiple of standard deviation of the residual; default 3.0")
 
 parser.add_argument("-ndim",type=int,
-    default=8, help="number of dimension; default 8")
+    default=7, help="number of dimension; default 8")
 
 parser.add_argument("-nwalkers",type=int,
     default=50, help="number of walkers of MCMC; default 50")
@@ -241,16 +246,35 @@ barycorr      = nsp.barycorr(data.header).value
 lines          = open(save_to_path+'/mcmc_parameters.txt').read().splitlines()
 custom_mask    = json.loads(lines[5].split('custom_mask')[1])
 priors         = ast.literal_eval(lines[6].split('priors ')[1])
-limits         = { 
-					'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
-					'logg_min':3.5,                             'logg_max':5.0,
-					'vsini_min':0.0,                            'vsini_max':100.0,
-					'rv_min':-200.0,                            'rv_max':200.0,
-					'alpha_min':0.1,                            'alpha_max':2.0,
-					'A_min':-1.0,                               'A_max':1.0,
-					'B_min':-0.6,                               'B_max':0.6,
-					'N_min':0.10,                               'N_max':2.50 				
-				}
+
+# no logg 5.5 for teff lower than 900
+if priors['teff_min'] <= 1100: logg_max = 5.0
+else: logg_max = 5.5
+
+if modelset == 'btsettl08':
+	limits         = { 
+						'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
+						'logg_min':3.5,                             'logg_max':logg_max,
+						'vsini_min':0.0,                            'vsini_max':100.0,
+						'rv_min':-200.0,                            'rv_max':200.0,
+						'alpha_min':0.1,                            'alpha_max':2.5,
+						'A_min':-1.0,                               'A_max':1.0,
+						'B_min':-0.6,                               'B_max':0.6,
+						'N_min':0.10,                               'N_max':2.50 				
+					}
+
+elif modelset == 'phoenixaces':
+	limits         = { 
+						'teff_min':max(priors['teff_min']-200,2300), 'teff_max':min(priors['teff_max']+200,10000),
+						'logg_min':3.5,                             'logg_max':logg_max,
+						'vsini_min':0.0,                            'vsini_max':100.0,
+						'rv_min':-200.0,                            'rv_max':200.0,
+						'alpha_min':0.1,                            'alpha_max':2.5,
+						'A_min':-1.0,                               'A_max':1.0,
+						'B_min':-0.6,                               'B_max':0.6,
+						'N_min':0.10,                               'N_max':2.50 				
+					}
+
 ## apply a custom mask
 data.mask_custom(custom_mask=custom_mask)
 
@@ -336,8 +360,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	#model.wave += wave_offset
 
 	# apply vsini
-	model.flux = nsp.broaden(wave=model.wave, 
-		flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
+	model.flux = nsp.broaden(wave=model.wave, flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
 	
 	# apply rv (including the barycentric correction)
 	model.wave = rvShift(model.wave, rv=rv)
@@ -346,8 +369,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	if tell is True:
 		model = nsp.applyTelluric(model=model, alpha=alpha, airmass='1.5')
 	# NIRSPEC LSF
-	model.flux = nsp.broaden(wave=model.wave, 
-		flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
+	model.flux = nsp.broaden(wave=model.wave, flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
 
 	# add a fringe pattern to the model
 	#model.flux *= (1+amp*np.sin(freq*(model.wave-phase)))
@@ -357,8 +379,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	
 	# integral resampling
 	if data is not None:
-		model.flux = np.array(nsp.integralResample(xh=model.wave, 
-			yh=model.flux, xl=data.wave))
+		model.flux = np.array(nsp.integralResample(xh=model.wave, yh=model.flux, xl=data.wave))
 		model.wave = data.wave
 		# contunuum correction
 		model = nsp.continuum(data=data, mdl=model)
@@ -509,10 +530,10 @@ def lnlike(theta, data, lsf):
 	"""
 
 	## Parameters MCMC
-	teff, logg, vsini, rv, alpha, A, B, N = theta #N noise prefactor
-	#teff, logg, vsini, rv, alpha, A, B, freq, amp, phase = theta
+	teff, logg, vsini, rv, alpha, A, N = theta #A: flux offset; N: noise prefactor
 
-	model = nsp.makeModel(teff, logg, 0.0, vsini, rv, alpha, B, A,
+	## wavelength offset is set to 0
+	model = nsp.makeModel(teff, logg, 0.0, vsini, rv, alpha, 0, A,
 		lsf=lsf, order=data.order, data=data, modelset=modelset)
 
 	chisquare = nsp.chisquare(data, model)/N**2
@@ -532,7 +553,6 @@ def lnprior(theta, limits=limits):
 	and limits['rv_min']    < rv    < limits['rv_max']   \
 	and limits['alpha_min'] < alpha < limits['alpha_max']\
 	and limits['A_min']     < A     < limits['A_max']\
-	and limits['B_min']     < B     < limits['B_max']\
 	and limits['N_min']     < N     < limits['N_max']:
 		return 0.0
 
@@ -547,16 +567,15 @@ def lnprob(theta, data ,lsf):
 		
 	return lnp + lnlike(theta, data, lsf)
 
-## multiprocessing
-
 pos = [np.array([	priors['teff_min']  + (priors['teff_max']   - priors['teff_min'] ) * np.random.uniform(), 
 					priors['logg_min']  + (priors['logg_max']   - priors['logg_min'] ) * np.random.uniform(), 
 					priors['vsini_min'] + (priors['vsini_max']  - priors['vsini_min']) * np.random.uniform(),
 					priors['rv_min']    + (priors['rv_max']     - priors['rv_min']   ) * np.random.uniform(), 
 					priors['alpha_min'] + (priors['alpha_max']  - priors['alpha_min']) * np.random.uniform(),
 					priors['A_min']     + (priors['A_max']      - priors['A_min'])     * np.random.uniform(),
-					priors['B_min']     + (priors['B_max']      - priors['B_min'])     * np.random.uniform(),
 					priors['N_min']     + (priors['N_max']      - priors['N_min'])     * np.random.uniform()]) for i in range(nwalkers)]
+
+## multiprocessing
 
 with Pool() as pool:
 	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data, lsf), a=moves, pool=pool)
@@ -605,7 +624,7 @@ triangle_samples = sampler_chain[:, burn:, :].reshape((-1, ndim))
 #print(triangle_samples.shape)
 
 # create the final spectra comparison
-teff_mcmc, logg_mcmc, vsini_mcmc, rv_mcmc, alpha_mcmc, A_mcmc, B_mcmc, N_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), 
+teff_mcmc, logg_mcmc, vsini_mcmc, rv_mcmc, alpha_mcmc, A_mcmc, N_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), 
 	zip(*np.percentile(triangle_samples, [16, 50, 84], axis=0)))
 
 # add the summary to the txt file
@@ -620,7 +639,6 @@ file_log.write("vsini_mcmc {} km/s\n".format(str(vsini_mcmc)))
 file_log.write("rv_mcmc {} km/s\n".format(str(rv_mcmc)))
 file_log.write("alpha_mcmc {}\n".format(str(alpha_mcmc)))
 file_log.write("A_mcmc {}\n".format(str(A_mcmc)))
-file_log.write("B_mcmc {}\n".format(str(B_mcmc)))
 file_log.write("N_mcmc {}\n".format(str(N_mcmc)))
 file_log.close()
 
@@ -634,7 +652,6 @@ file_log2.write("vsini_mcmc {}\n".format(str(vsini_mcmc[0])))
 file_log2.write("rv_mcmc {}\n".format(str(rv_mcmc[0]+barycorr)))
 file_log2.write("alpha_mcmc {}\n".format(str(alpha_mcmc[0])))
 file_log2.write("A_mcmc {}\n".format(str(A_mcmc[0])))
-file_log2.write("B_mcmc {}\n".format(str(B_mcmc[0])))
 file_log2.write("N_mcmc {}\n".format(str(N_mcmc[0])))
 file_log2.write("teff_mcmc_e {}\n".format(str(max(abs(teff_mcmc[1]), abs(teff_mcmc[2])))))
 file_log2.write("logg_mcmc_e {}\n".format(str(max(abs(logg_mcmc[1]), abs(logg_mcmc[2])))))
@@ -657,7 +674,6 @@ fig = corner.corner(triangle_samples,
 	rv_mcmc[0]+barycorr, 
 	alpha_mcmc[0],
 	A_mcmc[0],
-	B_mcmc[0],
 	N_mcmc[0]],
 	quantiles=[0.16, 0.84],
 	label_kwargs={"fontsize": 20})
@@ -674,7 +690,6 @@ vsini = vsini_mcmc[0]
 rv    = rv_mcmc[0]
 alpha = alpha_mcmc[0]
 A     = A_mcmc[0]
-B     = B_mcmc[0]
 N     = N_mcmc[0]
 
 ## new plotting model 
@@ -691,9 +706,6 @@ model_notell = copy.deepcopy(model)
 model        = nsp.applyTelluric(model=model, alpha=alpha)
 # NIRSPEC LSF
 model.flux   = nsp.broaden(wave=model.wave, flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
-
-# wavelength offset
-model.wave        += B
 	
 # integral resampling
 model.flux   = np.array(nsp.integralResample(xh=model.wave, yh=model.flux, xl=data.wave))
@@ -704,9 +716,6 @@ model, cont_factor = nsp.continuum(data=data, mdl=model, prop=True)
 
 # NIRSPEC LSF
 model_notell.flux  = nsp.broaden(wave=model_notell.wave, flux=model_notell.flux, vbroad=lsf, rotate=False, gaussian=True)
-
-# wavelength offset
-model_notell.wave += B
 	
 # integral resampling
 model_notell.flux  = np.array(nsp.integralResample(xh=model_notell.wave, yh=model_notell.flux, xl=data.wave))
@@ -726,7 +735,7 @@ ax1 = fig.add_subplot(111)
 plt.rc('font', family='sans-serif')
 plt.tick_params(labelsize=15)
 ax1.plot(model.wave, model.flux, color='C3', linestyle='-', label='model',alpha=0.8)
-ax1.plot(model_notell.wave,model_notell.flux, color='C1', linestyle='-', label='model no telluric',alpha=0.5)
+ax1.plot(model_notell.wave,model_notell.flux, color='C0', linestyle='-', label='model no telluric',alpha=0.8)
 ax1.plot(data.wave,data.flux,'k-',
 	label='data',alpha=0.5)
 ax1.plot(data.wave,data.flux-model.flux,'k-',alpha=0.8)

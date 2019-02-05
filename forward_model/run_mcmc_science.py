@@ -22,6 +22,11 @@ import ast
 import warnings
 warnings.filterwarnings("ignore")
 
+##############################################################################################
+## This is the script to make the code multiprocessing, using arcparse to pass the arguments
+## The code is run with 8 parameters, including Teff, logg, RV, vsini, telluric alpha, and 
+## nuisance parameters for wavelength, flux and noise.
+##############################################################################################
 
 parser = argparse.ArgumentParser(description="Run the forward-modeling routine for science files",
 	usage="run_mcmc_science.py order date_obs sci_data_name tell_data_name data_path tell_path save_to_path lsf priors limits")
