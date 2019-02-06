@@ -240,7 +240,7 @@ data.updateWaveSol(tell_sp)
 
 # barycentric corrction
 barycorr      = nsp.barycorr(data.header).value
-#print("barycorr:",barycorr)
+print("barycorr:",barycorr)
 
 ## read the input custom mask and priors
 lines          = open(save_to_path+'/mcmc_parameters.txt').read().splitlines()
@@ -259,7 +259,6 @@ if modelset == 'btsettl08':
 						'rv_min':-200.0,                            'rv_max':200.0,
 						'alpha_min':0.1,                            'alpha_max':2.5,
 						'A_min':-1.0,                               'A_max':1.0,
-						'B_min':-0.6,                               'B_max':0.6,
 						'N_min':0.10,                               'N_max':2.50 				
 					}
 
@@ -271,7 +270,6 @@ elif modelset == 'phoenixaces':
 						'rv_min':-200.0,                            'rv_max':200.0,
 						'alpha_min':0.1,                            'alpha_max':2.5,
 						'A_min':-1.0,                               'A_max':1.0,
-						'B_min':-0.6,                               'B_max':0.6,
 						'N_min':0.10,                               'N_max':2.50 				
 					}
 
@@ -533,7 +531,7 @@ def lnlike(theta, data, lsf):
 	teff, logg, vsini, rv, alpha, A, N = theta #A: flux offset; N: noise prefactor
 
 	## wavelength offset is set to 0
-	model = nsp.makeModel(teff, logg, 0.0, vsini, rv, alpha, 0, A,
+	model = nsp.makeModel(teff, logg, 0.0, vsini, rv, alpha, 0.0, A,
 		lsf=lsf, order=data.order, data=data, modelset=modelset)
 
 	chisquare = nsp.chisquare(data, model)/N**2
