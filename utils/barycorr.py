@@ -3,6 +3,7 @@
 # History
 # Feb. 01 2018 Dino Hsu
 # Feb. 03 2019 Chris Theissen
+# Feb. 05 2019 Dino Hsu
 # The barycentric correction function using Astropy
 #
 
@@ -37,12 +38,12 @@ def barycorr(header):
 	barycentric correction (float*u(km/s))
 
 	"""
-	try: # upgraded NIRSPEC
+	if float(header['DATE-OBS'][0:4]) >= 2019.0: # upgraded NIRSPEC
 		ut  = header['DATE-OBS'] + 'T' + header['UT'] 
 		ra  = header['RA']
 		dec = header['DEC']
 		sc  = SkyCoord('%s %s'%(ra, dec), unit=(u.hourangle, u.deg), equinox='J2000', frame='fk5')
-	except:
+	else:
 		ut  = header['DATE-OBS'] + 'T' + header['UTC']
 		ra  = header['RA']
 		dec = header['DEC']

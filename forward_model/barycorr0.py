@@ -18,8 +18,8 @@ import astropy.units as u
 # obs_long: Longitude of observatory (degrees, **eastern** direction is positive)
 
 longitude = 360 - (155 + 28.7/60 ) # degrees
-latitude =  19 + 49.7/60 #degrees
-altitude = 4160.
+latitude  =  19 + 49.7/60 #degrees
+altitude  = 4160.
 
 keck = EarthLocation.from_geodetic(lat=latitude*u.deg, lon=longitude*u.deg, height=altitude*u.m)
 #`~astropy.coordinates.Longitude` or float
