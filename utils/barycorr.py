@@ -38,7 +38,10 @@ def barycorr(header):
 	barycentric correction (float*u(km/s))
 
 	"""
-	if float(header['DATE-OBS'][0:4]) >= 2019.0: # upgraded NIRSPEC
+	date    = Time(header['DATE-OBS'], scale='utc')
+	jd      = date.jd
+
+	if jd >= 2458401.500000: # upgraded NIRSPEC
 		ut  = header['DATE-OBS'] + 'T' + header['UT'] 
 		ra  = header['RA']
 		dec = header['DEC']
