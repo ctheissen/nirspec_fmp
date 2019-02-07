@@ -54,19 +54,20 @@ data_BASE              = '/home/chh194/data/nirspec_all/'
 save_BASE              = '/home/chh194/analysis/'
 
 ## priors
-priors                 =  { 'teff_min':1090,  'teff_max':1110,
-							'logg_min':4.0,  'logg_max':5.0,
-							'vsini_min':0.0,  'vsini_max':100.0,
-							'rv_min':-50.0,    'rv_max':50.0,
-							'alpha_min':0.9,  'alpha_max':1.1,
-							'A_min':-0.01,     'A_max':0.01,
-							'N_min':0.99,      'N_max':1.01 			}
+priors                 =  { #'teff_min':1090,  'teff_max':1110,
+							'teff_min':800,		'teff_max':1200,
+							'logg_min':4.0,		'logg_max':5.0,
+							'vsini_min':0.0,	'vsini_max':70.0,
+							'rv_min':-50.0,		'rv_max':50.0,
+							'alpha_min':0.9,	'alpha_max':1.1,
+							'A_min':-0.01,		'A_max':0.01,
+							'N_min':0.99,		'N_max':1.01 			}
 
 teff_min_limit		   = 800
 teff_max_limit 		   = 1300
 
 ## save to catalogue
-save_catalougue        = True
+save_catalougue        = False
 #catalougue_path        = '/Users/dinohsu/nirspec/catalogues/NIRSPEC_RV_measurements.xlsx'
 
 #########################################
@@ -78,19 +79,19 @@ for source in data_dic.keys():
 
 			print("MCMC for {} on {} {} order {}".format(source, date_obs, sci_data_name, order))
 
-			data_path      = data_BASE + date_obs + '/reduced3/fits/all'
+			data_path      = data_BASE + date_obs + '/reduced/fits/all'
 
 			tell_path      = save_BASE + source + '/' \
-			+ date_obs +'/telluric_wave_cal3/' + tell_data_name + '/O' + str(order)
+			+ date_obs +'/telluric_wave_cal/' + tell_data_name + '/O' + str(order)
 		
 			save_to_path   = save_BASE + source + '/' \
-			+ date_obs + '/mcmc3/' + sci_data_name + '/O' + str(order) + '/{}_{}_{}'.format(ndim, nwalkers, step)
+			+ date_obs + '/mcmc/' + sci_data_name + '/O' + str(order) + '/{}_{}_{}'.format(ndim, nwalkers, step)
 
-			catalougue_path= save_BASE + source + '/{}_fit_table.xlsx'.foramt(source)
+			catalougue_path= save_BASE + source + '/{}_fit_table.xlsx'.format(source)
 
 			if coadd:
 				save_to_path   = save_BASE + source + '/' \
-				+ date_obs + '/mcmc3/' + sci_data_name + '+' + sci_data_name2 + '/O' + str(order) + '/{}_{}_{}'.format(ndim, nwalkers, step)
+				+ date_obs + '/mcmc/' + sci_data_name + '+' + sci_data_name2 + '/O' + str(order) + '/{}_{}_{}'.format(ndim, nwalkers, step)
 
 			save_to_path0  = save_to_path + '/telluric_mcmc'
 			save_to_path1  = save_to_path + '/init_mcmc'
@@ -197,8 +198,8 @@ for source in data_dic.keys():
 						'rv_min':float(df[1][3])-0.1-barycorr,     'rv_max':float(df[1][3])+0.1-barycorr,
 						'alpha_min':float(df[1][4])-0.01,          'alpha_max':float(df[1][4])+0.01,
 						'A_min':float(df[1][5])-0.001,             'A_max':float(df[1][5])+0.001,
-						'B_min':float(df[1][6])-0.001,             'B_max':float(df[1][6])+0.001,
-						'N_min':float(df[1][7])-0.001,             'N_max':float(df[1][7])+0.001  		}
+						#'B_min':float(df[1][6])-0.001,             'B_max':float(df[1][6])+0.001,
+						'N_min':float(df[1][6])-0.001,             'N_max':float(df[1][6])+0.001  		}
 
 			## mask based on the MCMC parameters with the outlier rejection
 			mcmc_dic = {'teff':float(df[1][0]),
@@ -207,8 +208,8 @@ for source in data_dic.keys():
 						'rv':float(df[1][3]),
 						'alpha':float(df[1][4]),
 						'A':float(df[1][5]),
-						'B':float(df[1][6]),
-						'N':float(df[1][7]),
+						#'B':float(df[1][6]),
+						'N':float(df[1][6]),
 						'lsf':lsf
 						}
 
@@ -218,7 +219,7 @@ for source in data_dic.keys():
 
 			model = nsp.makeModel(mcmc_dic['teff'], mcmc_dic['logg'],0,
 				mcmc_dic['vsini'], mcmc_dic['rv']-barycorr, mcmc_dic['alpha'], 
-				mcmc_dic['B'], mcmc_dic['A'], lsf=mcmc_dic['lsf'], data=data, order=data.order)
+				0, mcmc_dic['A'], lsf=mcmc_dic['lsf'], data=data, order=data.order)
 			pixel = np.delete(np.arange(len(data2.oriWave)),data2.mask)[pixel_start: pixel_end]
 			custom_mask2 = pixel[np.where(np.abs(data2.flux-model.flux[pixel_start: pixel_end]) > outlier_rejection*np.std(data2.flux-model.flux[pixel_start: pixel_end]))]
 			"""
@@ -293,8 +294,8 @@ for source in data_dic.keys():
 				try:
 					rvcat = pd.read_excel(catalougue_path)
 				except:
-					rvcat = pd.DataFrame(columns=['source','date_obs','sci_filename','tell_filename','rv','e_rv','vsini','e_vsini',
-						'teff','e_teff','logg','e_logg','snr','wave_cal_err'])
+					rvcat = pd.DataFrame(columns=['source','date_obs','sci_filename','tell_filename','order',
+						'rv','e_rv','vsini','e_vsini','teff','e_teff','logg','e_logg','snr','wave_cal_err'])
 
 				rv           = round(float(df2[df2[0]=='rv_mcmc'][1]),1)
 				e_rv         = round(float(df2[df2[0]=='rv_mcmc_e'][1]),1)
@@ -308,22 +309,24 @@ for source in data_dic.keys():
 				wave_cal_err = tell_sp.header['STD']
 
 				try:
-					rvcat['rv'][rvcat['filename']            == sci_data_name] = rv
-					rvcat['e_rv'][rvcat['filename']          == sci_data_name] = e_rv
-					rvcat['vsini'][rvcat['filename']         == sci_data_name] = vsini
-					rvcat['e_vsini'][rvcat['filename']       == sci_data_name] = e_vsini
-					rvcat['teff'][rvcat['filename']          == sci_data_name] = teff
-					rvcat['e_teff'][rvcat['filename']        == sci_data_name] = e_teff
-					rvcat['logg'][rvcat['filename']          == sci_data_name] = logg
-					rvcat['e_logg'][rvcat['filename']        == sci_data_name] = e_logg
-					rvcat['snr'][rvcat['filename']           == sci_data_name] = snr
-					rvcat['tell_filename'][rvcat['filename'] == sci_data_name] = tell_data_name
-					rvcat['wave_cal_err'][rvcat['filename']  == sci_data_name] = wave_cal_err
+					rvcat['order'][rvcat['sci_filename']         == sci_data_name] = order
+					rvcat['rv'][rvcat['sci_filename']            == sci_data_name] = rv
+					rvcat['e_rv'][rvcat['sci_filename']          == sci_data_name] = e_rv
+					rvcat['vsini'][rvcat['sci_filename']         == sci_data_name] = vsini
+					rvcat['e_vsini'][rvcat['sci_filename']       == sci_data_name] = e_vsini
+					rvcat['teff'][rvcat['sci_filename']          == sci_data_name] = teff
+					rvcat['e_teff'][rvcat['sci_filename']        == sci_data_name] = e_teff
+					rvcat['logg'][rvcat['sci_filename']          == sci_data_name] = logg
+					rvcat['e_logg'][rvcat['sci_filename']        == sci_data_name] = e_logg
+					rvcat['snr'][rvcat['sci_filename']           == sci_data_name] = snr
+					rvcat['tell_filename'][rvcat['sci_filename'] == sci_data_name] = tell_data_name
+					rvcat['wave_cal_err'][rvcat['sci_filename']  == sci_data_name] = wave_cal_err
 
 				except:
 					rvcat.append({'source':source,'date_obs':date_obs,'sci_filename':sci_data_name,
-						'rv': rv,'e_rv':e_rv,'vsini':vsini,'e_vsini':e_vsini,
+						'tell_filename':tell_data_name,'order':order,
+						'rv':rv,'e_rv':e_rv,'vsini':vsini,'e_vsini':e_vsini,
 						'teff':teff,'e_teff':e_teff,'logg':logg,'e_logg':e_logg,'snr':snr,
-						'tell_filename':tell_filename,'wave_cal_err':wave_cal_err}, ignore_index=True)
+						'wave_cal_err':wave_cal_err}, ignore_index=True)
 
 				rvcat.to_excel(catalougue_path,index=False)

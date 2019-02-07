@@ -248,8 +248,11 @@ custom_mask    = json.loads(lines[5].split('custom_mask')[1])
 priors         = ast.literal_eval(lines[6].split('priors ')[1])
 
 # no logg 5.5 for teff lower than 900
-if priors['teff_min'] <= 1100: logg_max = 5.0
+if priors['teff_min'] <= 1300: logg_max = 5.0
 else: logg_max = 5.5
+
+# limit of the flux nuisance parameter: 5 percent of the median flux
+A_const       = 0.05 * abs(np.median(data.flux))
 
 if modelset == 'btsettl08':
 	limits         = { 
@@ -257,8 +260,8 @@ if modelset == 'btsettl08':
 						'logg_min':3.5,                             'logg_max':logg_max,
 						'vsini_min':0.0,                            'vsini_max':100.0,
 						'rv_min':-200.0,                            'rv_max':200.0,
-						'alpha_min':0.1,                            'alpha_max':2.5,
-						'A_min':-1.0,                               'A_max':1.0,
+						'alpha_min':0.1,                            'alpha_max':4.0,
+						'A_min':-A_const,							'A_max':A_const,
 						'N_min':0.10,                               'N_max':2.50 				
 					}
 
@@ -269,7 +272,7 @@ elif modelset == 'phoenixaces':
 						'vsini_min':0.0,                            'vsini_max':100.0,
 						'rv_min':-200.0,                            'rv_max':200.0,
 						'alpha_min':0.1,                            'alpha_max':2.5,
-						'A_min':-1.0,                               'A_max':1.0,
+						'A_min':-A_const,                           'A_max':A_const,
 						'N_min':0.10,                               'N_max':2.50 				
 					}
 
@@ -595,7 +598,7 @@ np.save(save_to_path + '/samples', samples)
 sampler_chain = np.load(save_to_path + '/sampler_chain.npy')
 samples = np.load(save_to_path + '/samples.npy')
 
-ylabels = ["$Teff (K)$","$log \, g$","$vsin \, i \, (km/s)$","$rv \, (km/s)$","$alpha$","$C_{flux}$","$C_{wave}$","$C_{noise}$"]
+ylabels = ["$Teff (K)$","$log \, g$","$vsin \, i \, (km/s)$","$rv \, (km/s)$","$alpha$","$C_{flux}$","$C_{noise}$"]
 
 ## create walker plots
 plt.rc('font', family='sans-serif')

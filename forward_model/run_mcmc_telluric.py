@@ -137,10 +137,10 @@ pixel       = np.delete(np.arange(length1),tell_sp.mask)
 pixel       = pixel[pixel_start:pixel_end]
 
 if priors is None:
-	priors =  { 'lsf_min':4.0,  	'lsf_max':10.0,
-				'alpha_min':0.3,  	'alpha_max':4.0,
+	priors =  { 'lsf_min':3.0,  	'lsf_max':6.0,
+				'alpha_min':0.3,  	'alpha_max':3.0,
 				'A_min':-1.0,    	'A_max':1.0,
-				'B_min':-0.5,		'B_max':0.5    	}
+				'B_min':-0.02,		'B_max':0.02    	}
 
 if save_to_path is None:
 	save_to_path = './mcmc'
@@ -173,7 +173,7 @@ def makeTelluricModel(lsf, alpha, flux_offset, wave_offset0, data=data):
 	else:
 		model               = nsp.continuum(data=data2, mdl=telluric_model, deg=2)
 	
-	model.flux         += flux_offset
+	model.flux             += flux_offset
 
 	return model
 
@@ -222,10 +222,10 @@ def lnprior(theta):
 	## Parameters for theta
 	lsf, alpha, A, B = theta
 
-	limits =  { 'lsf_min':1.0  ,  'lsf_max':20.0,
-				'alpha_min':0.3,  'alpha_max':2.0,
+	limits =  { 'lsf_min':2.0  ,  'lsf_max':10.0,
+				'alpha_min':0.3,  'alpha_max':4.0,
 				'A_min':-500.0   ,  'A_max':500.0,
-				'B_min':-0.5   ,  'B_max':0.5    }
+				'B_min':-0.02   ,  'B_max':0.02    }
 
 	if  limits['lsf_min']   < lsf  < limits['lsf_max'] \
 	and limits['alpha_min'] < alpha < limits['alpha_max']\
