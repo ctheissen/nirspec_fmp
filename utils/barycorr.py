@@ -27,7 +27,7 @@ keck = EarthLocation.from_geodetic(lat=latitude*u.deg, lon=longitude*u.deg, heig
 #   Earth East longitude.  Can be anything that initialises an
 #   `~astropy.coordinates.Angle` object (if float, in degrees)
 
-def barycorr(header):
+def barycorr(header, instrument='nirspec'):
 	"""
 	Calculate the barycentric correction using Astropy.
 	

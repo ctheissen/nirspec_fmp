@@ -26,7 +26,7 @@ import nirspec_fmp as nsp
 
 class Model():
     """
-    The Model class reads in the BT-SETTL models.    
+    The Model class reads in the BT-SETTL or PHOENIXACES models.    
 
     Parameters
     ----------
@@ -69,21 +69,15 @@ class Model():
     def __init__(self, **kwargs):
         self.path  = kwargs.get('path')
         self.order = kwargs.get('order')
+        self.instrument = kwargs.get('instrument','nirspec')
 
-        if self.order != None:
-            self.teff = kwargs.get('teff', 3000.)
-            self.logg = kwargs.get('logg', 5.)
-            self.feh = kwargs.get('feh', 0)
-            self.en = kwargs.get('en', 0)
+        if self.order != None and self.instrument == 'nirspec':
+            self.teff     = kwargs.get('teff', 2500)
+            self.logg     = kwargs.get('logg', 5.00)
+            self.feh      = kwargs.get('feh', 0.00)
+            self.en       = kwargs.get('en', 0.00)
             self.modelset = kwargs.get('modelset', 'btsettl08')
-            if self.teff == None:
-                self.teff = 2500
-            if self.logg == None:
-                self.logg = 5.00
-            if self.feh  == None:
-                self.feh  = 0.00
-            if self.en   == None:
-                self.en   = 0.00
+
             #print('Return a BT-Settl model of the order {0}, with Teff {1} logg {2}, z {3}, Alpha enhancement {4}.'\
             #    .format(self.order, self.teff, self.logg, self.feh, self.en))
         
@@ -99,7 +93,21 @@ class Model():
             #self.flux = sp.flux.value
 
             wave, flux = nsp.forward_model.InterpolateModel.InterpModel(self.teff, self.logg,
-                modelset=self.modelset, order=self.order)
+                modelset=self.modelset, order=self.order, instrument=self.instrument)
+
+            self.wave = wave * 10000 #convert to Angstrom
+            self.flux = flux
+
+        elif self.instrument == 'apogee':
+            self.teff     = kwargs.get('teff', 2500)
+            self.logg     = kwargs.get('logg', 5.00)
+            self.feh      = kwargs.get('feh', 0.00)
+            self.en       = kwargs.get('en', 0.00)
+            self.modelset = kwargs.get('modelset', 'btsettl08')
+
+            wave, flux = nsp.forward_model.InterpolateModel.InterpModel(self.teff, self.logg,
+                modelset=self.modelset, order=self.order, instrument=self.instrument)
+
             self.wave = wave * 10000 #convert to Angstrom
             self.flux = flux
 

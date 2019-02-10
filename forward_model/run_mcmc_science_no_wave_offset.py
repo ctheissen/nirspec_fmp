@@ -364,7 +364,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	model.flux = nsp.broaden(wave=model.wave, flux=model.flux, vbroad=vsini, rotate=True, gaussian=False)
 	
 	# apply rv (including the barycentric correction)
-	model.wave = rvShift(model.wave, rv=rv)
+	model.wave = nsp.rvShift(model.wave, rv=rv)
 	
 	# apply telluric
 	if tell is True:

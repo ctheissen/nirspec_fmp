@@ -6,17 +6,22 @@ from astropy.table import Table
 
 ################################################################
 
-def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
+def InterpModel(Teff, Logg, modelset='btsettl08', order=33, instrument='nirspec'):
 
     FULL_PATH  = os.path.realpath(__file__)
     BASE, NAME = os.path.split(FULL_PATH)
 
     # Check the model set
-    if modelset == 'btsettl08':
-        path = BASE + '/../libraries/btsettl08/NIRSPEC-O%s-RAW/'%order
+    if instrument == 'nirspec':
+        if modelset == 'btsettl08':
+            path = BASE + '/../libraries/btsettl08/NIRSPEC-O%s-RAW/'%order
 
-    elif modelset == 'phoenixaces' :
-        path = BASE + '/../libraries/phoenixaces/NIRSPEC-O%s-RAW/'%order
+        elif modelset == 'phoenixaces' :
+            path = BASE + '/../libraries/phoenixaces/NIRSPEC-O%s-RAW/'%order
+
+    elif instrument == 'apogee':
+        if modelset == 'btsettl08':
+            path = BASE + '/../libraries/btsettl08/APOGEE-RAW/'
 
     def bilinear_interpolation(x, y, points):
         '''Interpolate (x,y) from values associated with four points.
@@ -49,12 +54,16 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
                ) / ((x2 - x1) * (y2 - y1) + 0.0))
 
 
-    def GetModel(temp, logg, modelset = 'btsettl08', wave=False):
+    def GetModel(temp, logg, modelset='btsettl08', wave=False, instrument=instrument):
         feh, en = 0.00, 0.00
-        if modelset == 'btsettl08':
-            filename = 'btsettl08_t'+ str(int(temp.data[0])) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
-        if modelset == 'phoenixaces':
-            filename = 'phoenixaces_t{0:03d}'.format(int(temp.data[0])) + '_g{0:.2f}'.format(float(logg)) + '_z-{0:.2f}'.format(float(feh)) + '_en{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+        if instrument == 'nirspec':
+            if modelset == 'btsettl08':
+                filename = 'btsettl08_t'+ str(int(temp.data[0])) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+            if modelset == 'phoenixaces':
+                filename = 'phoenixaces_t{0:03d}'.format(int(temp.data[0])) + '_g{0:.2f}'.format(float(logg)) + '_z-{0:.2f}'.format(float(feh)) + '_en{0:.2f}'.format(float(en)) + '_NIRSPEC-O' + str(order) + '-RAW.txt'
+        elif instrument == 'apogee':
+            if modelset == 'btsettl08':
+                filename = 'btsettl08_t'+ str(int(temp.data[0])) + '_g' + '{0:.2f}'.format(float(logg)) + '_z-' + '{0:.2f}'.format(float(feh)) + '_en' + '{0:.2f}'.format(float(en)) + '_APOGEE-RAW.txt'
 
         Tab = Table.read(path+filename, format='ascii.tab', names=['wave', 'flux'])
 
@@ -71,10 +80,15 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33):
         dist = (LoggArr - logg)**2
         return LoggArr[np.argsort(dist)][0:2]
 
-    if modelset == 'btsettl08':
-        Gridfile = BASE + '/../libraries/btsettl08/btsettl08_gridparams.csv'
-    elif modelset == 'phoenixaces':
-        Gridfile = BASE + '/../libraries/phoenixaces/phoenixaces_gridparams.csv'
+    if instrument == 'nirspec':
+        if modelset == 'btsettl08':
+            Gridfile = BASE + '/../libraries/btsettl08/btsettl08_gridparams.csv'
+        elif modelset == 'phoenixaces':
+            Gridfile = BASE + '/../libraries/phoenixaces/phoenixaces_gridparams.csv'
+    elif instrument == 'apogee':
+        if modelset == 'btsettl08':
+            Gridfile = BASE + '/../libraries/btsettl08/btsettl08_gridparams_apogee.csv'
+
     T1 = Table.read(Gridfile)
 
     # Check if the model already exists (grid point)

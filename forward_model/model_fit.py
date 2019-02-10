@@ -33,18 +33,22 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	"""
 
 	# read in the parameters
-	order    = kwargs.get('order', 33)
-	modelset = kwargs.get('modelset', 'btsettl08')
-	lsf      = kwargs.get('lsf', 6.0)   # instrumental LSF
-	tell     = kwargs.get('tell', True) # apply telluric
-	data     = kwargs.get('data', None) # for continuum correction and resampling
+	order      = kwargs.get('order', 33)
+	modelset   = kwargs.get('modelset', 'btsettl08')
+	instrument = kwargs.get('instrument', 'nirspec')
+	lsf        = kwargs.get('lsf', 6.0)   # instrumental LSF
+	tell       = kwargs.get('tell', True) # apply telluric
+	data       = kwargs.get('data', None) # for continuum correction and resampling
 	
-	if data is not None:
+	if data is not None and instrument == 'nirspec':
 		order = data.order
-	# read in a model
-	#print('teff ',teff,'logg ',logg, 'z', z, 'order', order, 'modelset', modelset)
-	#print('teff ',type(teff),'logg ',type(logg), 'z', type(z), 'order', type(order), 'modelset', type(modelset))
-	model    = nsp.Model(teff=teff, logg=logg, feh=z, order=order, modelset=modelset)
+		# read in a model
+		#print('teff ',teff,'logg ',logg, 'z', z, 'order', order, 'modelset', modelset)
+		#print('teff ',type(teff),'logg ',type(logg), 'z', type(z), 'order', type(order), 'modelset', type(modelset))
+		model    = nsp.Model(teff=teff, logg=logg, feh=z, order=order, modelset=modelset, instrument=instrument)
+
+	elif data is not None and instrument == 'apogee':
+		model    = nsp.Model(teff=teff, logg=logg, feh=z, modelset=modelset, instrument=instrument)
 	
 	# wavelength offset
 	#model.wave += wave_offset
@@ -59,7 +63,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	# apply telluric
 	if tell is True:
 		model = nsp.applyTelluric(model=model, alpha=alpha, airmass='1.5')
-	# NIRSPEC LSF
+	# instrumental LSF
 	model.flux = nsp.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
 
@@ -68,7 +72,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 
 	# wavelength offset
 	model.wave += wave_offset
-	
+
 	# integral resampling
 	if data is not None:
 		model.flux = np.array(nsp.integralResample(xh=model.wave, 

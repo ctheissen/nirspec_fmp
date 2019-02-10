@@ -49,38 +49,77 @@ class Spectrum():
 
 	"""
 	def __init__(self, **kwargs):
-		self.name = kwargs.get('name')
-		self.order = kwargs.get('order')
-		self.path = kwargs.get('path')
-		self.applymask = kwargs.get('applymask',False)
-		#self.manaulmask = kwargs('manaulmask', False)
+		self.instrument = kwargs.get('instrument','nirspec')
+		if self.instrument == 'nirspec':
+			self.name      = kwargs.get('name')
+			self.order     = kwargs.get('order')
+			self.path      = kwargs.get('path')
+			self.applymask = kwargs.get('applymask',False)
+			#self.manaulmask = kwargs('manaulmask', False)
 
-		if self.path == None:
-			self.path = './'
+			if self.path == None:
+				self.path = './'
 
-		fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
+			fullpath = self.path + '/' + self.name + '_' + str(self.order) + '_all.fits'
 
-		hdulist = fits.open(fullpath, ignore_missing_end=True)
+			hdulist = fits.open(fullpath, ignore_missing_end=True)
 
-		#The indices 0 to 3 correspond to wavelength, flux, noise, and sky
-		self.header= hdulist[0].header
-		self.wave  = hdulist[0].data
-		self.flux  = hdulist[1].data
-		self.noise = hdulist[2].data
-		try:
-			self.sky = hdulist[3].data
-		except IndexError:
-			print("No sky line data.")
-			self.sky = np.zeros(self.wave.shape) 
-		self.mask  = []
+			#The indices 0 to 3 correspond to wavelength, flux, noise, and sky
+			self.header = hdulist[0].header
+			self.wave   = hdulist[0].data
+			self.flux   = hdulist[1].data
+			self.noise  = hdulist[2].data
+			try:
+				self.sky = hdulist[3].data
+			except IndexError:
+				print("No sky line data.")
+				self.sky = np.zeros(self.wave.shape)
 
-		# define a list for storing the best wavelength shift
-		self.bestshift = []
+			self.mask  = []
 
-		# store the original parameters
-		self.oriWave  = hdulist[0].data
-		self.oriFlux  = hdulist[1].data
-		self.oriNoise = hdulist[2].data
+			# define a list for storing the best wavelength shift
+			self.bestshift = []
+
+			# store the original parameters
+			self.oriWave  = hdulist[0].data
+			self.oriFlux  = hdulist[1].data
+			self.oriNoise = hdulist[2].data
+
+		elif self.instrument == 'apogee':
+			self.name      = kwargs.get('name')
+			self.path      = kwargs.get('path')
+			self.datatype  = kwargs.get('datatype','aspcap')
+			self.applymask = kwargs.get('applymask',False)
+			self.wavecal  = kwargs.get('wavecal', self)
+
+			hdulist        = fits.open(self.path)
+			if self.datatype == 'aspcap':
+				crval1         = hdulist[1].header['CRVAL1']
+				cdelt1         = hdulist[1].header['CDELT1']
+				naxis1         = hdulist[1].header['NAXIS1']
+				self.header4   = hdulist[4].header
+				self.param     = hdulist[4].data['PARAM']
+			elif self.datatype == 'ap1d':
+				# use aspcap data as wavelength calibrators
+				crval1         = self.wavecal.header1['CRVAL1']
+				cdelt1         = self.wavecal.header1['CDELT1']
+				naxis1         = self.wavecal.header1['NAXIS1']
+
+			self.header   = hdulist[0].header
+			self.header1  = hdulist[1].header
+			self.header2  = hdulist[2].header
+			self.header3  = hdulist[3].header
+
+			self.wave     = np.array(pow(10, crval1 + cdelt1 * np.arange(naxis1)))    
+			self.flux     = np.array(hdulist[1].data)
+			self.noise    = np.array(hdulist[2].data)
+			self.model    = np.array(hdulist[3].data)
+			self.mask     = []
+
+			# store the original parameters
+			self.oriWave  = np.array(pow(10, crval1 + cdelt1 * np.arange(naxis1)))
+			self.oriFlux  = np.array(hdulist[1].data)
+			self.oriNoise = np.array(hdulist[2].data)
 
 		if self.applymask:
 			# set up masking criteria
@@ -92,10 +131,16 @@ class Spectrum():
 			self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
 		
 			self.mask  = np.where(self.smoothFlux <= 0)
+
+			if self.instrument == 'apogee':
+				#self.mask = np.union1d(self.mask[0],np.where(self.noise >= self.flux)[0])
+				noise_median = np.median(self.noise)
+				self.mask = np.union1d(self.mask[0], np.where(self.noise >= 2*noise_median)[0])
 			self.wave  = np.delete(self.wave, list(self.mask))
 			self.flux  = np.delete(self.flux, list(self.mask))
 			self.noise = np.delete(self.noise, list(self.mask))
-			self.sky   = np.delete(self.sky, list(self.mask))
+			if self.instrument == 'nirspec':
+				self.sky   = np.delete(self.sky, list(self.mask))
 			self.mask  = self.mask[0]
 
 	def mask_custom(self, custom_mask):
