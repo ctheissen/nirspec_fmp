@@ -43,8 +43,8 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
     std_mdldiv      = np.std(mdldiv)
     
     ## replace outliers with average value
-    mdldiv[mdldiv  <= mean_mdldiv - 2 * std_mdldiv] = mean_mdldiv
-    mdldiv[mdldiv  >= mean_mdldiv + 2 * std_mdldiv] = mean_mdldiv
+    #mdldiv[mdldiv  <= mean_mdldiv - 2 * std_mdldiv] = mean_mdldiv
+    #mdldiv[mdldiv  >= mean_mdldiv + 2 * std_mdldiv] = mean_mdldiv
     pcont           = np.polyfit(data.wave, mdldiv, deg)
     #select_poly_fit = np.where(np.absolute(mdldiv - mean_mdldiv) <= 2 * std_mdldiv)
     #mdldiv          = mdldiv[select_poly_fit]

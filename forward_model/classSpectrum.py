@@ -128,14 +128,16 @@ class Spectrum():
 
 			self.smoothFlux = self.flux
 			# set the outliers as the flux below 
-			self.smoothFlux[self.smoothFlux <= self.avgFlux-2*self.stdFlux] = 0
+			#self.smoothFlux[self.smoothFlux <= self.avgFlux - 2 * self.stdFlux] = 0
+			#self.smoothFlux[ np.abs(self.smoothFlux - self.avgFlux ) <= 2 * self.stdFlux] = 0
 		
-			self.mask  = np.where(self.smoothFlux <= 0)
+			self.mask  = np.where(np.abs(self.flux - self.avgFlux ) >= 3 * self.stdFlux)
+			print(self.mask)
 
 			if self.instrument == 'apogee':
 				#self.mask = np.union1d(self.mask[0],np.where(self.noise >= self.flux)[0])
 				noise_median = np.median(self.noise)
-				self.mask = np.union1d(self.mask[0], np.where(self.noise >= 2*noise_median)[0])
+				self.mask = np.union1d(self.mask[0], np.where(self.noise >= 3 * noise_median)[0])
 			self.wave  = np.delete(self.wave, list(self.mask))
 			self.flux  = np.delete(self.flux, list(self.mask))
 			self.noise = np.delete(self.noise, list(self.mask))

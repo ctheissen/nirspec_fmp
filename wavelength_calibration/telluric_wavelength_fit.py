@@ -9,6 +9,7 @@ from scipy.optimize import curve_fit
 from scipy.interpolate import UnivariateSpline
 from scipy.special import wofz
 import time
+import sys
 import nirspec_fmp as nsp
 
 FULL_PATH  = os.path.realpath(__file__)
@@ -638,6 +639,13 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	#vbroad = nsp.getLSF(data2, continuum=False)
 	print("LSF for telluric wavelength calibration: ", vbroad)
 
+	## test
+	#for index in [189,  320,  449,  498,  941]:
+	#	index = int(index)
+	#	index_left  = index - 1
+	#	index_right = index + 1
+	#	data.flux[index] = (data.flux[index_left] + data.flux[index_right])/2
+
 	data2       = copy.deepcopy(data)
 	model2      = copy.deepcopy(model)
 
@@ -645,11 +653,15 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	#plt.figure()
 	#plt.plot(data2.wave, data2.flux, lw=0.5, alpha=0.5, c='b')
 	if applymask:
-		pixel0      = np.delete(pixel0, mask_custom)
-		data2.wave  = np.delete(data.wave, mask_custom)
-		data2.flux  = np.delete(data.flux, mask_custom)
-	#plt.plot(data2.wave, data2.flux, lw=0.5, alpha=0.5, c='r')
+		mask_combined = np.union1d(mask_custom, data.mask)
+		pixel0      = np.delete(pixel0, mask_combined)
+		data2.wave  = np.delete(data.wave, mask_combined)
+		data2.flux  = np.delete(data.flux, mask_combined)
+
+	#plt.plot(data2.oriWave, data2.oriFlux/200.0, linewidth=0.5, alpha=0.5, color='black')
+	#plt.plot(data2.wave, data2.flux, linewidth=0.5, alpha=0.5, color='red')
 	#plt.show()
+	#plt.close()
 	#sys.exit()
 
 	model2.flux = nsp.broaden(wave=model2.wave, flux=model2.flux, vbroad=vbroad, 
@@ -659,10 +671,6 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	model2.flux = np.array(nsp.integralResample(xh=model2.wave, 
 		                                        yh=model2.flux, xl=data2.wave))
 	model2.wave = data2.wave
-
-	#plt.plot(model.wave, model.flux, 'r-', alpha=0.5)
-	#plt.plot(data.wave, data.flux, 'k-', alpha=0.5)
-	#plt.show()
 
 	# fitting the new wavelength solution
 	#if test is True:
