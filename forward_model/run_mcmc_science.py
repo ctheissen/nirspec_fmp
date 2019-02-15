@@ -248,7 +248,7 @@ custom_mask    = json.loads(lines[5].split('custom_mask')[1])
 priors         = ast.literal_eval(lines[6].split('priors ')[1])
 
 # no logg 5.5 for teff lower than 900
-if priors['teff_min'] <= 1300: logg_max = 5.0
+if priors['teff_min'] < 900: logg_max = 5.0
 else: logg_max = 5.5
 
 # limit of the flux nuisance parameter: 5 percent of the median flux
