@@ -39,8 +39,10 @@ def compute_uvw_velocity(ra_J2000, dec_J2000, parallax, rv, mu_ra, mu_dec, e_par
 
 	Returns
 	-------
-	u, v, w 	:	float, float, float
+	uvw 		:	array-like
 					UVW velocities in km/s
+	e_uvw 		:	array-like
+					errors of UVW velocities in km/s
 
 	"""
 	## convert ra and dec into radians (the paper uses equinox 1950)
