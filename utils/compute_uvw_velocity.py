@@ -15,22 +15,22 @@ def compute_uvw_velocity(ra_J2000, dec_J2000, parallax, rv, mu_ra, mu_dec, e_par
 					Dec of the source in degrees
 
 	parallax	:	float
-					the parallax in arcsec
+					the parallax in mas
 	rv			:	float
 					the radial velocity in km/s
 	mu_ra		:	float
-					the proper motion in right ascension in arcsec/yr
+					the proper motion in right ascension in mas/yr
 	mu_dec		:	float
-					the proper motion in declination in arcsec/yr
+					the proper motion in declination in mas/yr
 
 	e_parallax	:	float
-					the error of parallax in arcsec
+					the error of parallax in mas
 	e_rv		:	float
 					the error of radial velocity in km/s
 	e_mu_ra		:	float
-					the error of proper motion in right ascension in arcsec/yr
+					the error of proper motion in right ascension in mas/yr
 	e_mu_dec	:	float
-					the error of proper motion in declination in arcsec/yr
+					the error of proper motion in declination in mas/yr
 
 	Optional Parameters
 	-------------------
@@ -45,6 +45,15 @@ def compute_uvw_velocity(ra_J2000, dec_J2000, parallax, rv, mu_ra, mu_dec, e_par
 					errors of UVW velocities in km/s
 
 	"""
+	## convert proper motions and parallax from mas to arcsec
+	parallax   /= 1000
+	mu_ra 	   /= 1000
+	mu_dec 	   /= 1000
+
+	e_parallax /= 1000
+	e_mu_ra    /= 1000
+	e_mu_dec   /= 1000
+
 	## convert ra and dec into radians (the paper uses equinox 1950)
 	coord_J2000 = SkyCoord(ra_J2000*u.deg, dec_J2000*u.deg, unit='deg', frame='icrs')
 
