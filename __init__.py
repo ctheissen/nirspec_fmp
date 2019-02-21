@@ -12,6 +12,7 @@ from .wavelength_calibration.residual import residual
 from .utils.stats import chisquare
 from .utils.addKeyword import addKeyword
 from .utils.listTarget import makeTargetList
+from .utils.compute_uvw_velocity import compute_uvw_velocity
 try:
 	from .utils.defringeflat import defringeflat, defringeflatAll
 except ImportError:
