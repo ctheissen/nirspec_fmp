@@ -53,37 +53,40 @@ def compute_uvw_velocity(ra_J2000, dec_J2000, parallax, rv, mu_ra, mu_dec, e_par
 	ra          = coord_J1950.ra.value
 	dec         = coord_J1950.dec.value
 
-	## define the A matrix
-	A_ra      = np.array([	[	+np.cos(ra*np.pi/180),	+np.sin(ra*np.pi/180),	0],
-							[	+np.sin(ra*np.pi/180),	-np.cos(ra*np.pi/180),	0],
-							[						0,						0, -1]])
+	## degree to radian conversion
+	deg_to_rad  = np.pi/180
 
-	A_dec	  = np.array([	[	+np.cos(dec*np.pi/180),	0,	-np.sin(dec*np.pi/180)],
-							[						0, -1,						 0],
-							[	-np.sin(dec*np.pi/180),	0,	-np.cos(dec*np.pi/180)]])
+	## define the A matrix
+	A_ra      = np.array([	[	+np.cos(ra*deg_to_rad),		+np.sin(ra*deg_to_rad),	0],
+							[	+np.sin(ra*deg_to_rad),		-np.cos(ra*deg_to_rad),	0],
+							[						 0,							0, -1]])
+
+	A_dec	  = np.array([	[	+np.cos(dec*deg_to_rad),	 0,	-np.sin(dec*deg_to_rad)],
+							[						  0, 	-1,						  0],
+							[	-np.sin(dec*deg_to_rad),	 0,	-np.cos(dec*deg_to_rad)]])
 
 	A         = A_ra.dot(A_dec)
 
-	#A0 		= np.array([[ 	+np.cos(ra*np.pi/180)*np.cos(dec*np.pi/180), -np.sin(ra*np.pi/180), -np.cos(ra*np.pi/180)*np.sin(dec*np.pi/180)],
-	#					[	+np.sin(ra*np.pi/180)*np.cos(dec*np.pi/180), +np.cos(ra*np.pi/180), -np.sin(ra*np.pi/180)*np.sin(dec*np.pi/180)],
-	#					[	+np.sin(dec*np.pi/180) 					   , 					 0, +np.cos(dec*np.pi/180)					   ]])
+	#A0 		= np.array([[ 	+np.cos(ra*deg_to_rad)*np.cos(dec*deg_to_rad), -np.sin(ra*deg_to_rad), -np.cos(ra*deg_to_rad)*np.sin(dec*deg_to_rad)],
+	#					[	+np.sin(ra*deg_to_rad)*np.cos(dec*deg_to_rad), +np.cos(ra*deg_to_rad), -np.sin(ra*deg_to_rad)*np.sin(dec*deg_to_rad)],
+	#					[	+np.sin(dec*deg_to_rad) 					 , 				   	    0, +np.cos(dec*deg_to_rad)					   ]])
 
 	## define RA and Dec for the North Galactic Pole (NGP) in degrees
 	ra_ngp  = 192.25
 	dec_ngp = 27.4
 	theta0  = 123 # the position angle of NGP relative to great semi-circle of the North Celetial Pole and the zero Galactic longitude
 	
-	T1      = np.array([[  +np.cos(theta0*np.pi/180), +np.sin(theta0*np.pi/180),  0],
-						[  +np.sin(theta0*np.pi/180), -np.cos(theta0*np.pi/180),  0],
-						[  						   0,			 			 0,  +1]])
+	T1      = np.array([[  +np.cos(theta0*deg_to_rad), +np.sin(theta0*deg_to_rad),  0],
+						[  +np.sin(theta0*deg_to_rad), -np.cos(theta0*deg_to_rad),  0],
+						[  						    0,			 			 	0,  +1]])
 
-	T2      = np.array([[-np.sin(dec_ngp*np.pi/180),  0, +np.cos(dec_ngp*np.pi/180)],
-						[						  0, -1, 						  0],
-						[+np.cos(dec_ngp*np.pi/180),  0, +np.sin(dec_ngp*np.pi/180)]])
+	T2      = np.array([[-np.sin(dec_ngp*deg_to_rad),  0, +np.cos(dec_ngp*deg_to_rad)],
+						[						   0, -1, 						  	0],
+						[+np.cos(dec_ngp*deg_to_rad),  0, +np.sin(dec_ngp*deg_to_rad)]])
 
-	T3      = np.array([[  +np.cos(ra_ngp*np.pi/180), +np.sin(ra_ngp*np.pi/180),  0],
-						[  +np.sin(ra_ngp*np.pi/180), -np.cos(ra_ngp*np.pi/180),  0],
-						[						   0,						  0, +1]])
+	T3      = np.array([[  +np.cos(ra_ngp*deg_to_rad), +np.sin(ra_ngp*deg_to_rad),  0],
+						[  +np.sin(ra_ngp*deg_to_rad), -np.cos(ra_ngp*deg_to_rad),  0],
+						[						    0,						    0, +1]])
 
 	## define the T matrix
 	T       = T1.dot(T2.dot(T3))
@@ -96,9 +99,6 @@ def compute_uvw_velocity(ra_J2000, dec_J2000, parallax, rv, mu_ra, mu_dec, e_par
 	uvw     = B.dot(np.array([	[rv], 
 								[k * mu_ra 	/ parallax], 
 								[k * mu_dec / parallax]]))
-	#u_vel   = uvw[0][0]
-	#v_vel   = uvw[1][0]
-	#w_vel   = uvw[2][0]
 
 	## solar uvw from Schonrich et al. (2010)
 	uvw_solar = np.array([	[11.1],	[12.24], [7.25]	])
