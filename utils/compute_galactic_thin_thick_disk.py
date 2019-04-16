@@ -44,16 +44,19 @@ def compute_galactic_pop_f(U, V, W, pop):
 
 	return k * factor
 
-def compute_galactic_pop_prob(U, V, W):
+def compute_galactic_pop_prob(U, V, W, pop='thick_thin'):
 	"""
 	Equation 3 from Bensby et al. (2003) to compute the probability of thick/thin disk probability.
 	"""
 
 	## compute the thick and thin disk population
-	thick_f	= compute_galactic_pop_f(u, v, w, 'thick')
-	thin_f 	= compute_galactic_pop_f(u, v, w, 'thin')
+	thick_f	= compute_galactic_pop_f(U, V, W, 'thick')
+	thin_f 	= compute_galactic_pop_f(U, V, W, 'thin')
 
-	# compute the thick/thin disk probability
-	prob 	= ( params['thick']['X'] / params['thin']['X'] ) * ( thick_f / thin_f )
+	if pop == 'thick_thin':
+		# compute the thick/thin disk probability
+		prob 	= ( params['thick']['X'] / params['thin']['X'] ) * ( thick_f / thin_f )
+	elif pop == 'halo_thick':
+		prob 	= ( params['halo']['X'] / params['thick']['X'] ) * ( compute_galactic_pop_f(U, V, W, 'halo') / thick_f )
 
 	return prob
