@@ -93,8 +93,8 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33, instrument='nirspec'
 
     # Check if the model already exists (grid point)
     if (Teff, Logg) in zip(T1['Temp'], T1['Logg']): 
-        flux2  = GetModel(T1['Temp'][np.where( (T1['Temp'] == Teff) & (T1['Logg'] == Logg))], T1['Logg'][np.where((T1['Temp'] == Teff) & (T1['Logg'] == Logg))])
-        waves2 = GetModel(T1['Temp'][np.where( (T1['Temp'] == Teff) & (T1['Logg'] == Logg))], T1['Logg'][np.where((T1['Temp'] == Teff) & (T1['Logg'] == Logg))], wave=True)
+        flux2  = GetModel(T1['Temp'][np.where( (T1['Temp'] == Teff) & (T1['Logg'] == Logg))], T1['Logg'][np.where((T1['Temp'] == Teff) & (T1['Logg'] == Logg))], modelset=modelset)
+        waves2 = GetModel(T1['Temp'][np.where( (T1['Temp'] == Teff) & (T1['Logg'] == Logg))], T1['Logg'][np.where((T1['Temp'] == Teff) & (T1['Logg'] == Logg))], modelset=modelset, wave=True)
         return waves2, flux2
 
     x1     = np.floor(Teff/100.)*100
