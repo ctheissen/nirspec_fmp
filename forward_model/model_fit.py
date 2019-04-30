@@ -50,6 +50,9 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	elif data is not None and instrument == 'apogee':
 		model    = nsp.Model(teff=teff, logg=logg, feh=z, modelset=modelset, instrument=instrument)
 	
+	elif data is None and instrument == 'nirspec':
+		model    = nsp.Model(teff=teff, logg=logg, feh=z, order=order, modelset=modelset, instrument=instrument)
+	
 	# wavelength offset
 	#model.wave += wave_offset
 
@@ -79,7 +82,42 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 			yh=model.flux, xl=data.wave))
 		model.wave = data.wave
 		# contunuum correction
-		model = nsp.continuum(data=data, mdl=model)
+		if data.instrument == 'nirspec':
+			model = nsp.continuum(data=data, mdl=model)
+		elif data.instrument == 'apogee':
+			deg         = 3
+
+			## because of the APOGEE bands, continuum is corrected from three pieces of the spectra
+			data0       = copy.deepcopy(data)
+			model0      = copy.deepcopy(model)
+
+			range0      = np.where((data0.wave >= data.oriWave0[0][-1]) & (data0.wave <= data.oriWave0[0][0]))
+			data0.wave  = data0.wave[range0]
+			data0.flux  = data0.flux[range0]
+			model0.wave = model0.wave[range0]
+			model0.flux = model0.flux[range0]
+			model0      = nsp.continuum(data=data0, mdl=model0, deg=deg)
+
+			data1       = copy.deepcopy(data)
+			model1      = copy.deepcopy(model)
+			range1      = np.where((data1.wave >= data.oriWave0[1][-1]) & (data1.wave <= data.oriWave0[1][0]))
+			data1.wave  = data1.wave[range1]
+			data1.flux  = data1.flux[range1]
+			model1.wave = model1.wave[range1]
+			model1.flux = model1.flux[range1]
+			model1      = nsp.continuum(data=data1, mdl=model1, deg=deg)
+
+			data2       = copy.deepcopy(data)
+			model2      = copy.deepcopy(model)
+			range2      = np.where((data2.wave >= data.oriWave0[2][-1]) & (data2.wave <= data.oriWave0[2][0]))
+			data2.wave  = data2.wave[range2]
+			data2.flux  = data2.flux[range2]
+			model2.wave = model2.wave[range2]
+			model2.flux = model2.flux[range2]
+			model2      = nsp.continuum(data=data2, mdl=model2, deg=deg)
+
+			model.flux  = np.array( list(model0.flux) + list(model1.flux) + list(model2.flux) )
+			model.wave  = np.array( list(model0.wave) + list(model1.wave) + list(model2.wave) )
 
 	# flux offset
 	model.flux += flux_offset

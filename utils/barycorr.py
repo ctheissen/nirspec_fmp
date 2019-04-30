@@ -38,19 +38,32 @@ def barycorr(header, instrument='nirspec'):
 	barycentric correction (float*u(km/s))
 
 	"""
-	date    = Time(header['DATE-OBS'], scale='utc')
-	jd      = date.jd
+	if instrument == 'nirspec':
+		date    = Time(header['DATE-OBS'], scale='utc')
+		jd      = date.jd
 
-	if jd >= 2458401.500000: # upgraded NIRSPEC
-		ut  = header['DATE-OBS'] + 'T' + header['UT'] 
-		ra  = header['RA']
-		dec = header['DEC']
-		sc  = SkyCoord('%s %s'%(ra, dec), unit=(u.hourangle, u.deg), equinox='J2000', frame='fk5')
-	else:
-		ut  = header['DATE-OBS'] + 'T' + header['UTC']
-		ra  = header['RA']
-		dec = header['DEC']
-		sc  = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, equinox='J2000', frame='fk5')
+		if jd >= 2458401.500000: # upgraded NIRSPEC
+			ut  = header['DATE-OBS'] + 'T' + header['UT'] 
+			ra  = header['RA']
+			dec = header['DEC']
+			sc  = SkyCoord('%s %s'%(ra, dec), unit=(u.hourangle, u.deg), equinox='J2000', frame='fk5')
+		else:
+			ut  = header['DATE-OBS'] + 'T' + header['UTC']
+			ra  = header['RA']
+			dec = header['DEC']
+			sc  = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, equinox='J2000', frame='fk5')
 
-	barycorr = sc.radial_velocity_correction(obstime=Time(ut, scale='utc'), location=keck)
+			barycorr = sc.radial_velocity_correction(obstime=Time(ut, scale='utc'), location=keck)
+
+	elif instrument == 'apogee':
+		ut      = header['UT-MID']
+		ra      = header['RA']
+		dec     = header['DEC']
+		sc      = SkyCoord(ra=ra*u.deg, dec=dec*u.deg, equinox='J2000', frame='fk5')
+
+		apogee  = EarthLocation.of_site('Apache Point Observatory')
+
+		barycorr = sc.radial_velocity_correction(obstime=Time(ut, scale='utc'), location=apogee)
+
+	
 	return barycorr.to(u.km/u.s)

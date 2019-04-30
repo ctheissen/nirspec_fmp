@@ -24,16 +24,25 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
                 the stellar atmosphere model
     deg     :   int 
                 the degree of the fitting polynomial. 
-                The default vaule is 5.
+                The default vaule is 10.
     
     Returns
     -------
     mdl     :   an instance of the Model object
                 A continuum corrected model by the fitted polynomial
     """
-    mdl_range      = np.where((mdl.wave >= data.wave[0]) & (mdl.wave <= data.wave[-1]))
-    mdl_wave       = mdl.wave[mdl_range]
-    mdl_flux       = mdl.flux[mdl_range]
+    #print('data wave:', type(data.wave[0]), data.wave[-1], data.wave.shape)
+    #print('model wave:', type(mdl.wave), mdl.wave[-1])
+    #print(data.wave)
+    #print(mdl.wave)
+    if data.instrument == 'nirspec':
+        mdl_range      = np.where((mdl.wave >= data.wave[0]) & (mdl.wave <= data.wave[-1]))
+        mdl_wave       = mdl.wave[mdl_range]
+        mdl_flux       = mdl.flux[mdl_range]
+    elif data.instrument == 'apogee':
+        mdl_range      = np.where((mdl.wave >= data.wave[-1]) & (mdl.wave <= data.wave[0]))
+        mdl_wave       = mdl.wave
+        mdl_flux       = mdl.flux
 
     mdl_int         = np.interp(data.wave, mdl_wave, mdl_flux)
     mdldiv          = data.flux/mdl_int
