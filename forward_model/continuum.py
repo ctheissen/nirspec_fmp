@@ -56,7 +56,11 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
     if data.instrument == 'nirspec':
         mdldiv[mdldiv  <= mean_mdldiv - 2 * std_mdldiv] = mean_mdldiv
         mdldiv[mdldiv  >= mean_mdldiv + 2 * std_mdldiv] = mean_mdldiv
-        pcont           = np.polyfit(data.wave, mdldiv, deg, w=1/data.noise**2)
+        try:
+            pcont           = np.polyfit(data.wave, mdldiv, deg, w=1/data.noise**2)
+        except:
+            ## if the length of the data flux and noise are not the same
+            pcont           = np.polyfit(data.wave, mdldiv, deg)
     
     ## outlier rejection for apogee
     elif data.instrument == 'apogee':
