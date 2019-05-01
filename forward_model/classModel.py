@@ -26,11 +26,13 @@ import nirspec_fmp as nsp
 
 class Model():
     """
-    The Model class reads in the BT-SETTL or PHOENIXACES models.    
+    The Model class reads in the BT-SETTL or PHOENIXACES models. 
+    The wavelength unit is Angstrom and the unit of the model flux is erg/s/cm^2/Angstrom.
+    (The models in the libraries have the unit of micron, which differed by 10^4 in flux)
 
     Parameters
     ----------
-    1. Read in a BT-Settl model
+    1. Read in a BT-Settl model or PHOENIXACES model.
     teff : int 
           The effective temperature, given from 500 to 3,500 K.
     logg : float
@@ -96,7 +98,7 @@ class Model():
                 modelset=self.modelset, order=self.order, instrument=self.instrument)
 
             self.wave = wave * 10000 #convert to Angstrom
-            self.flux = flux
+            self.flux = flux / 10000 #convert from erg/s/cm^2/micron to erg/s/cm^2/Angstrom
 
         elif self.instrument == 'apogee':
             self.teff     = kwargs.get('teff', 2500)
@@ -109,7 +111,7 @@ class Model():
                 modelset=self.modelset, order=self.order, instrument=self.instrument)
 
             self.wave = wave * 10000 #convert to Angstrom
-            self.flux = flux
+            self.flux = flux / 10000 #convert from erg/s/cm^2/micron to erg/s/cm^2/Angstrom
 
         else:
             self.wave   = kwargs.get('wave', [])
