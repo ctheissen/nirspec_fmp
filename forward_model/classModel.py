@@ -27,7 +27,7 @@ import nirspec_fmp as nsp
 class Model():
     """
     The Model class reads in the BT-SETTL or PHOENIXACES models. 
-    The wavelength unit is Angstrom and the unit of the model flux is erg/s/cm^2/Angstrom.
+    The unit of wavelength is in Angstrom and the unit of the model flux is in erg/s/cm^2/Angstrom.
     (The models in the libraries have the unit of micron, which differed by 10^4 in flux)
 
     Parameters
