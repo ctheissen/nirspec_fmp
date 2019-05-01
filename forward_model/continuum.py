@@ -40,6 +40,7 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
         mdl_wave       = mdl.wave[mdl_range]
         mdl_flux       = mdl.flux[mdl_range]
     elif data.instrument == 'apogee':
+        ## the index for apogee is reversed
         mdl_range      = np.where((mdl.wave >= data.wave[-1]) & (mdl.wave <= data.wave[0]))
         mdl_wave       = mdl.wave
         mdl_flux       = mdl.flux
@@ -51,14 +52,18 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
     mean_mdldiv     = np.mean(mdldiv)
     std_mdldiv      = np.std(mdldiv)
     
-    ## replace outliers with average value
-    mdldiv[mdldiv  <= mean_mdldiv - 2 * std_mdldiv] = mean_mdldiv
-    mdldiv[mdldiv  >= mean_mdldiv + 2 * std_mdldiv] = mean_mdldiv
-    pcont           = np.polyfit(data.wave, mdldiv, deg)
-    #select_poly_fit = np.where(np.absolute(mdldiv - mean_mdldiv) <= 2 * std_mdldiv)
-    #mdldiv          = mdldiv[select_poly_fit]
-    #data_wave_fit   = data.wave[select_poly_fit]
-    #pcont           = np.polyfit(data_wave_fit, mdldiv, deg)
+    ## replace outliers with average value for nirspec
+    if data.instrument == 'nirspec':
+        mdldiv[mdldiv  <= mean_mdldiv - 2 * std_mdldiv] = mean_mdldiv
+        mdldiv[mdldiv  >= mean_mdldiv + 2 * std_mdldiv] = mean_mdldiv
+        pcont           = np.polyfit(data.wave, mdldiv, deg, w=1/data.noise**2)
+    
+    ## outlier rejection for apogee
+    elif data.instrument == 'apogee':
+        select_poly_fit = np.where(np.absolute(mdldiv - mean_mdldiv) <= 2 * std_mdldiv)
+        mdldiv          = mdldiv[select_poly_fit]
+        data_wave_fit   = data.wave[select_poly_fit]
+        pcont           = np.polyfit(data_wave_fit, mdldiv, deg)
     
     mdl.flux       *= np.polyval(pcont, mdl.wave)
 
