@@ -266,7 +266,7 @@ np.save(save_to_path + '/samples', samples)
 sampler_chain = np.load(save_to_path + '/sampler_chain.npy')
 samples = np.load(save_to_path + '/samples.npy')
 
-ylabels = ["LSF (km/s)", "alpha", "flux offset", "wave offset0"]
+ylabels = ["LSF (km/s)", "\\alpha", "$F_{\lambda}$ offset", "$\lambda$ offset"]
 
 ## create walker plots
 plt.rc('font', family='sans-serif')

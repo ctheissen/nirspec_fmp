@@ -598,7 +598,7 @@ np.save(save_to_path + '/samples', samples)
 sampler_chain = np.load(save_to_path + '/sampler_chain.npy')
 samples = np.load(save_to_path + '/samples.npy')
 
-ylabels = ["$Teff (K)$","$log \, g$","$vsin \, i \, (km/s)$","$rv \, (km/s)$","$alpha$","$C_{flux}$","$C_{noise}$"]
+ylabels = ["$T_{eff}(K)$","$log \, g$","$vsin \, i(km/s)$","$RV(km/s)$","$\\alpha$","$C_{F_{\lambda}}$","$C_{noise}$"]
 
 ## create walker plots
 plt.rc('font', family='sans-serif')
