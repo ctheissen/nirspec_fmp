@@ -258,7 +258,7 @@ if modelset == 'btsettl08':
 	limits         = { 
 						'teff_min':max(priors['teff_min']-200,500), 'teff_max':min(priors['teff_max']+200,3500),
 						'logg_min':3.5,                             'logg_max':logg_max,
-						'vsini_min':0.0,                            'vsini_max':200.0,
+						'vsini_min':0.0,                            'vsini_max':100.0,
 						'rv_min':-200.0,                            'rv_max':200.0,
 						'alpha_min':0.1,                            'alpha_max':4.0,
 						'A_min':-A_const,							'A_max':A_const,
