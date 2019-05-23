@@ -340,6 +340,7 @@ ax1.plot(model.wave, model.flux, c='C3', ls='-', alpha=0.5)
 ax1.plot(model.wave, np.polyval(pcont, model.wave) + A_mcmc[0], c='C1', ls='-', alpha=0.5)
 ax1.plot(data.wave, data.flux, 'k-', alpha=0.5)
 ax1.plot(data.wave, data.flux-(model.flux+A_mcmc[0]),'k-', alpha=0.5)
+ax1.minorticks_on()
 plt.figtext(0.89,0.86,"{} O{}".format(tell_data_name, order),
 	color='k',
 	horizontalalignment='right',
