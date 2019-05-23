@@ -373,7 +373,7 @@ plt.xlabel('Wavelength ($\AA$)',fontsize=15)
 
 ax2 = ax1.twiny()
 ax2.plot(pixel, data.flux, color='w', alpha=0)
-ax2.set_xlabel('Pixel',fontsize=20)
+ax2.set_xlabel('Pixel',fontsize=15)
 ax2.tick_params(labelsize=15)
 ax2.set_xlim(pixel[0], pixel[-1])
 ax2.minorticks_on()
