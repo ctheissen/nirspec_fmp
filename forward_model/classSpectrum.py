@@ -213,6 +213,18 @@ class Spectrum():
 		self.sky   = np.delete(self.sky, list(self.mask))
 		self.mask  = self.mask[0]
 
+	def maskByModel(self, model, sigma=3, pixel_start=30, pixel_end=-10):
+		"""
+		Mask the data by a forward model.
+		"""
+		pixel        = np.delete(np.arange(len(self.oriWave)),self.mask)[pixel_start: pixel_end]
+		custom_mask2 = pixel[np.where(np.abs(self.flux-model.flux) > sigma*np.std(self.flux-model.flux))]
+		print(custom_mask2)
+		custom_mask2 = np.append(custom_mask2, np.array(self.mask))
+		custom_mask2.sort()
+		custom_mask2 = custom_mask2.tolist()
+		self.mask_custom(custom_mask2)
+
 	def plot(self, **kwargs):
 		"""
 		Plot the spectrum.
