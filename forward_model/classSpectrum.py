@@ -156,7 +156,6 @@ class Spectrum():
 				self.header7   = hdulist[7].header
 				self.header8   = hdulist[8].header
 				self.header9   = hdulist[9].header
-				self.header10  = hdulist[10].header
 
 				self.wave      = np.array(pow(10, crval1 + cdelt1 * np.arange(1, naxis1+1)))
 				self.flux      = np.array(list(hdulist[1].data[0])+list(hdulist[1].data[1])+list(hdulist[1].data[2]))
