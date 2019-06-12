@@ -146,6 +146,34 @@ class Spectrum():
 				## APOGEE APVISIT has corrected the telluric absorption; the forward-modeling routine needs to put it back
 				self.flux     *= self.tell
 
+			elif self.datatype == 'apstar':
+				crval1         = hdulist[0].header['CRVAL1']
+				cdelt1         = hdulist[0].header['CDELT1']
+				naxis1         = hdulist[0].header['NAXIS1']
+				self.header4   = hdulist[4].header
+				self.header5   = hdulist[5].header
+				self.header6   = hdulist[6].header
+				self.header7   = hdulist[7].header
+				self.header8   = hdulist[8].header
+				self.header9   = hdulist[9].header
+				self.header10  = hdulist[10].header
+
+				self.wave      = np.array(pow(10, crval1 + cdelt1 * np.arange(naxis1)))
+				self.flux      = np.array(list(hdulist[1].data[0])+list(hdulist[1].data[1])+list(hdulist[1].data[2]))
+				self.noise     = np.array(list(hdulist[2].data[0])+list(hdulist[2].data[1])+list(hdulist[2].data[2]))
+				self.sky       = np.array(list(hdulist[4].data[0])+list(hdulist[4].data[1])+list(hdulist[4].data[2]))
+				self.skynoise  = np.array(list(hdulist[5].data[0])+list(hdulist[5].data[1])+list(hdulist[5].data[2]))
+				self.tell      = np.array(list(hdulist[6].data[0])+list(hdulist[6].data[1])+list(hdulist[6].data[2]))
+				self.tellnoise = np.array(list(hdulist[7].data[0])+list(hdulist[7].data[1])+list(hdulist[7].data[2]))
+
+				# store the original parameters
+				self.oriWave   = np.array(pow(10, crval1 + cdelt1 * np.arange(naxis1)))		
+				self.oriFlux   = np.array(list(hdulist[1].data[0])+list(hdulist[1].data[1])+list(hdulist[1].data[2]))
+				self.oriNoise  = np.array(list(hdulist[2].data[0])+list(hdulist[2].data[1])+list(hdulist[2].data[2]))
+
+				## APOGEE APVISIT has corrected the telluric absorption; the forward-modeling routine needs to put it back
+				#self.flux     *= self.tell
+
 			self.header   = hdulist[0].header
 			self.header1  = hdulist[1].header
 			self.header2  = hdulist[2].header
