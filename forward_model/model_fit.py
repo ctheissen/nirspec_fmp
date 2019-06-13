@@ -84,7 +84,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 		# contunuum correction
 		if data.instrument == 'nirspec':
 			model = nsp.continuum(data=data, mdl=model)
-		elif data.instrument == 'apogee':
+		elif data.instrument == 'apogee' and data.datatype =='apvisit':
 			## set the order in the continuum fit
 			deg         = 5
 
@@ -92,10 +92,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 			data0       = copy.deepcopy(data)
 			model0      = copy.deepcopy(model)
 
-			if data.datatype =='apvisit':
-				range0      = np.where((data0.wave >= data.oriWave0[0][-1]) & (data0.wave <= data.oriWave0[0][0]))
-			elif data.datatype =='apstar':
-				range0      = np.where((data0.wave >= data.oriWave[0][-1]) & (data0.wave <= data.oriWave[0][0]))
+			range0      = np.where((data0.wave >= data.oriWave0[0][-1]) & (data0.wave <= data.oriWave0[0][0]))
 			data0.wave  = data0.wave[range0]
 			data0.flux  = data0.flux[range0]
 			data0.noise = data0.noise[range0]
@@ -125,6 +122,8 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 
 			model.flux  = np.array( list(model0.flux) + list(model1.flux) + list(model2.flux) )
 			model.wave  = np.array( list(model0.wave) + list(model1.wave) + list(model2.wave) )
+		elif data.instrument == 'apogee' and data.datatype =='apstar':
+			model = nsp.continuum(data=data, mdl=model)
 
 	# flux offset
 	model.flux += flux_offset
