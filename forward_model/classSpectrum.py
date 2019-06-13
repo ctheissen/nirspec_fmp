@@ -144,7 +144,7 @@ class Spectrum():
 				self.oriWave0  = hdulist[4].data
 
 				## APOGEE APVISIT has corrected the telluric absorption; the forward-modeling routine needs to put it back
-				self.flux     *= self.tell
+				#self.flux     *= self.tell
 
 			elif self.datatype == 'apstar':
 				crval1         = hdulist[0].header['CRVAL1']
