@@ -160,12 +160,12 @@ class Spectrum():
 				self.wave      = np.array(pow(10, crval1 + cdelt1 * np.arange(1, naxis1+1)))
 				self.flux      = hdulist[1].data
 				self.noise     = hdulist[2].data
-				self.sky       = hdulist[4].data[0]
-				self.skynoise  = hdulist[5].data[0]
-				self.tell      = hdulist[6].data[0]
-				self.tellnoise = hdulist[7].data[0]
-				self.lsfcoeff  = hdulist[8]
-				self.binary    = hdulist[9]
+				self.sky       = hdulist[4].data
+				self.skynoise  = hdulist[5].data
+				self.tell      = hdulist[6].data
+				self.tellnoise = hdulist[7].data
+				self.lsfcoeff  = hdulist[8].data
+				self.binary    = hdulist[9].data
 
 
 				# store the original parameters
