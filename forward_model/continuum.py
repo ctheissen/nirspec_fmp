@@ -41,7 +41,7 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
         mdl_flux       = mdl.flux[mdl_range]
     elif data.instrument == 'apogee':
         ## the index for apogee is reversed
-        mdl_range      = np.where((mdl.wave >= data.wave[-1]) & (mdl.wave <= data.wave[0]))
+        #mdl_range      = np.where((mdl.wave >= data.wave[-1]) & (mdl.wave <= data.wave[0]))
         mdl_wave       = mdl.wave
         mdl_flux       = mdl.flux
 
