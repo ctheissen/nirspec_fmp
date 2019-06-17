@@ -186,9 +186,9 @@ def convolveAPLSF(model, data, lsf_array):
 	kern_c = lsf_array[2]
 
 	## select the range of model flux in each chip
-	select_a = numpy.where( (model.wave <= data.oriWave0[0][0]+20) & (model.wave >= data.oriWave0[0][-1]-20) )
-	select_b = numpy.where( (model.wave <= data.oriWave0[1][0]+20) & (model.wave >= data.oriWave0[1][-1]-20) )
-	select_c = numpy.where( (model.wave <= data.oriWave0[2][0]+20) & (model.wave >= data.oriWave0[2][-1]-20) )
+	select_a = numpy.where( (model.wave <= data.oriWave0[0][0]+5) & (model.wave >= data.oriWave0[0][-1]-5) )
+	select_b = numpy.where( (model.wave <= data.oriWave0[1][0]+5) & (model.wave >= data.oriWave0[1][-1]-5) )
+	select_c = numpy.where( (model.wave <= data.oriWave0[2][0]+5) & (model.wave >= data.oriWave0[2][-1]-5) )
 
 	## convolution
 	convolve_flux_a_constkern = numpy.convolve(model.flux[select_a], kern_a, 'same')
