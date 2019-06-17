@@ -134,6 +134,8 @@ class Spectrum():
 				self.skynoise  = np.array(list(hdulist[6].data[0])+list(hdulist[6].data[1])+list(hdulist[6].data[2]))
 				self.tell      = np.array(list(hdulist[7].data[0])+list(hdulist[7].data[1])+list(hdulist[7].data[2]))
 				self.tellnoise = np.array(list(hdulist[8].data[0])+list(hdulist[8].data[1])+list(hdulist[8].data[2]))
+				self.wavecoeff = hdulist[9].data
+				self.lsfcoeff  = hdulist[10].data
 
 				# store the original parameters
 				self.oriWave   = np.array(list(hdulist[4].data[0])+list(hdulist[4].data[1])+list(hdulist[4].data[2]))
@@ -142,6 +144,7 @@ class Spectrum():
 
 				# to separate the continuum end points
 				self.oriWave0  = hdulist[4].data
+				self.oriFlux0  = hdulist[1].data
 
 				## APOGEE APVISIT has corrected the telluric absorption; the forward-modeling routine needs to put it back
 				#self.flux     *= self.tell
