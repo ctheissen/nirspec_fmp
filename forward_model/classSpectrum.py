@@ -127,20 +127,20 @@ class Spectrum():
 				self.header9   = hdulist[9].header
 				self.header10  = hdulist[10].header
 
-				self.wave      = np.array(list(hdulist[4].data[0])+list(hdulist[4].data[1])+list(hdulist[4].data[2]))
-				self.flux      = np.array(list(hdulist[1].data[0])+list(hdulist[1].data[1])+list(hdulist[1].data[2]))
-				self.noise     = np.array(list(hdulist[2].data[0])+list(hdulist[2].data[1])+list(hdulist[2].data[2]))
-				self.sky       = np.array(list(hdulist[5].data[0])+list(hdulist[5].data[1])+list(hdulist[5].data[2]))
-				self.skynoise  = np.array(list(hdulist[6].data[0])+list(hdulist[6].data[1])+list(hdulist[6].data[2]))
-				self.tell      = np.array(list(hdulist[7].data[0])+list(hdulist[7].data[1])+list(hdulist[7].data[2]))
-				self.tellnoise = np.array(list(hdulist[8].data[0])+list(hdulist[8].data[1])+list(hdulist[8].data[2]))
+				self.wave      = np.array(list(hdulist[4].data[2])+list(hdulist[4].data[1])+list(hdulist[4].data[0]))
+				self.flux      = np.array(list(hdulist[1].data[2])+list(hdulist[1].data[1])+list(hdulist[1].data[0]))
+				self.noise     = np.array(list(hdulist[2].data[2])+list(hdulist[2].data[1])+list(hdulist[2].data[0]))
+				self.sky       = np.array(list(hdulist[5].data[2])+list(hdulist[5].data[1])+list(hdulist[5].data[0]))
+				self.skynoise  = np.array(list(hdulist[6].data[2])+list(hdulist[6].data[1])+list(hdulist[6].data[0]))
+				self.tell      = np.array(list(hdulist[7].data[2])+list(hdulist[7].data[1])+list(hdulist[7].data[0]))
+				self.tellnoise = np.array(list(hdulist[8].data[2])+list(hdulist[8].data[1])+list(hdulist[8].data[0]))
 				self.wavecoeff = hdulist[9].data
 				self.lsfcoeff  = hdulist[10].data
 
 				# store the original parameters
-				self.oriWave   = np.array(list(hdulist[4].data[0])+list(hdulist[4].data[1])+list(hdulist[4].data[2]))
-				self.oriFlux   = np.array(list(hdulist[1].data[0])+list(hdulist[1].data[1])+list(hdulist[1].data[2]))
-				self.oriNoise  = np.array(list(hdulist[2].data[0])+list(hdulist[2].data[1])+list(hdulist[2].data[2]))
+				self.oriWave   = np.array(list(hdulist[4].data[2])+list(hdulist[4].data[1])+list(hdulist[4].data[0]))
+				self.oriFlux   = np.array(list(hdulist[1].data[2])+list(hdulist[1].data[1])+list(hdulist[1].data[0]))
+				self.oriNoise  = np.array(list(hdulist[2].data[2])+list(hdulist[2].data[1])+list(hdulist[2].data[0]))
 
 				# to separate the continuum end points
 				self.oriWave0  = hdulist[4].data
