@@ -119,6 +119,9 @@ class Spectrum():
 				self.oriNoise = np.array(hdulist[2].data)
 			
 			elif self.datatype == 'apvisit':
+				self.header1   = hdulist[1].header
+				self.header2   = hdulist[2].header
+				self.header3   = hdulist[3].header
 				self.header4   = hdulist[4].header
 				self.header5   = hdulist[5].header
 				self.header6   = hdulist[6].header
@@ -127,9 +130,38 @@ class Spectrum():
 				self.header9   = hdulist[9].header
 				self.header10  = hdulist[10].header
 
-				self.wave      = np.array(list(hdulist[4].data[0])+list(hdulist[4].data[1])+list(hdulist[4].data[2]))
-				self.flux      = np.array(list(hdulist[1].data[0])+list(hdulist[1].data[1])+list(hdulist[1].data[2]))
-				self.noise     = np.array(list(hdulist[2].data[0])+list(hdulist[2].data[1])+list(hdulist[2].data[2]))
+				# read the bitmask
+				self.bitmask   = hdulist[3].data
+
+				#import bitmask
+				mask_0 = []
+				for i in range(len(hdulist[3].data[0])):
+					bitmask = nsp.bits_set(hdulist[3].data[0][i])
+					if (0 in bitmask) or (1 in bitmask) or (2 in bitmask) or \
+					(3 in bitmask) or (4 in bitmask) or (5 in bitmask) or \
+					(6 in bitmask) or (12 in bitmask) or (14 in bitmask):
+						mask_0.append(i)
+				
+				mask_1 = []
+				for i in range(len(hdulist[3].data[1])):
+					bitmask = nsp.bits_set(hdulist[3].data[1][i])
+					if (0 in bitmask) or (1 in bitmask) or (2 in bitmask) or \
+					(3 in bitmask) or (4 in bitmask) or (5 in bitmask) or \
+					(6 in bitmask) or (12 in bitmask) or (14 in bitmask):
+						mask_1.append(i)
+				
+				mask_2 = []
+				for i in range(len(hdulist[3].data[2])):
+					bitmask = nsp.bits_set(hdulist[3].data[2][i])
+					if (0 in bitmask) or (1 in bitmask) or (2 in bitmask) or \
+					(3 in bitmask) or (4 in bitmask) or (5 in bitmask) or \
+					(6 in bitmask) or (12 in bitmask) or (14 in bitmask):
+						mask_2.append(i)
+
+
+				self.wave      = np.array(list(np.delete(hdulist[4].data[0], mask_0))+list(np.delete(hdulist[4].data[1], mask_1))+list(np.delete(hdulist[4].data[2], mask_2)))
+				self.flux      = np.array(list(np.delete(hdulist[1].data[0], mask_0))+list(np.delete(hdulist[1].data[1], mask_1))+list(np.delete(hdulist[1].data[2], mask_2)))
+				self.noise     = np.array(list(np.delete(hdulist[2].data[0], mask_0))+list(np.delete(hdulist[2].data[1], mask_1))+list(np.delete(hdulist[2].data[2], mask_2)))
 				self.sky       = np.array(list(hdulist[5].data[0])+list(hdulist[5].data[1])+list(hdulist[5].data[2]))
 				self.skynoise  = np.array(list(hdulist[6].data[0])+list(hdulist[6].data[1])+list(hdulist[6].data[2]))
 				self.tell      = np.array(list(hdulist[7].data[0])+list(hdulist[7].data[1])+list(hdulist[7].data[2]))
