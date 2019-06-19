@@ -90,7 +90,7 @@ class Spectrum():
 			self.path      = kwargs.get('path')
 			self.datatype  = kwargs.get('datatype','aspcap')
 			self.applymask = kwargs.get('applymask',False)
-			self.wavecal  = kwargs.get('wavecal', self)
+			self.applytell = kwargs.get('applytell', False)
 
 			hdulist        = fits.open(self.path)
 			
@@ -164,8 +164,10 @@ class Spectrum():
 				self.noise     = np.array(list(np.delete(hdulist[2].data[0], mask_0))+list(np.delete(hdulist[2].data[1], mask_1))+list(np.delete(hdulist[2].data[2], mask_2)))
 				self.sky       = np.array(list(hdulist[5].data[0])+list(hdulist[5].data[1])+list(hdulist[5].data[2]))
 				self.skynoise  = np.array(list(hdulist[6].data[0])+list(hdulist[6].data[1])+list(hdulist[6].data[2]))
-				self.tell      = np.array(list(hdulist[7].data[0])+list(hdulist[7].data[1])+list(hdulist[7].data[2]))
-				self.tellnoise = np.array(list(hdulist[8].data[0])+list(hdulist[8].data[1])+list(hdulist[8].data[2]))
+				self.tell      = np.array(list(np.delete(hdulist[7].data[0], mask_0))+list(np.delete(hdulist[7].data[1], mask_1))+list(np.delete(hdulist[7].data[2], mask_2)))
+				self.tellnoise = np.array(list(np.delete(hdulist[8].data[0], mask_0))+list(np.delete(hdulist[8].data[1], mask_1))+list(np.delete(hdulist[8].data[2], mask_2)))
+				if self.applytell:
+					self.flux *= self.tell
 				self.wavecoeff = hdulist[9].data
 				self.lsfcoeff  = hdulist[10].data
 
