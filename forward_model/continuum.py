@@ -71,6 +71,10 @@ def continuum(data, mdl, deg=10, prop=False, tell=False):
     
     mdl.flux       *= np.polyval(pcont, mdl.wave)
 
+    if data.instrument == 'apogee':
+        mdl.flux *= (np.std(data.flux[select_poly_fit])/np.std(mdl.flux[select_poly_fit]))
+        mdl.flux -= np.median(mdl.flux[select_poly_fit]) - np.median(data.flux[select_poly_fit])
+
     if prop:
         return mdl, np.polyval(pcont, mdl.wave)
     elif tell:
