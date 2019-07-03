@@ -382,6 +382,162 @@ plt.savefig(save_to_path+'/telluric_spectrum.png',dpi=300, bbox_inches='tight')
 #plt.show()
 plt.close()
 
+###################################################################################################
+## mask the bad data
+outlier_rejection = 3
+
+mask_region = np.where( np.abs( data.flux-  model.flux ) > outlier_rejection*np.std( data.flux - model.flux ) )
+
+data.wave = data.wave[mask_region]
+data.flux = data.flux[mask_region]
+
+## start based on the previous results
+
+pos = [np.array([	lsf_mcmc[0]   + ( np.max( lsf_mcmc[1], 		lsf_mcmc[2] ) )  * np.random.normal(), 
+				 	alpha_mcmc[0] + ( np.max( alpha_mcmc[1], 	alpha_mcmc[2] ) )  * np.random.normal(), 
+				 	A_mcmc[0]   + ( np.max( A_mcmc[1], A_mcmc[2] ) )  * np.random.normal(), 
+				 	B_mcmc[0]   + ( np.max( B_mcmc[1], B_mcmc[2] ) )  * np.random.normal(), ]) for i in range(nwalkers)]
+
+## run mcmc
+
+with Pool() as pool:
+	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data,), a=moves, pool=pool)
+	time1 = time.time()
+	sampler.run_mcmc(pos, step, progress=True)
+	time2 = time.time()
+	print('total time: ',(time2-time1)/60,' min.')
+	print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
+	print(sampler.acceptance_fraction)
+
+np.save(save_to_path + '/sampler_chain', sampler.chain[:, :, :])
+	
+samples = sampler.chain[:, :, :].reshape((-1, ndim))
+
+np.save(save_to_path + '/samples', samples)
+
+# create walker plots
+sampler_chain = np.load(save_to_path + '/sampler_chain2.npy')
+samples = np.load(save_to_path + '/samples2.npy')
+
+ylabels = ["$\Delta \\nu_{inst}$ (km/s)", "$\\alpha$", "$F_{\lambda}$ offset", "$\lambda$ offset ($\AA$)"]
+
+## create walker plots
+plt.rc('font', family='sans-serif')
+plt.tick_params(labelsize=30)
+fig = plt.figure(tight_layout=True)
+gs = gridspec.GridSpec(ndim, 1)
+gs.update(hspace=0.1)
+
+for i in range(ndim):
+	ax = fig.add_subplot(gs[i, :])
+	for j in range(nwalkers):
+		ax.plot(np.arange(1,int(step+1)), sampler_chain[j,:,i],'k',alpha=0.2)
+	ax.set_ylabel(ylabels[i])
+fig.align_labels()
+plt.minorticks_on()
+plt.xlabel('nstep')
+plt.savefig(save_to_path+'/walker2.png', dpi=300, bbox_inches='tight')
+#plt.show()
+plt.close()
+
+# create array triangle plots
+triangle_samples = sampler_chain[:, burn:, :].reshape((-1, ndim))
+#print(triangle_samples.shape)
+
+# create the final spectra comparison
+lsf_mcmc, alpha_mcmc, A_mcmc, B_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), 
+	zip(*np.percentile(triangle_samples, [16, 50, 84], axis=0)))
+
+# add the summary to the txt file
+file_log = open(log_path,"a")
+file_log.write("*** Below is the summary 2 *** \n")
+file_log.write("total_time {} min\n".format(str((time2-time1)/60)))
+file_log.write("mean_acceptance_fraction {0:.3f} \n".format(np.mean(sampler.acceptance_fraction)))
+file_log.write("lsf_mcmc {} km/s\n".format(str(lsf_mcmc)))
+file_log.write("alpha_mcmc {}\n".format(str(alpha_mcmc)))
+file_log.write("A_mcmc {}\n".format(str(A_mcmc)))
+file_log.write("B_mcmc {}\n".format(str(B_mcmc)))
+#file_log.write("C_mcmc {}\n".format(str(C_mcmc)))
+file_log.close()
+
+print(lsf_mcmc, alpha_mcmc, A_mcmc, B_mcmc)
+
+if '_' in tell_sp.name:
+	tell_data_name = tell_sp.name.split('_')[0]
+
+## triangular plots
+plt.rc('font', family='sans-serif')
+fig = corner.corner(triangle_samples, 
+	labels=ylabels,
+	truths=[lsf_mcmc[0], 
+	alpha_mcmc[0],
+	A_mcmc[0],
+	B_mcmc[0]],
+	quantiles=[0.16, 0.84],
+	label_kwargs={"fontsize": 20})
+plt.minorticks_on()
+fig.savefig(save_to_path+'/triangle2.png', dpi=300, bbox_inches='tight')
+#plt.show()
+plt.close()
+
+data2               = copy.deepcopy(data)
+data2.wave          = data2.wave + B_mcmc[0]
+telluric_model      = nsp.convolveTelluric(lsf_mcmc[0], data, alpha=alpha_mcmc[0])
+model, pcont        = nsp.continuum(data=data, mdl=telluric_model, deg=2, tell=True)
+model.flux         += A_mcmc[0]
+
+plt.tick_params(labelsize=20)
+fig = plt.figure(figsize=(20,8))
+ax1 = fig.add_subplot(111)
+ax1.plot(model.wave, model.flux, c='C3', ls='-', alpha=0.5)
+ax1.plot(model.wave, np.polyval(pcont, model.wave) + A_mcmc[0], c='C1', ls='-', alpha=0.5)
+ax1.plot(data.wave, data.flux, 'k-', alpha=0.5)
+ax1.plot(data.wave, data.flux-(model.flux+A_mcmc[0]),'k-', alpha=0.5)
+ax1.minorticks_on()
+plt.figtext(0.89,0.86,"{} O{}".format(tell_data_name, order),
+	color='k',
+	horizontalalignment='right',
+	verticalalignment='center',
+	fontsize=12)
+plt.figtext(0.89,0.83,"${0}^{{+{1}}}_{{-{2}}}/{3}^{{+{4}}}_{{-{5}}}/{6}^{{+{7}}}_{{-{8}}}$".format(\
+	round(lsf_mcmc[0],2),
+	round(lsf_mcmc[1],2),
+	round(lsf_mcmc[2],2),
+	round(alpha_mcmc[0],2),
+	round(alpha_mcmc[1],2),
+	round(alpha_mcmc[2],2),
+	round(A_mcmc[0],2),
+	round(A_mcmc[1],2),
+	round(A_mcmc[2],2)),
+	color='r',
+	horizontalalignment='right',
+	verticalalignment='center',
+	fontsize=12)
+plt.figtext(0.89,0.80,r"$\chi^2$ = {}, DOF = {}".format(\
+	round(nsp.chisquare(data,model)), round(len(data.wave-ndim)/3)),
+	color='k',
+	horizontalalignment='right',
+	verticalalignment='center',
+	fontsize=12)
+plt.fill_between(data.wave, -data.noise, data.noise, alpha=0.5)
+plt.tick_params(labelsize=15)
+plt.ylabel('Flux (counts/s)',fontsize=15)
+plt.xlabel('Wavelength ($\AA$)',fontsize=15)
+
+ax2 = ax1.twiny()
+ax2.plot(pixel, data.flux, color='w', alpha=0)
+ax2.set_xlabel('Pixel',fontsize=15)
+ax2.tick_params(labelsize=15)
+ax2.set_xlim(pixel[0], pixel[-1])
+ax2.minorticks_on()
+	
+plt.savefig(save_to_path+'/telluric_spectrum2.png',dpi=300, bbox_inches='tight')
+#plt.show()
+plt.close()
+
+
+###################################################################################################
+
 if save is True:
 	data_path = tell_sp.path + '/' + tell_sp.name + '_' + str(tell_sp.order) + '_all.fits'
 	with fits.open(data_path) as hdulist:

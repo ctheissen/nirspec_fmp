@@ -47,7 +47,8 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 		#print('teff ',type(teff),'logg ',type(logg), 'z', type(z), 'order', type(order), 'modelset', type(modelset))
 		model    = nsp.Model(teff=teff, logg=logg, feh=z, order=order, modelset=modelset, instrument=instrument)
 
-	elif data is not None and instrument == 'apogee':
+	#elif data is not None and instrument == 'apogee':
+	elif instrument == 'apogee':
 		model    = nsp.Model(teff=teff, logg=logg, feh=z, modelset=modelset, instrument=instrument)
 	
 	elif data is None and instrument == 'nirspec':
