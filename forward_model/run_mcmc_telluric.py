@@ -384,19 +384,23 @@ plt.close()
 
 ###################################################################################################
 ## mask the bad data
+"""
 outlier_rejection = 3
 
-mask_region = np.where( np.abs( data.flux-  model.flux ) > outlier_rejection*np.std( data.flux - model.flux ) )
+select     = np.where( np.abs( data.flux -  model.flux ) < outlier_rejection*np.std( data.flux - model.flux ) )
 
-data.wave = data.wave[mask_region]
-data.flux = data.flux[mask_region]
+data.wave  = data.wave[select]
+data.flux  = data.flux[select]
+data.noise = data.noise[select]
+pixel      = pixel[select]
+
 
 ## start based on the previous results
 
-pos = [np.array([	lsf_mcmc[0]   + ( np.max( lsf_mcmc[1], 		lsf_mcmc[2] ) )  * np.random.normal(), 
-				 	alpha_mcmc[0] + ( np.max( alpha_mcmc[1], 	alpha_mcmc[2] ) )  * np.random.normal(), 
-				 	A_mcmc[0]   + ( np.max( A_mcmc[1], A_mcmc[2] ) )  * np.random.normal(), 
-				 	B_mcmc[0]   + ( np.max( B_mcmc[1], B_mcmc[2] ) )  * np.random.normal(), ]) for i in range(nwalkers)]
+pos = [np.array([	lsf_mcmc[0]   + ( max( lsf_mcmc[1], 		lsf_mcmc[2] ) )  * np.random.normal(), 
+				 	alpha_mcmc[0] + ( max( alpha_mcmc[1], 	alpha_mcmc[2] ) )  * np.random.normal(), 
+				 	A_mcmc[0]   + ( max( A_mcmc[1], A_mcmc[2] ) )  * np.random.normal(), 
+				 	B_mcmc[0]   + ( max( B_mcmc[1], B_mcmc[2] ) )  * np.random.normal(), ]) for i in range(nwalkers)]
 
 ## run mcmc
 
@@ -409,11 +413,11 @@ with Pool() as pool:
 	print("Mean acceptance fraction: {0:.3f}".format(np.mean(sampler.acceptance_fraction)))
 	print(sampler.acceptance_fraction)
 
-np.save(save_to_path + '/sampler_chain', sampler.chain[:, :, :])
+np.save(save_to_path + '/sampler_chain2', sampler.chain[:, :, :])
 	
 samples = sampler.chain[:, :, :].reshape((-1, ndim))
 
-np.save(save_to_path + '/samples', samples)
+np.save(save_to_path + '/samples2', samples)
 
 # create walker plots
 sampler_chain = np.load(save_to_path + '/sampler_chain2.npy')
@@ -534,7 +538,7 @@ ax2.minorticks_on()
 plt.savefig(save_to_path+'/telluric_spectrum2.png',dpi=300, bbox_inches='tight')
 #plt.show()
 plt.close()
-
+"""
 
 ###################################################################################################
 
