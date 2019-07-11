@@ -276,6 +276,10 @@ elif modelset == 'phoenixaces':
 						'N_min':0.10,                               'N_max':2.50 				
 					}
 
+if final_mcmc:
+	limits['rv_min'] = priors['rv_min'] - 10
+	limits['rv_max'] = priors['rv_max'] + 10
+
 ## apply a custom mask
 data.mask_custom(custom_mask=custom_mask)
 
