@@ -1,6 +1,7 @@
 from .utils.barycorr import barycorr
 from .forward_model.classModel import Model
 from .forward_model.classSpectrum import Spectrum
+from .forward_model.classForwardModelInit import ForwardModelInit
 from .forward_model.integralResample import integralResample
 from .forward_model.InterpolateModel import InterpModel
 from .forward_model.rotation_broaden import lsf_rotate, broaden

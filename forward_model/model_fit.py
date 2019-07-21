@@ -39,6 +39,7 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	lsf        = kwargs.get('lsf', 6.0)   # instrumental LSF
 	tell       = kwargs.get('tell', True) # apply telluric
 	data       = kwargs.get('data', None) # for continuum correction and resampling
+	output_stellar_model = kwargs.get('output_stellar_model', False)
 	
 	if data is not None and instrument == 'nirspec':
 		order = data.order
@@ -64,6 +65,8 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	# apply rv (including the barycentric correction)
 	model.wave = rvShift(model.wave, rv=rv)
 	
+	if output_stellar_model:
+		stellar_model = copy.deepcopy(model)
 	# apply telluric
 	if tell is True:
 		model = nsp.applyTelluric(model=model, alpha=alpha, airmass='1.5')
@@ -71,20 +74,35 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 	model.flux = nsp.broaden(wave=model.wave, 
 		flux=model.flux, vbroad=lsf, rotate=False, gaussian=True)
 
+	if output_stellar_model:
+		stellar_model.flux = nsp.broaden(wave=stellar_model.wave, 
+			flux=stellar_model.flux, vbroad=lsf, rotate=False, gaussian=True)
+
 	# add a fringe pattern to the model
 	#model.flux *= (1+amp*np.sin(freq*(model.wave-phase)))
 
 	# wavelength offset
 	model.wave += wave_offset
 
+	if output_stellar_model: stellar_model.wave += wave_offset
+
 	# integral resampling
 	if data is not None:
 		model.flux = np.array(nsp.integralResample(xh=model.wave, 
 			yh=model.flux, xl=data.wave))
 		model.wave = data.wave
+
+		if output_stellar_model:
+			stellar_model.flux = np.array(nsp.integralResample(xh=stellar_model.wave, 
+				yh=stellar_model.flux, xl=data.wave))
+			stellar_model.wave = data.wave
 		# contunuum correction
 		if data.instrument == 'nirspec':
-			model = nsp.continuum(data=data, mdl=model)
+			if output_stellar_model:
+				model, cont_factor = nsp.continuum(data=data, mdl=model, prop=True)
+				stellar_model.flux *= cont_factor
+			else:
+				model = nsp.continuum(data=data, mdl=model)
 		elif data.instrument == 'apogee' and data.datatype =='apvisit':
 			## set the order in the continuum fit
 			deg         = 5
@@ -128,9 +146,13 @@ def makeModel(teff,logg,z,vsini,rv,alpha,wave_offset,flux_offset,**kwargs):
 
 	# flux offset
 	model.flux += flux_offset
+	if output_stellar_model: stellar_model.flux += flux_offset
 	#model.flux **= (1 + flux_exponent_offset)
 
-	return model
+	if output_stellar_model:
+		return model, stellar_model
+	else:
+		return model
 
 def rvShift(wavelength, rv):
 	"""
