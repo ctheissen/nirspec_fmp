@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use('Agg')
+#matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-plt.ioff()
+#plt.ioff()
 import matplotlib.gridspec as gridspec
 from astropy.io import fits
 import emcee
@@ -152,7 +152,24 @@ tell_sp.wave    = tell_sp.wave[pixel_start:pixel_end]
 tell_sp.flux    = tell_sp.flux[pixel_start:pixel_end]
 tell_sp.noise   = tell_sp.noise[pixel_start:pixel_end]
 
+## remove nan values in the noise
+mask    = np.isnan(tell_sp.noise)
+
+## invert the boolean mask and select only the non-nan values
+tell_sp.wave  = tell_sp.wave[np.invert(mask)]
+tell_sp.flux  = tell_sp.flux[np.invert(mask)]
+tell_sp.noise = tell_sp.noise[np.invert(mask)]
+
 data = copy.deepcopy(tell_sp)
+
+#print(np.isnan(tell_sp.noise))
+#print(np.isnan(tell_sp.flux))
+#print(np.isnan(tell_sp.wave))
+#
+#plt.plot(tell_sp.wave, tell_sp.flux)
+#plt.show()
+#plt.close()
+#sys.exit()
 
 ## MCMC functions
 def makeTelluricModel(lsf, alpha, flux_offset, wave_offset0, data=data):
