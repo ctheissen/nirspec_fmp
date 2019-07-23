@@ -263,7 +263,7 @@ if modelset == 'btsettl08':
 						'alpha_min':0.1,                            'alpha_max':6.0,
 						'A_min':-A_const,							'A_max':A_const,
 						'B_min':-0.4,                              'B_max':0.4,
-						'N_min':0.10,                               'N_max':2.50 				
+						'N_min':0.10,                               'N_max':5.0 				
 					}
 
 elif modelset == 'phoenixaces':
@@ -275,7 +275,7 @@ elif modelset == 'phoenixaces':
 						'alpha_min':0.1,                            'alpha_max':4.0,
 						'A_min':-A_const,							'A_max':A_const,
 						'B_min':-0.4,								'B_max':0.4,
-						'N_min':0.10,                               'N_max':2.50 				
+						'N_min':0.10,                               'N_max':5.0 				
 					}
 
 if final_mcmc:
