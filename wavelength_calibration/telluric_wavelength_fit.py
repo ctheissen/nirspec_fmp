@@ -613,7 +613,8 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# calculation the necessary parameters
 	pixel_range_start  = kwargs.get('pixel_range_start',0)
 	pixel_range_end    = kwargs.get('pixel_range_end',-1)
-	pixel0             = np.delete(np.arange(length1),data.mask)
+	#pixel0             = np.delete(np.arange(length1),data.mask)
+	pixel0             = np.arange(length1)
 	pixel              = pixel0[pixel_range_start:pixel_range_end]
 
 	# increase the telluric model strength for N3
@@ -652,11 +653,30 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 	# apply the custom mask
 	#plt.figure()
 	#plt.plot(data2.wave, data2.flux, lw=0.5, alpha=0.5, c='b')
-	if applymask:
-		mask_combined = np.union1d(mask_custom, data.mask)
-		pixel0      = np.delete(pixel0, mask_combined)
-		data2.wave  = np.delete(data.wave, mask_combined)
-		data2.flux  = np.delete(data.flux, mask_combined)
+	#if applymask:
+	#	mask_combined = np.union1d(mask_custom, data.mask)
+	#	print(mask_combined, type(mask_combined))
+	#	for i in mask_combined:
+	#		if (int(i) > pixel_range_start) and (int(i) < length1 + pixel_range_end -1): 
+	#			data2.oriFlux[int(i)] = (data2.oriFlux[int(i)-1] + data2.oriFlux[int(i)+1])/2
+	#			data2.flux = data2.oriFlux
+	#			data2.wave = data2.oriWave
+
+	#	data2.flux = data2.flux[pixel_range_start:pixel_range_end]
+	#	data2.wave = data2.wave[pixel_range_start:pixel_range_end]
+
+
+	#	plt.plot(data.wave, data.flux, 'k-', alpha=0.5, label='original data')
+	#	plt.plot(data2.wave, data2.flux, 'r-', alpha=0.5, label='median combined mask data')
+	#	plt.xlabel('$\lambda$ ($\AA)')
+	#	plt.ylabel('$F_{\lambda}$')
+	#	plt.legend()
+	#	plt.show()
+	#	plt.close()
+	#	sys.exit()
+	#	#pixel0      = np.delete(pixel0, mask_combined)
+	#	#data2.wave  = np.delete(data.wave, mask_combined)
+	#	#data2.flux  = np.delete(data.flux, mask_combined)
 
 	#plt.plot(data2.oriWave, data2.oriFlux/200.0, linewidth=0.5, alpha=0.5, color='black')
 	#plt.plot(data2.wave, data2.flux, linewidth=0.5, alpha=0.5, color='red')
@@ -1056,8 +1076,10 @@ def wavelengthSolutionFit(data, model, order, **kwargs):
 			ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
 					 label='corrected telluric data', alpha=1, linewidth=0.5)
 		else:
-			ax1.plot(new_wave_sol, data.flux[pixel_range_start:pixel_range_end], color='black', linestyle='-', 
+			ax1.plot(new_wave_sol, data.flux[pixel], color='black', linestyle='-', 
 					 label='corrected telluric data', alpha=1, linewidth=0.5)
+			#ax1.plot(new_wave_sol, data.flux[pixel_range_start:pixel_range_end], color='black', linestyle='-', 
+			#		 label='corrected telluric data', alpha=1, linewidth=0.5)
 		ax1.plot(model3.wave, model3.flux, 'r-' , label='telluric model', alpha=0.7, lw=0.5)
 		#ax1.plot(model2.wave, model2.flux, 'r-' ,label='telluric model',alpha=0.5)
 		ax1.set_xlabel("Wavelength ($\AA$)")
@@ -1204,7 +1226,7 @@ def run_wave_cal(data_name, data_path, order_list,
 	xcorr_step    = 0.05
 	niter         = 15
 	outlier_rej   = 3.
-	airmass       = '1.5'
+	#airmass       = '1.5'
 	pwv           = '0.5'
 
 	defringe_list = [62] #[35, 61, 62, 63, 64, 65, 66]
@@ -1255,28 +1277,6 @@ def run_wave_cal(data_name, data_path, order_list,
 		else:
 			xcorr_range = 15
 
-		data     = nsp.Spectrum(name=data_name, order=order, path=data_path, applymask=applymask)
-		length1  = len(data.oriWave) # preserve the length of the array
-
-		# the telluric standard model
-		wavelow  = data.wave[0]  - 200
-		wavehigh = data.wave[-1] + 200
-		model    = nsp.getTelluric(wavelow=wavelow, wavehigh=wavehigh, airmass=airmass, pwv=pwv)
-
-		# continuum correction for the data
-		data1    = copy.deepcopy(data)
-		data     = nsp.continuumTelluric(data=data, model=model)
-		## constant offset correction
-		const    = np.mean(data.flux) - np.mean(model.flux)
-		data.flux -= const
-
-		#data     = nsp.continuumTelluric(data=data, model=model)
-
-		#print(np.where(data.flux < 0.25))
-		#sys.exit
-
-		#data1    = copy.deepcopy(data)
-
 		# this is a test for O63 to reduce the fringing effects
 		if order == 32:
 			pixel_range_start = 10
@@ -1285,7 +1285,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		elif order == 33 or order == 34 \
 		or order == 36:
 			pixel_range_start = 20
-			pixel_range_end   = -1
+			pixel_range_end   = -30
 
 		elif order == 35:
 			pixel_range_start = 10
@@ -1358,14 +1358,104 @@ def run_wave_cal(data_name, data_path, order_list,
 			pixel_range_start = 0
 			pixel_range_end   = -1
 
-		if not data.applymask:
+		if not applymask:
 		#	pixel_range_start += 15
 			pixel_range_end   += -25
+
+		# use median value to replace the masked values later
+		data     = nsp.Spectrum(name=data_name, order=order, path=data_path, applymask=applymask)
+		length1  = len(data.oriWave) # preserve the length of the array
+
+		# the telluric standard model
+		wavelow  = data.wave[0]  - 200
+		wavehigh = data.wave[-1] + 200
+		# read the airmass from the data
+		airmass  = float(round(data.header['AIRMASS']*2)/2)
+		if airmass > 3.0: airmass = 3.0
+		print('airmass', airmass)
+		airmass  = str(airmass)
+
+		## estimating the pwv parameter
+		pwv_list = ['0.5', '1.0', '1.5', '2.5', '3.5', '5.0', '7.5', '10.0', '20.0']
+		pwv_chi2 = []
+		for pwv in pwv_list:
+			data_tmp       = copy.deepcopy(data)
+
+			data_tmp.flux  = data_tmp.flux[pixel_range_start:pixel_range_end]
+			data_tmp.wave  = data_tmp.wave[pixel_range_start:pixel_range_end]
+			data_tmp.noise = data_tmp.noise[pixel_range_start:pixel_range_end]
+
+			model_tmp      = nsp.getTelluric(wavelow=wavelow, wavehigh=wavehigh, airmass=airmass, pwv=pwv)
+			data_tmp       = nsp.continuumTelluric(data=data_tmp, model=model_tmp)
+
+			model_tmp.flux = np.array(nsp.integralResample(xh=model_tmp.wave, yh=model_tmp.flux, xl=data_tmp.wave))
+			model_tmp.wave = data_tmp.wave
+
+			pwv_chi2.append(nsp.chisquare(data_tmp, model_tmp))
+		# find the pwv with minimum chisquare
+		pwv_chi2_array = np.array(pwv_chi2)
+		print('pwv', pwv)
+		#plt.plot(pwv_list, pwv_chi2)
+		#plt.xlabel('pwv (mm)')
+		#plt.ylabel('$\chi^2$')
+		#plt.tight_layout()
+		#plt.show()
+		#plt.close()
+		#sys.exit()
+
+		pwv_min_index = np.where(pwv_chi2_array == np.min(pwv_chi2_array))[0][0]
+		pwv            = pwv_list[pwv_min_index]
+		
+
+		model    = nsp.getTelluric(wavelow=wavelow, wavehigh=wavehigh, airmass=airmass, pwv=pwv)
+
+		## Use the median values to replace bad single pixels
+		#data0 = copy.deepcopy(data)
+		if applymask:
+			data.flux  = data.oriFlux
+			data.wave  = data.oriWave
+			data.noise = data.oriNoise
+			
+			mask_combined = np.union1d(mask_custom, data.mask)
+
+			print('mediam-averaging the pixels:', data.mask)
+
+			for i in mask_combined:
+				if (int(i) > pixel_range_start) and (int(i) < length1 + pixel_range_end -1): 
+					data.oriFlux[int(i)] = (data.oriFlux[int(i)-1] + data.oriFlux[int(i)+1])/2
+					data.flux = data.oriFlux
+
+
+		#plt.plot(data0.wave, data0.flux, 'k-', alpha=0.5, label='original data')
+		#plt.plot(data.wave, data.flux, 'r-', alpha=0.5, label='median combined mask data')
+		#plt.xlabel('$\lambda$ ($\AA)')
+		#plt.ylabel('$F_{\lambda}$')
+		#plt.legend()
+		#plt.show()
+		#plt.close()
+		#sys.exit()
 
 		# select the pixel for wavelength calibration
 		#data.flux  = data.flux[pixel_range_start:pixel_range_end]
 		#data.wave  = data.wave[pixel_range_start:pixel_range_end]
 		#data.noise = data.noise[pixel_range_start:pixel_range_end]
+
+		# continuum correction for the data
+		data1    = copy.deepcopy(data)
+		data     = nsp.continuumTelluric(data=data, model=model)
+		## constant offset correction
+		const    = np.mean(data.flux) - np.mean(model.flux)
+		data.flux -= const
+
+		#print(len(data.wave),len(data.flux),len(data.noise))
+		#plt.plot(data.wave, data.flux, 'r-', alpha=0.5, label='median combined mask data')
+		#plt.xlabel('$\lambda$ ($\AA)')
+		#plt.ylabel('$F_{\lambda}$')
+		#plt.legend()
+		#plt.show()
+		#plt.close()
+		#sys.exit()
+	
 		
 		# defringe
 		if order in defringe_list:
@@ -1389,6 +1479,8 @@ def run_wave_cal(data_name, data_path, order_list,
 		file_log.write("data_path {} \n".format(data_path))
 		file_log.write("data_name {} \n".format(data_name))
 		file_log.write("order {} \n".format(order))
+		file_log.write("airmass {} \n".format(airmass))
+		file_log.write("pwv {} \n".format(pwv))
 		file_log.write("window_width {} \n".format(window_width))
 		file_log.write("window_step {} \n".format(window_step))
 		file_log.write("xcorr_range {} \n".format(xcorr_range))
@@ -1429,6 +1521,10 @@ def run_wave_cal(data_name, data_path, order_list,
 		# convert the flux back to the original data
 		data       = data1
 		data       = nsp.continuumTelluric(data=data, model=model)
+		if applymask:
+			data.wave  = np.delete(data.wave,data.mask)
+			data.flux  = np.delete(data.flux,data.mask)
+			data.noise = np.delete(data.noise,data.mask)
 		data.flux  = data.flux[pixel_range_start:pixel_range_end]
 		data.wave  = data.wave[pixel_range_start:pixel_range_end]
 		data.noise = data.noise[pixel_range_start:pixel_range_end]
@@ -1466,16 +1562,23 @@ def run_wave_cal(data_name, data_path, order_list,
 		
 		vbroad            = (299792.458)*np.mean(np.diff(data.wave))/np.mean(data.wave)
 		telluric_new      = copy.deepcopy(data)
+		new_wave_sol      = nsp.waveSolution(pixel,  *p0, order=order)
 		telluric_new.wave = new_wave_sol
+		#telluric_new.wave = nsp.waveSolution(pixel,  *p0, order=order)
 		telluric_new.flux = data.flux
+
 		# get an estimate for lsf and telluric alpha
-		lsf   = nsp.getLSF(telluric_new)#, continuum=False)
+		#if applymask:
+		lsf   = nsp.getLSF(telluric_new, continuum=False)
+		#else:
+		#	lsf   = nsp.getLSF(telluric_new)#, continuum=False)
 		#lsf   = nsp.getLSF2(telluric_new)#, continuum=False)
-		alpha = nsp.getAlpha(telluric_new, lsf, continuum=False)
+		#alpha = nsp.getAlpha(telluric_new, lsf, continuum=False)
+		alpha = 1.0
 		print("LSF = {} km/s; alpha = {}".format(lsf, alpha))
 
 		# make a telluric model for the input data
-		telluric = nsp.convolveTelluric(vbroad,data, alpha=alpha)
+		telluric = nsp.convolveTelluric(vbroad, data, alpha=alpha, airmass=airmass, pwv=pwv)
 		residual_telluric_data = nsp.residual(data,telluric)
 		# add the final LSF and alpha to the txt file
 		file_log = open("input_params_for_cal.txt","a")
@@ -1483,7 +1586,7 @@ def run_wave_cal(data_name, data_path, order_list,
 		file_log.write("alpha {}\n".format(alpha))
 		file_log.close()
 		
-		telluric_new2 = nsp.convolveTelluric(lsf, telluric_new, alpha=alpha)
+		telluric_new2 = nsp.convolveTelluric(lsf, telluric_new, alpha=alpha, airmass=airmass, pwv=pwv)
 		if order in defringe_list:
 			# add back the fringe
 			telluric_new2_no_fringe = copy.deepcopy(telluric_new2)

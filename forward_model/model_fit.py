@@ -218,14 +218,14 @@ def applyTelluric(model, alpha=1, airmass='1.5'):
 		
 	return model
 
-def convolveTelluric(lsf,telluric_data,alpha=1):
+def convolveTelluric(lsf, telluric_data, alpha=1.0, airmass='1.5', pwv='1.5'):
 	"""
 	Return a convolved telluric transmission model given a telluric data and lsf.
 	"""
 	# get a telluric standard model
 	wavelow               = telluric_data.wave[0]  - 50
 	wavehigh              = telluric_data.wave[-1] + 50
-	telluric_model        = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh)
+	telluric_model        = nsp.getTelluric(wavelow=wavelow,wavehigh=wavehigh, airmass=airmass, pwv=pwv)
 	telluric_model.flux **= alpha
 	# lsf
 	telluric_model.flux = nsp.broaden(wave=telluric_model.wave, flux=telluric_model.flux, 
