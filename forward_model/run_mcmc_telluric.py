@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-#plt.ioff()
+plt.ioff()
 import matplotlib.gridspec as gridspec
 from astropy.io import fits
 import emcee
