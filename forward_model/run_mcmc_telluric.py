@@ -159,6 +159,7 @@ mask    = np.isnan(tell_sp.noise)
 tell_sp.wave  = tell_sp.wave[np.invert(mask)]
 tell_sp.flux  = tell_sp.flux[np.invert(mask)]
 tell_sp.noise = tell_sp.noise[np.invert(mask)]
+pixel         = pixel[np.invert(mask)]
 
 data = copy.deepcopy(tell_sp)
 
