@@ -38,21 +38,37 @@ def InterpModel(Teff, Logg, modelset='btsettl08', order=33, instrument='nirspec'
 
         '''
         # See formula at:  http://en.wikipedia.org/wiki/Bilinear_interpolation
+        try:
+            points = sorted(points)               # order points by x, then by y
 
-        points = sorted(points)               # order points by x, then by y
-        (x1, y1, q11), (_x1, y2, q12), (x2, _y1, q21), (_x2, _y2, q22) = points
+            (x1, y1, q11), (_x1, y2, q12), (x2, _y1, q21), (_x2, _y2, q22) = points
+    
+            if x1 != _x1 or x2 != _x2 or y1 != _y1 or y2 != _y2:
+                raise ValueError('points do not form a rectangle')
+            if not x1 <= x <= x2 or not y1 <= y <= y2:
+                raise ValueError('(x, y) not within the rectangle')
+    
+            return 10**((q11 * (x2 - x) * (y2 - y) +
+                    q21 * (x - x1) * (y2 - y) +
+                    q12 * (x2 - x) * (y - y1) +
+                    q22 * (x - x1) * (y - y1)
+                   ) / ((x2 - x1) * (y2 - y1) + 0.0))
+        except:
+            # handling linear interpolation, it does not matter which y1 or y2 is larger
+            # see formula at: https://en.wikipedia.org/wiki/Linear_interpolation
+            (x1, y1, q11), (_x1, y2, q12), (x2, _y1, q21), (_x2, _y2, q22) = points
+            print(x1, x2, _x1, _x2)
+            print(y1, y2, _y1, _y2)
 
-        if x1 != _x1 or x2 != _x2 or y1 != _y1 or y2 != _y2:
-            raise ValueError('points do not form a rectangle')
-        if not x1 <= x <= x2 or not y1 <= y <= y2:
-            raise ValueError('(x, y) not within the rectangle')
+            if y1 != _y1 or y2 != _y2:
+                if y1 == y2 and _y1 == _y2:
+                    y2  = _y1
+                    q12 = q21
 
-        return 10**((q11 * (x2 - x) * (y2 - y) +
-                q21 * (x - x1) * (y2 - y) +
-                q12 * (x2 - x) * (y - y1) +
-                q22 * (x - x1) * (y - y1)
-               ) / ((x2 - x1) * (y2 - y1) + 0.0))
+                    return 10**( ( q11 * ( y2 - y ) + q12 * ( y - y1 ) ) / ( ( y2 - y1 ) ) )
 
+                else:
+                    raise ValueError('points do not form a line')      
 
     def GetModel(temp, logg, modelset='btsettl08', wave=False, instrument=instrument):
         feh, en = 0.00, 0.00
