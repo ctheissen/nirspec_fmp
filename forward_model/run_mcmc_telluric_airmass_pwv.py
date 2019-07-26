@@ -254,7 +254,7 @@ pos = [np.array([priors['lsf_min']       + (priors['lsf_max']        - priors['l
 				 priors['pwv_min']       + (priors['pwv_max']        - priors['pwv_min'] )  * np.random.uniform(), 
 				 priors['A_min']         + (priors['A_max']          - priors['A_min'])     * np.random.uniform(),
 				 priors['B_min']         + (priors['B_max']          - priors['B_min'])     * np.random.uniform()]) for i in range(nwalkers)]
-"""
+
 with Pool() as pool:
 	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data,), a=moves, pool=pool)
 	time1 = time.time()
@@ -269,7 +269,7 @@ np.save(save_to_path + '/sampler_chain', sampler.chain[:, :, :])
 samples = sampler.chain[:, :, :].reshape((-1, ndim))
 
 np.save(save_to_path + '/samples', samples)
-"""
+
 # create walker plots
 sampler_chain = np.load(save_to_path + '/sampler_chain.npy')
 samples = np.load(save_to_path + '/samples.npy')
@@ -302,7 +302,7 @@ triangle_samples = sampler_chain[:, burn:, :].reshape((-1, ndim))
 # create the final spectra comparison
 lsf_mcmc, airmass_mcmc, pwv_mcmc, A_mcmc, B_mcmc = map(lambda v: (v[1], v[2]-v[1], v[1]-v[0]), 
 	zip(*np.percentile(triangle_samples, [16, 50, 84], axis=0)))
-"""
+
 # add the summary to the txt file
 file_log = open(log_path,"a")
 file_log.write("*** Below is the summary *** \n")
@@ -314,7 +314,7 @@ file_log.write("pwv_mcmc {} km/s\n".format(str(pwv_mcmc)))
 file_log.write("A_mcmc {}\n".format(str(A_mcmc)))
 file_log.write("B_mcmc {}\n".format(str(B_mcmc)))
 file_log.close()
-"""
+
 print(lsf_mcmc, airmass_mcmc, pwv_mcmc, A_mcmc, B_mcmc)
 
 if '_' in tell_sp.name:
