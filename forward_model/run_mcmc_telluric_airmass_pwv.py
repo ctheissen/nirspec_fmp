@@ -1,15 +1,16 @@
-import tellurics
-import nirspec_fmp as nsp
-
-import pandas as pd
-import numpy as np
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 plt.ioff()
 import matplotlib.gridspec as gridspec
+import pandas as pd
+import numpy as np
 from astropy.io import fits
 import emcee
+
+import tellurics
+import nirspec_fmp as nsp
+
 from multiprocessing import Pool
 import corner
 import os
@@ -253,7 +254,7 @@ pos = [np.array([priors['lsf_min']       + (priors['lsf_max']        - priors['l
 				 priors['pwv_min']       + (priors['pwv_max']        - priors['pwv_min'] )  * np.random.uniform(), 
 				 priors['A_min']         + (priors['A_max']          - priors['A_min'])     * np.random.uniform(),
 				 priors['B_min']         + (priors['B_max']          - priors['B_min'])     * np.random.uniform()]) for i in range(nwalkers)]
-
+"""
 with Pool() as pool:
 	sampler = emcee.EnsembleSampler(nwalkers, ndim, lnprob, args=(data,), a=moves, pool=pool)
 	time1 = time.time()
@@ -268,7 +269,7 @@ np.save(save_to_path + '/sampler_chain', sampler.chain[:, :, :])
 samples = sampler.chain[:, :, :].reshape((-1, ndim))
 
 np.save(save_to_path + '/samples', samples)
-
+"""
 # create walker plots
 sampler_chain = np.load(save_to_path + '/sampler_chain.npy')
 samples = np.load(save_to_path + '/samples.npy')
