@@ -139,12 +139,13 @@ pixel       = np.delete(np.arange(length1),tell_sp.mask)
 pixel       = pixel[pixel_start:pixel_end]
 
 if priors is None:
-	if tell_sp.header['AIRMASS'] < 3.0:
-		airmass_0 = tell_sp.header['AIRMASS']
-	else:
-		airmass_0 = 2.9
+	#if tell_sp.header['AIRMASS'] < 3.0:
+	#	airmass_0 = tell_sp.header['AIRMASS']
+	#else:
+	#	airmass_0 = 2.9
 	priors      =	{	'lsf_min':2.0  		,  'lsf_max':10.0,
-						'airmass_min':airmass_0-0.1   ,  'airmass_max':airmass_0+0.1,
+						#'airmass_min':airmass_0-0.1   ,  'airmass_max':airmass_0+0.1,
+						'airmass_min':1.0   ,  'airmass_max':3.0,
 						'pwv_min':0.50 		,	'pwv_max':2.50,
 						'A_min':-500.0 		,  'A_max':500.0,
 						'B_min':-0.04  	    ,  'B_max':0.04    }
